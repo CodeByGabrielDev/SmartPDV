@@ -40,12 +40,13 @@ O sistema utiliza autenticação stateless baseada em JWT integrada ao Spring Se
 
 Exemplo de recuperação do usuário logado:
 
-
+```java
 UsuariosLoja usuarioSession = 
     (UsuariosLoja) SecurityContextHolder
         .getContext()
         .getAuthentication()
         .getPrincipal();
+```
 🏪 Contexto de Loja
 Cada funcionário (UsuariosLoja) é cadastrado já vinculado a uma loja específica.
 
