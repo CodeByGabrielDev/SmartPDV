@@ -1,8 +1,8 @@
 # SmartPDV
 
-Sistema de Ponto de Venda (PDV) desenvolvido com foco em arquitetura, segurança, regra de negócio bem definida e boas práticas de backend.
+Sistema de Ponto de Venda (PDV) desenvolvido com foco em arquitetura backend, segurança, regra de negócio bem definida e boas práticas de desenvolvimento com Java e Spring.
 
-O projeto evoluiu além de um CRUD simples e hoje já contempla autenticação stateless com JWT, controle de contexto por loja, validações de negócio no service layer e integração com Oracle + PL/SQL.
+O projeto evoluiu além de um CRUD simples e atualmente possui autenticação stateless com JWT, controle de contexto por loja, validações centralizadas na camada de serviço e integração com Oracle utilizando PL/SQL.
 
 ---
 
@@ -12,50 +12,33 @@ O projeto evoluiu além de um CRUD simples e hoje já contempla autenticação s
 - Spring Boot
 - Spring Security
 - JWT (JSON Web Token)
+- JPA / Hibernate
 - Oracle Database
 - PL/SQL
-- JPA / Hibernate
-- Lombok
 - Maven
+- Lombok
 
 ---
 
 ## 🔐 Segurança
 
-O sistema utiliza:
+O sistema utiliza autenticação stateless baseada em JWT integrada ao Spring Security.
 
-- Autenticação stateless com JWT
-- Filtro customizado (`JwtAuthenticationFilter`)
-- `UserDetailsService` personalizado
-- Contexto de autenticação via `SecurityContextHolder`
+### Fluxo de autenticação:
 
-Fluxo:
-
-1. Usuário realiza login
-2. Token JWT é gerado
+1. O usuário realiza login.
+2. O backend gera um token JWT.
 3. A cada requisição protegida:
-   - O filtro valida o token
-   - Recupera o usuário no banco
-   - Injeta no `SecurityContext`
-4. A aplicação identifica automaticamente:
-   - Usuário logado
+   - O `JwtAuthenticationFilter` intercepta a requisição.
+   - O token é validado.
+   - O usuário é recuperado no banco.
+   - O `SecurityContext` é populado.
+4. O sistema identifica automaticamente:
+   - Usuário autenticado
    - Loja vinculada
    - Permissões
 
----
-
-## 🏪 Contexto de Loja
-
-Cada funcionário (`UsuariosLoja`) é vinculado diretamente a uma loja.
-
-Isso permite que:
-
-- Toda venda seja automaticamente associada à loja correta
-- Abertura e fechamento de caixa respeitem o contexto do login
-- O sistema evite conflitos entre filiais
-- Reduza erro humano na seleção de loja
-
-Exemplo:
+Exemplo de recuperação do usuário logado:
 
 ```java
 UsuariosLoja usuarioSession = 
@@ -63,8 +46,21 @@ UsuariosLoja usuarioSession =
         .getContext()
         .getAuthentication()
         .getPrincipal();
+🏪 Contexto de Loja
+Cada funcionário (UsuariosLoja) é cadastrado já vinculado a uma loja específica.
+
+Isso permite que:
+
+Toda venda seja automaticamente associada à loja correta.
+
+Abertura e fechamento de caixa respeitem o contexto do login.
+
+O sistema evite conflitos entre filiais.
+
+Haja redução de erro humano na seleção de loja.
+
 💰 Módulo de Caixa
-Funcionalidades atuais:
+Funcionalidades implementadas:
 
 Abertura de caixa
 
@@ -74,20 +70,23 @@ Validação de caixa já aberto por loja
 
 Controle de autorização por loja vinculada
 
-Regras importantes:
+Alimentação de caixa aberto
 
-Não é permitido abrir dois caixas simultaneamente para a mesma loja
+Regras implementadas:
+Não é permitido abrir dois caixas simultaneamente para a mesma loja.
 
-Não é permitido fechar caixa de outra loja
+Não é permitido fechar caixa de loja diferente da vinculada ao usuário.
 
-Toda operação valida o contexto do usuário autenticado
+Toda operação valida o contexto do usuário autenticado.
+
+Conflito de filial gera erro HTTP apropriado.
 
 🧠 Regra de Negócio
-A regra de negócio está centralizada na camada de Service.
+A regra de negócio está centralizada na camada Service.
 
-Controllers apenas expõem endpoints.
+Controllers apenas expõem endpoints e delegam responsabilidade.
 
-Exemplo de validações implementadas:
+Exemplos de validações implementadas:
 
 CPF duplicado por loja
 
@@ -99,54 +98,67 @@ Conflito de filial no fechamento de caixa
 
 Verificação de caixa já aberto
 
+Essa abordagem torna o código:
+
+Mais previsível
+
+Mais testável
+
+Mais sustentável
+
 🗄️ Banco de Dados
 Banco utilizado: Oracle
 
-Estrutura relacional bem definida
+Características:
 
-Integridade por chave estrangeira
+Estrutura relacional com integridade referencial
 
-Uso de PL/SQL para reforçar regras críticas no nível do banco
+Uso de PL/SQL para reforço de regras críticas no banco
 
-Objetivo:
-Garantir que regras essenciais não dependam exclusivamente da aplicação.
+Validações complementares ao backend
+
+Objetivo: garantir que regras essenciais não dependam exclusivamente da aplicação.
 
 📂 Estrutura do Projeto
-Config
- ├── SecurityConfiguration
- ├── JwtAuthenticationFilter
- └── UsuariosLojaDetailsService
+src/main/java/br/com/SmartPDV/SmartPDV
 
-Controller
- ├── AuthController
- └── CaixaController
+├── Config
+│   ├── SecurityConfiguration
+│   ├── JwtAuthenticationFilter
+│   └── UsuariosLojaDetailsService
+│
+├── Controller
+│   ├── AuthController
+│   └── CaixaController
+│
+├── Services
+│   ├── CaixaService
+│   └── ...
+│
+├── Entities
+│   ├── UsuariosLoja
+│   ├── Loja
+│   ├── Caixa
+│   └── Venda
+│
+├── Repository
+│   ├── FuncionarioLoja
+│   ├── CaixaRepository
+│   └── ...
+│
+└── ResponseDTOs
+📌 Versionamento da API
+A API segue padrão versionado:
 
-Service
- ├── CaixaService
- └── ...
+/api-smartpdv/v1/
+Exemplos:
 
-Entities
- ├── UsuariosLoja
- ├── Loja
- ├── Caixa
- └── Venda
-
-Repository
- ├── FuncionarioLoja
- ├── CaixaRepository
- └── ...
-📌 Versionamento de API
-Endpoints seguem padrão versionado:
-
-/api-smartpdv/v1/...
-Exemplo:
-
-POST /api-smartpdv/v1/cashiers/open
-PUT  /api-smartpdv/v1/cashiers/{id}/close
+POST   /api-smartpdv/v1/cashiers/open
+PUT    /api-smartpdv/v1/cashiers/{id}/close
 🔮 Próximos Passos
-Implementação completa de vendas
+Implementação completa do módulo de vendas
 
-Controle de roles/perfis mais refinado
+Controle mais refinado de roles/perfis
 
 Integração com frontend (Angular)
 
@@ -154,22 +166,20 @@ Melhorias em auditoria e logs
 
 Evolução para arquitetura mais desacoplada
 
-📚 Objetivo do Projeto
-O SmartPDV não é apenas um sistema funcional.
+Implementação de testes automatizados
 
-É um ambiente real de estudo focado em:
+📚 Objetivo do Projeto
+O SmartPDV é um projeto focado em evolução técnica e boas práticas, contemplando:
 
 Arquitetura backend
 
-Segurança
+Segurança com JWT
 
-Boas práticas
+Regra de negócio centralizada
 
-Tomada de decisão técnica
+Integração com banco corporativo (Oracle)
 
-Estruturação de regra de negócio
-
-Integração com banco corporativo
+Estrutura preparada para escalar
 
 👨‍💻 Autor
 Gabriel Lima de Oliveira
