@@ -17,7 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api-smartpdv/auth")
 @RequiredArgsConstructor
 public class PaginaPrincipalController {
-
+	
+	
 	private final PaginaPrincipal paginaService;
 
 	@PostMapping("/register/employee")
