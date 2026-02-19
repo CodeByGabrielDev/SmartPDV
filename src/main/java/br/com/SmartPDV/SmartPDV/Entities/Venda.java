@@ -14,8 +14,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Venda {
 
 	@Id
@@ -39,67 +45,22 @@ public class Venda {
 	@JoinColumn(name = "id_funcionario")
 	private UsuariosLoja usuario;
 	@OneToMany(mappedBy = "venda")
-	private List<ItemVenda>itemVenda = new ArrayList<>();
+	private List<ItemVenda> itemVenda = new ArrayList<>();
 	@OneToMany(mappedBy = "venda")
-	private List<Pagamento>pgto = new ArrayList<>();
+	private List<Pagamento> pgto = new ArrayList<>();
 	@OneToMany(mappedBy = "venda")
-	private List<NotaFiscal>nota = new ArrayList<>();
-	
-	public Venda(Caixa caixa, Clientes cliente, LocalDateTime dataHora, double valorTotal, double desconto) {
+	private List<NotaFiscal> nota = new ArrayList<>();
+
+	public Venda(Caixa caixa, Clientes cliente, LocalDateTime dataHora, double valorTotal, Loja loja, double desconto,
+			UsuariosLoja usuario) {
 		super();
 		this.caixa = caixa;
 		this.cliente = cliente;
 		this.dataHora = dataHora;
 		this.valorTotal = valorTotal;
+		this.loja = loja;
 		this.desconto = desconto;
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public Caixa getCaixa() {
-		return caixa;
-	}
-
-	public void setCaixa(Caixa caixa) {
-		this.caixa = caixa;
-	}
-
-	public Clientes getCliente() {
-		return cliente;
-	}
-
-	public void setCliente(Clientes cliente) {
-		this.cliente = cliente;
-	}
-
-	public LocalDateTime getDataHora() {
-		return dataHora;
-	}
-
-	public void setDataHora(LocalDateTime dataHora) {
-		this.dataHora = dataHora;
-	}
-
-	public double getValorTotal() {
-		return valorTotal;
-	}
-
-	public void setValorTotal(double valorTotal) {
-		this.valorTotal = valorTotal;
-	}
-
-	public double getDesconto() {
-		return desconto;
-	}
-
-	public void setDesconto(double desconto) {
-		this.desconto = desconto;
+		this.usuario = usuario;
 	}
 
 }

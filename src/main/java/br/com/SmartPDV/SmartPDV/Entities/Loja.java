@@ -44,6 +44,8 @@ public class Loja {
 	private List<NotaFiscal> notaFiscal = new ArrayList<>();
 	@OneToMany(mappedBy = "lojaVinculada")
 	private List<UsuariosLoja> usuario = new ArrayList<>();
+	@OneToMany(mappedBy = "loja")
+	private List<NotaFiscalItem>notaItem = new ArrayList<>();
 
 	public Loja() {
 

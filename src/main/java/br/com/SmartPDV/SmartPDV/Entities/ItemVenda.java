@@ -10,8 +10,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@NoArgsConstructor
+@Getter
+@Setter
 @Table(name = "item_venda")
 public class ItemVenda {
 	@Id
@@ -28,13 +34,11 @@ public class ItemVenda {
 	private double valorUnitario;
 	@Column(name = "valor_total")
 	private double valorTotal;
+	@Column(name = "porcentagem_desconto")
+	private double porcentDesconto;
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
-
-	public ItemVenda() {
-
-	}
 
 	public ItemVenda(Venda venda, Produto produto, int qtd, double valorUnitario, double valorTotal) {
 		super();
