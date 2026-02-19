@@ -9,7 +9,7 @@ import br.com.SmartPDV.SmartPDV.Entities.Venda;
 @Service
 public class NotaFiscalItemService {
 	@Transactional
-	public void inserirItensFiscais(Venda venda, ItemVenda itensVenda) {
+	public void inserirItensFiscais( ItemVenda itensVenda) {
 		
 	}
 }

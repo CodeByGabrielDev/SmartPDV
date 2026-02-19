@@ -11,7 +11,7 @@ import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
 
 @Repository
 public interface NotaFiscalitemRepository extends CrudRepository<NotaFiscalItem, Long> {
-	@Query("SELECT E FROM NotaFiscalItem E WHERE E.nfNumero =:nf_numero AND E.serieNfe = :serieNfe AND E.loja.id = :cod_filial")
+	@Query("SELECT E FROM NotaFiscalItem E WHERE E.nota.nf_numero =:nf_numero AND E.serieNfe = :serieNfe AND E.loja.id = :cod_filial")
 	List<NotaFiscalItem> findItensFiscaisByNfNumeroAndSerieNfAndCodFilial(@Param("nf_numero") long nf_numero,
 			@Param("serieNfe") int serieNfe, @Param("cod_filial") long cod_filial);
 
