@@ -29,13 +29,13 @@ public class NotaFiscalImpostoItem {
 	@Column(name = "valor_liquido_produto")
 	private Double valorLiquidoProduto;
 	@Column(name = "base_calculo")
-	private double baseCalculo;
+	private Double baseCalculo;
 	@Column(name = "aliquota_aplicada")
-	private double aliquotaAplicada;
+	private Double aliquotaAplicada;
 	@Column(name = "reducao_base_")
-	private double reducaoBaseAplicada;
+	private Double reducaoBaseAplicada;
 
-	private double valorImpostoCalculado;
+	private Double valorImpostoCalculado;
 	/*
 	 * tabela que vou utilizar para calcular o imposto, por exemplo, uma nota fiscal
 	 * que contem 200 reais em produtos pode conter uma redução na base de calculo
@@ -43,9 +43,8 @@ public class NotaFiscalImpostoItem {
 	 * 
 	 */
 
-
-	public NotaFiscalImpostoItem(TipoImposto tipo, NotaFiscal numero, Double valorLiquidoProduto, double baseCalculo,
-			double aliquotaAplicada, double reducaoBaseAplicada, double valorImpostoCalculado) {
+	public NotaFiscalImpostoItem(TipoImposto tipo, NotaFiscal numero, Double valorLiquidoProduto, Double baseCalculo,
+			Double aliquotaAplicada, Double reducaoBaseAplicada, Double valorImpostoCalculado) {
 		super();
 		this.tipo = tipo;
 		this.numero = numero;
@@ -54,7 +53,7 @@ public class NotaFiscalImpostoItem {
 		this.aliquotaAplicada = aliquotaAplicada;
 		this.reducaoBaseAplicada = reducaoBaseAplicada;
 		this.valorImpostoCalculado = valorImpostoCalculado;
-		
+
 	}
 
 }

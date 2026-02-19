@@ -14,8 +14,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "Clientes")
 public class Clientes {
 	/*
@@ -24,7 +31,7 @@ public class Clientes {
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@Column(name = "nome_cliente")
 	private String nomeCliente;
 	@Column(name = "cpf_cnpj")
@@ -36,14 +43,10 @@ public class Clientes {
 	private LocalDateTime dataCadastramento;
 	@OneToMany(mappedBy = "cliente")
 	private List<Venda> venda = new ArrayList<>();
-	private boolean inativo;
-
-	public Clientes() {
-
-	}
+	private Boolean inativo;
 
 	public Clientes(String nomeCliente, String cpfCnpj, String email, String telefone, TiposCliente tipo,
-			LocalDateTime dataCadastramento, boolean inativo) {
+			LocalDateTime dataCadastramento, Boolean inativo) {
 		super();
 		this.nomeCliente = nomeCliente;
 		this.cpfCnpj = cpfCnpj;
@@ -52,70 +55,6 @@ public class Clientes {
 		this.tipo = tipo;
 		this.dataCadastramento = dataCadastramento;
 		this.inativo = inativo;
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getNomeCliente() {
-		return nomeCliente;
-	}
-
-	public void setNomeCliente(String nomeCliente) {
-		this.nomeCliente = nomeCliente;
-	}
-
-	public String getCpfCnpj() {
-		return cpfCnpj;
-	}
-
-	public void setCpfCnpj(String cpfCnpj) {
-		this.cpfCnpj = cpfCnpj;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getTelefone() {
-		return telefone;
-	}
-
-	public void setTelefone(String telefone) {
-		this.telefone = telefone;
-	}
-
-	public LocalDateTime getDataCadastramento() {
-		return dataCadastramento;
-	}
-
-	public void setDataCadastramento(LocalDateTime dataCadastramento) {
-		this.dataCadastramento = dataCadastramento;
-	}
-
-	public boolean isInativo() {
-		return inativo;
-	}
-
-	public void setInativo(boolean inativo) {
-		this.inativo = inativo;
-	}
-
-	public TiposCliente getTipo() {
-		return tipo;
-	}
-
-	public void setTipo(TiposCliente tipo) {
-		this.tipo = tipo;
 	}
 
 }

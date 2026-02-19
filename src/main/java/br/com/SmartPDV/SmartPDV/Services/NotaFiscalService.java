@@ -23,7 +23,7 @@ public class NotaFiscalService {
 
 	@Transactional
 	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens) {
-		NotaFiscal notaEmissao = new NotaFiscal(65, 0, 5102, venda.getLoja(), 0, venda, LocalDateTime.now(),
+		NotaFiscal notaEmissao = new NotaFiscal(65, (long) 0, 5102, venda.getLoja(), 0.0, venda, LocalDateTime.now(),
 				StatusNotaFiscal.PENDENTE);
 
 		double interadorDeDescontos = 0;

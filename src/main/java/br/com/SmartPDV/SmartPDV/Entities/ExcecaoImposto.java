@@ -26,16 +26,16 @@ import lombok.Setter;
 public class ExcecaoImposto {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@Column(name = "data_criacao")
 	private LocalDateTime dataCriacao;
 	@Column(name = "natureza_operacao")
-	private int naturezaoOperacao;
+	private Integer naturezaoOperacao;
 	@ManyToOne
 	@JoinColumn(name = "id_loja_filial")
 	private Loja loja;
 	private String descricao;
-	private boolean inativo;
+	private Boolean inativo;
 	@Column(name = "atualizado_em")
 	private LocalDateTime atualizadoEm;
 	@OneToMany(mappedBy = "excecaoImposto")
@@ -44,8 +44,8 @@ public class ExcecaoImposto {
 	private List<NotaFiscalItem> itensFiscais = new ArrayList<>();
 
 
-	public ExcecaoImposto(LocalDateTime dataCriacao, int naturezaoOperacao, Loja loja, String descricao,
-			boolean inativo, LocalDateTime atualizadoEm) {
+	public ExcecaoImposto(LocalDateTime dataCriacao, Integer naturezaoOperacao, Loja loja, String descricao,
+			Boolean inativo, LocalDateTime atualizadoEm) {
 		super();
 		this.dataCriacao = dataCriacao;
 		this.naturezaoOperacao = naturezaoOperacao;

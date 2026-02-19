@@ -15,13 +15,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "estoque_produto")
 public class EstoqueProduto {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "id_produto")
 	private Produto produto;
@@ -29,50 +35,12 @@ public class EstoqueProduto {
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
 	@Column(name = "qtd_atual")
-	private int qtdAtual;
+	private Integer qtdAtual;
 
-	
-	
-	public EstoqueProduto() {
-
-	}
-
-	public EstoqueProduto(Produto produto, Loja loja, int qtdAtual) {
+	public EstoqueProduto(Produto produto, Loja loja, Integer qtdAtual) {
 		super();
 		this.produto = produto;
 		this.loja = loja;
-		this.qtdAtual = qtdAtual;
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public Produto getProduto() {
-		return produto;
-	}
-
-	public void setProduto(Produto produto) {
-		this.produto = produto;
-	}
-
-	public Loja getCodigoFilial() {
-		return loja;
-	}
-
-	public void setCodigoFilial(Loja loja) {
-		this.loja = loja;
-	}
-
-	public int getQtdAtual() {
-		return qtdAtual;
-	}
-
-	public void setQtdAtual(int qtdAtual) {
 		this.qtdAtual = qtdAtual;
 	}
 

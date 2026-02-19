@@ -20,17 +20,17 @@ import lombok.Setter;
 public class ExcecaoImpostoItem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "id_excecao_imposto")
 	private ExcecaoImposto excecaoImposto;
 	private TipoImposto tipo;
-	private double aliquota;
-	private double reducaoBase;
-	private boolean inativo;
+	private Double aliquota;
+	private Double reducaoBase;
+	private Boolean inativo;
 
-	public ExcecaoImpostoItem(ExcecaoImposto excecaoImposto, TipoImposto tipo, double aliquota, double reducaoBase,
-			boolean inativo) {
+	public ExcecaoImpostoItem(ExcecaoImposto excecaoImposto, TipoImposto tipo, Double aliquota, Double reducaoBase,
+			Boolean inativo) {
 		super();
 		this.excecaoImposto = excecaoImposto;
 		this.tipo = tipo;

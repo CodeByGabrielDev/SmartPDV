@@ -21,13 +21,13 @@ public class FormaPgto {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@Column(name = "desc_forma_pgto")
 	private String descFormaPgto;
 	@OneToMany(mappedBy = "formaPgto")
 	private List<Pagamento> pgto = new ArrayList<>();
 
-	public FormaPgto(long id, String descFormaPgto) {
+	public FormaPgto(Long id, String descFormaPgto) {
 		super();
 		this.id = id;
 		this.descFormaPgto = descFormaPgto;

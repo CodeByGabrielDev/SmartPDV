@@ -27,7 +27,7 @@ import lombok.Setter;
 public class BandeirasCartao {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@Column(name = "tipo_bandeira")
 	private String tipoBandeira;
 	@OneToMany(mappedBy = "bandeiraCartao")

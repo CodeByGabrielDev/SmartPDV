@@ -41,7 +41,7 @@ public class CaixaService {
 
 		Caixa caixa = this.caixa.findById(idCaixa).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa nao encontrado na base de dados"));
-		if (caixa.isFechado()) {
+		if (caixa.getFechado()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Caixa ja fechado");
 		}
 
@@ -65,7 +65,7 @@ public class CaixaService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
 					"Conflito de codigos de filiais, validar o codigo atrelado ao login realiznado a vneda e o caixa aberto");
 		}
-		if (caixa.isFechado()) {
+		if (caixa.getFechado()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
 					" Caixa fechado, por gentileza averiguar abertura de caixa.");
 		}

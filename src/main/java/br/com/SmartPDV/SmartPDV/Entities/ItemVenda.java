@@ -22,25 +22,25 @@ import lombok.Setter;
 public class ItemVenda {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "id_venda")
 	private Venda venda;
 	@ManyToOne
 	@JoinColumn(name = "id_produto")
 	private Produto produto;
-	private int qtd;
+	private Integer qtd;
 	@Column(name = "valor_unitario")
-	private double valorUnitario;
+	private Double valorUnitario;
 	@Column(name = "valor_total")
-	private double valorTotal;
+	private Double valorTotal;
 	@Column(name = "porcentagem_desconto")
-	private double porcentDesconto;
+	private Double porcentDesconto;
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
 
-	public ItemVenda(Venda venda, Produto produto, int qtd, double valorUnitario, double valorTotal) {
+	public ItemVenda(Venda venda, Produto produto, Integer qtd, Double valorUnitario, Double valorTotal) {
 		super();
 		this.venda = venda;
 		this.produto = produto;

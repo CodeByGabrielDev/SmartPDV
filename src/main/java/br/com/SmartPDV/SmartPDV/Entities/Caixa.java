@@ -26,7 +26,7 @@ public class Caixa {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
@@ -41,13 +41,13 @@ public class Caixa {
 	private Double valorInicial;
 	@Column(name = "valor_final")
 	private Double valorFinal;
-	private boolean fechado;
+	private Boolean fechado;
 	@OneToMany(mappedBy = "caixa")
 	private List<Venda> venda = new ArrayList<>();
 
 
 	public Caixa(Loja loja, UsuariosLoja usuarios, LocalDateTime dataAbertura, LocalDateTime dataFechamento,
-			Double valorInicial, Double valorFinal, boolean fechado) {
+			Double valorInicial, Double valorFinal, Boolean fechado) {
 		super();
 		this.loja = loja;
 		this.usuarios = usuarios;

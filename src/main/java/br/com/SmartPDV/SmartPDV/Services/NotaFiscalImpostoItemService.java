@@ -30,7 +30,7 @@ public class NotaFiscalImpostoItemService {
 				NotaFiscalImpostoItem notaItemImposto = new NotaFiscalImpostoItem(e.getTipo(), n.getNota(),
 						n.getValorLiquidoItem(),
 						n.getValorLiquidoItem() - (n.getValorLiquidoItem() * (e.getReducaoBase() / 100)),
-						e.getAliquota(), e.getReducaoBase(), 0);
+						e.getAliquota(), e.getReducaoBase(), 0.0);
 				notaItemImposto.setValorImpostoCalculado(notaItemImposto.getBaseCalculo() * (e.getAliquota() / 100));
 				this.notaFiscalImpostoItem.save(notaItemImposto);
 			}

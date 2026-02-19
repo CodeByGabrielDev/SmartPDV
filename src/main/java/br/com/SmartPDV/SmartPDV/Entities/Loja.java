@@ -9,23 +9,26 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Loja {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@Column(name = "razao_social")
 	private String razaoSocial;
-
 	private String cnpj;
-
 	private String IE;
-
 	private String endereco;
-
-	private boolean inativo;
+	private Boolean inativo;
 	@OneToMany(mappedBy = "loja")
 	private List<EstoqueProduto> estoque = new ArrayList<>();
 	@OneToMany(mappedBy = "loja")
@@ -45,66 +48,14 @@ public class Loja {
 	@OneToMany(mappedBy = "lojaVinculada")
 	private List<UsuariosLoja> usuario = new ArrayList<>();
 	@OneToMany(mappedBy = "loja")
-	private List<NotaFiscalItem>notaItem = new ArrayList<>();
+	private List<NotaFiscalItem> notaItem = new ArrayList<>();
 
-	public Loja() {
-
-	}
-
-	public Loja(String razaoSocial, String cnpj, String iE, String endereco, boolean inativo) {
+	public Loja(String razaoSocial, String cnpj, String iE, String endereco, Boolean inativo) {
 		super();
 		this.razaoSocial = razaoSocial;
 		this.cnpj = cnpj;
 		IE = iE;
 		this.endereco = endereco;
-		this.inativo = inativo;
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getRazaoSocial() {
-		return razaoSocial;
-	}
-
-	public void setRazaoSocial(String razaoSocial) {
-		this.razaoSocial = razaoSocial;
-	}
-
-	public String getCnpj() {
-		return cnpj;
-	}
-
-	public void setCnpj(String cnpj) {
-		this.cnpj = cnpj;
-	}
-
-	public String getIE() {
-		return IE;
-	}
-
-	public void setIE(String iE) {
-		IE = iE;
-	}
-
-	public String getEndereco() {
-		return endereco;
-	}
-
-	public void setEndereco(String endereco) {
-		this.endereco = endereco;
-	}
-
-	public boolean isInativo() {
-		return inativo;
-	}
-
-	public void setInativo(boolean inativo) {
 		this.inativo = inativo;
 	}
 

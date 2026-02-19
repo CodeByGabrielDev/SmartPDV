@@ -27,12 +27,12 @@ public class NotaFiscal {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long nf_numero;
+	private Long nf_numero;
 	@Column(name = "serie_nf")
-	private int serieNf;
+	private Integer serieNf;
 	@Column(name = "chave_nfe")
-	private long chaveNfe;
-	private int cfop;
+	private Long chaveNfe;
+	private Integer cfop;
 	@ManyToOne
 	@JoinColumn(name = "id_cliente")
 	private Clientes cliente;
@@ -60,7 +60,7 @@ public class NotaFiscal {
 	@OneToMany(mappedBy = "numero")
 	private List<NotaFiscalImpostoItem> numero = new ArrayList<>();
 
-	public NotaFiscal(int serieNf, long chaveNfe, int cfop, Loja loja, double desconto, Venda venda,
+	public NotaFiscal(Integer serieNf, Long chaveNfe, Integer cfop, Loja loja, Double desconto, Venda venda,
 			LocalDateTime dataEmissao, StatusNotaFiscal statusNota) {
 		super();
 		this.serieNf = serieNf;

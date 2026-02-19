@@ -10,14 +10,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "transito_entrada_fiscal")
+@Getter
+@Setter
+@NoArgsConstructor
 public class TransitoEntradaFiscal {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long nfNumero;
+	private Long nfNumero;
 	@Column(name = "momento_de_entrada")
 	private LocalDateTime momentoEntrada;
 
@@ -27,7 +33,7 @@ public class TransitoEntradaFiscal {
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
 	@Column(name = "qtd_produtos")
-	private int qtdProdutos;
+	private Integer qtdProdutos;
 	
 	
 	

@@ -26,7 +26,7 @@ public class Venda {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "id_caixa")
 	private Caixa caixa;
@@ -36,11 +36,11 @@ public class Venda {
 	@Column(name = "data_hora")
 	private LocalDateTime dataHora;
 	@Column(name = "valor_total")
-	private double valorTotal;
+	private Double valorTotal;
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
-	private double desconto;
+	private Double desconto;
 	@ManyToOne
 	@JoinColumn(name = "id_funcionario")
 	private UsuariosLoja usuario;
@@ -51,7 +51,7 @@ public class Venda {
 	@OneToMany(mappedBy = "venda")
 	private List<NotaFiscal> nota = new ArrayList<>();
 
-	public Venda(Caixa caixa, Clientes cliente, LocalDateTime dataHora, double valorTotal, Loja loja, double desconto,
+	public Venda(Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal, Loja loja, Double desconto,
 			UsuariosLoja usuario) {
 		super();
 		this.caixa = caixa;

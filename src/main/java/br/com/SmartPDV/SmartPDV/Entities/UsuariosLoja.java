@@ -23,7 +23,7 @@ import jakarta.persistence.Table;
 public class UsuariosLoja implements UserDetails {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	@Column(name = "nome_vendedor")
 	private String nomeVendedor;
 	private String cpf;
@@ -33,7 +33,7 @@ public class UsuariosLoja implements UserDetails {
 	@OneToMany(mappedBy = "usuarios")
 	private List<Caixa> caixa = new ArrayList<>();
 	private PerfilVendedor perfil;
-	private boolean inativo;
+	private Boolean inativo;
 	@OneToMany(mappedBy = "usuario")
 	private List<Venda> venda = new ArrayList<>();
 	@ManyToOne
@@ -59,7 +59,6 @@ public class UsuariosLoja implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// por enquanto simples, depois você liga com PerfilVendedor
 		return List.of(() -> "ROLE_" + this.perfil.name());
 	}
 
@@ -70,7 +69,6 @@ public class UsuariosLoja implements UserDetails {
 
 	@Override
 	public String getUsername() {
-		// aqui você define o que é "login" pro Spring
 		return this.login;
 	}
 
