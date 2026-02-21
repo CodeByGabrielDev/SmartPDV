@@ -19,12 +19,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class NotaFiscalImpostoItemService {
-	private final NotaFiscalRepository notaRepository;
-	private final NotaFiscalitemRepository notaFiscalItemRepository;
 	private final NotaFiscalImpostoItemRepository notaFiscalImpostoItem;
 
 	@Transactional
 	public void calculaImposto(List<NotaFiscalItem> itens) {
+		List<NotaFiscalImpostoItem> imposto = new ArrayList<>();
 		for (NotaFiscalItem n : itens) {
 			for (ExcecaoImpostoItem e : n.getExcecaoImposto().getExcecaoImpostoItem()) {
 				NotaFiscalImpostoItem notaItemImposto = new NotaFiscalImpostoItem(e.getTipo(), n.getNota(),
@@ -32,9 +31,11 @@ public class NotaFiscalImpostoItemService {
 						n.getValorLiquidoItem() - (n.getValorLiquidoItem() * (e.getReducaoBase() / 100)),
 						e.getAliquota(), e.getReducaoBase(), 0.0);
 				notaItemImposto.setValorImpostoCalculado(notaItemImposto.getBaseCalculo() * (e.getAliquota() / 100));
-				this.notaFiscalImpostoItem.save(notaItemImposto);
+				imposto.add(notaItemImposto);
+
 			}
 		}
+		this.notaFiscalImpostoItem.saveAll(imposto);
 
 	}
 }

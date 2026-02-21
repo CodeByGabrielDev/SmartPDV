@@ -39,6 +39,8 @@ public class UsuariosLoja implements UserDetails {
 	@ManyToOne
 	@JoinColumn(name = "id_loja_vinculada")
 	private Loja lojaVinculada;
+	@OneToMany(mappedBy = "usuario")
+	private List<NotaEntrada>notaEntrada = new ArrayList<>();
 
 	public UsuariosLoja() {
 

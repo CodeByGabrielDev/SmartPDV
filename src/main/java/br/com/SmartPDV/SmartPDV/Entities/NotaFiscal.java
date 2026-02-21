@@ -27,7 +27,9 @@ public class NotaFiscal {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long nf_numero;
+	private Long id;
+	@Column(name = "nf_numero")
+	private Long nfNumero;
 	@Column(name = "serie_nf")
 	private Integer serieNf;
 	@Column(name = "chave_nfe")
@@ -41,7 +43,7 @@ public class NotaFiscal {
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
-	private double desconto;
+	private Double desconto;
 	@Column(name = "valor_total_imposto")
 	private Double valorTotalDeImpostoAPagar;
 	@Column(name = "valor_bruto_nota")
@@ -55,19 +57,28 @@ public class NotaFiscal {
 	private LocalDateTime dataEmissao;
 	@Column(name = "status_nota")
 	private StatusNotaFiscal statusNota;
+	@ManyToOne
+	@JoinColumn(name = "id_loja_destino")
+	private Loja lojaDestino;
 	@OneToMany(mappedBy = "nota")
 	private List<NotaFiscalItem> itensFiscais = new ArrayList<>();
 	@OneToMany(mappedBy = "numero")
 	private List<NotaFiscalImpostoItem> numero = new ArrayList<>();
 
-	public NotaFiscal(Integer serieNf, Long chaveNfe, Integer cfop, Loja loja, Double desconto, Venda venda,
-			LocalDateTime dataEmissao, StatusNotaFiscal statusNota) {
+	public NotaFiscal(Long nfNumero,Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente, Loja loja,
+			Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota, Double valorLiquidoNota,
+			Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota) {
 		super();
 		this.serieNf = serieNf;
 		this.chaveNfe = chaveNfe;
 		this.cfop = cfop;
+		this.cliente = cliente;
+		this.cpfCliente = cpfCliente;
 		this.loja = loja;
 		this.desconto = desconto;
+		this.valorTotalDeImpostoAPagar = valorTotalDeImpostoAPagar;
+		this.valorBrutoNota = valorBrutoNota;
+		this.valorLiquidoNota = valorLiquidoNota;
 		this.venda = venda;
 		this.dataEmissao = dataEmissao;
 		this.statusNota = statusNota;

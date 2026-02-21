@@ -33,12 +33,11 @@ public class NotaFiscalItem {
 	@ManyToOne
 	@JoinColumn(name = "id_produto")
 	private Produto produto;
-	private Long numeroItem;
+	private Integer numeroItem;
 	private Integer quantidadeItens;
 	private Double valorBrutoItem;
 	private Double valorLiquidoItem;
 	private Double desconto;
-
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
@@ -46,7 +45,7 @@ public class NotaFiscalItem {
 	@JoinColumn(name = "id_excecao_imposto")
 	private ExcecaoImposto excecaoImposto;
 
-	public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto, Long numeroItem, Integer quantidadeItens,
+	public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto, Integer numeroItem, Integer quantidadeItens,
 			Double desconto, Loja loja, ExcecaoImposto excecaoImposto) {
 		super();
 		this.nota = nota;

@@ -27,6 +27,8 @@ public class Venda {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	private Long ticket;
 	@ManyToOne
 	@JoinColumn(name = "id_caixa")
 	private Caixa caixa;

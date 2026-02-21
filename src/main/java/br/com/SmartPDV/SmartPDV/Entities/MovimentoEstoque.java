@@ -2,7 +2,6 @@ package br.com.SmartPDV.SmartPDV.Entities;
 
 import java.time.LocalDateTime;
 
-
 import org.hibernate.annotations.ManyToAny;
 
 import br.com.SmartPDV.SmartPDV.Enum.TipoDeMovimento;
@@ -31,13 +30,17 @@ public class MovimentoEstoque {
 	@ManyToOne
 	@JoinColumn(name = "id_produto")
 	private Produto produto;
+	@Column(name = "qtd_itens")
+	private Integer qtdItens;
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
 	private TipoDeMovimento tipo;
+	@ManyToOne
+	@JoinColumn(name = "id_nota_entrada")
+	private NotaEntrada entradaMercadoria;
 	@Column(name = "data_movimentacao")
 	private LocalDateTime dataMovimento;
-
 
 	public MovimentoEstoque(Produto produto, Loja loja, TipoDeMovimento tipo, LocalDateTime dataMovimento) {
 		super();
@@ -46,8 +49,5 @@ public class MovimentoEstoque {
 		this.tipo = tipo;
 		this.dataMovimento = dataMovimento;
 	}
-
-	
-	
 
 }
