@@ -2,7 +2,7 @@ package br.com.SmartPDV.SmartPDV.Enum;
 
 public enum PerfilVendedor {
 
-	ADMIN(1), GERENTE(2), FUNCIONARIO(3), CONTABILIDADE(4);
+	ADMIN(1), GERENTE(2), FUNCIONARIO(3), CONTABILIDADE(4), MATRIZ(5);
 
 	private final int codigo;
 

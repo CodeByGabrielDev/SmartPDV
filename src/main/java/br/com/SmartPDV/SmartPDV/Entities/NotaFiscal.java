@@ -65,10 +65,10 @@ public class NotaFiscal {
 	@OneToMany(mappedBy = "numero")
 	private List<NotaFiscalImpostoItem> numero = new ArrayList<>();
 
-	public NotaFiscal(Long nfNumero,Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente, Loja loja,
-			Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota, Double valorLiquidoNota,
-			Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota) {
-		super();
+	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
+			Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota,
+			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota) {
+		this.nfNumero = nfNumero;
 		this.serieNf = serieNf;
 		this.chaveNfe = chaveNfe;
 		this.cfop = cfop;
@@ -82,6 +82,28 @@ public class NotaFiscal {
 		this.venda = venda;
 		this.dataEmissao = dataEmissao;
 		this.statusNota = statusNota;
+	}
+
+	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
+			Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota,
+			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota,
+			Loja lojaDestino) {
+		super();
+		this.nfNumero = nfNumero;
+		this.serieNf = serieNf;
+		this.chaveNfe = chaveNfe;
+		this.cfop = cfop;
+		this.cliente = cliente;
+		this.cpfCliente = cpfCliente;
+		this.loja = loja;
+		this.desconto = desconto;
+		this.valorTotalDeImpostoAPagar = valorTotalDeImpostoAPagar;
+		this.valorBrutoNota = valorBrutoNota;
+		this.valorLiquidoNota = valorLiquidoNota;
+		this.venda = venda;
+		this.dataEmissao = dataEmissao;
+		this.statusNota = statusNota;
+		this.lojaDestino = lojaDestino;
 	}
 
 }

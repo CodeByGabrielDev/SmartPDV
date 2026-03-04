@@ -36,12 +36,16 @@ public class EstoqueProduto {
 	private Loja loja;
 	@Column(name = "qtd_atual")
 	private Integer qtdAtual;
-
-	public EstoqueProduto(Produto produto, Loja loja, Integer qtdAtual) {
+	@Column(name = "codigo_bara")
+	private String codigoBarra;
+	public EstoqueProduto(Produto produto, Loja loja, Integer qtdAtual, String codigoBarra) {
 		super();
 		this.produto = produto;
 		this.loja = loja;
 		this.qtdAtual = qtdAtual;
+		this.codigoBarra = codigoBarra;
 	}
+
+	
 
 }
