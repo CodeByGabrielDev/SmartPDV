@@ -33,17 +33,13 @@ public class TransitoLojaService {
 		TransitoLoja notaTransito = this.transito.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nota nao encontrada na base de dados"));
 		alimentacao.alimentaEstoqueNotaTransito(notaTransito);
-		/*
-		 * public NotaEntrada(Long nfNumero, Integer serieNf, String chaveNfe, Loja
-		 * loja, LocalDateTime dataEmissao, LocalDateTime dataEntrada, Double
-		 * valorTotalNota, Integer valorTotalProdutos, UsuariosLoja usuario, String obs)
-		 */
 		this.notaEntrada
 				.save(new NotaEntrada(notaTransito.getNumeroNota(), notaTransito.getNotaFiscalEmitida().getSerieNf(),
 						null, notaTransito.getLojaDestino(), notaTransito.getNotaFiscalEmitida().getDataEmissao(),
 						LocalDateTime.now(), notaTransito.getNotaFiscalEmitida().getValorLiquidoNota(),
 						notaTransito.getNotaFiscalEmitida().getItensFiscais().size(), user, null));
 		this.transito.delete(notaTransito);
+		
 	}
 
 	public List<TransitoLojaResponse> mostraNotasNoTransito() {
