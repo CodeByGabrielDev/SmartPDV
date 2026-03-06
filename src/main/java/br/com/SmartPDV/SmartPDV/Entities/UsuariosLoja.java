@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,6 +34,7 @@ public class UsuariosLoja implements UserDetails {
 	private String senha;
 	@OneToMany(mappedBy = "usuarios")
 	private List<Caixa> caixa = new ArrayList<>();
+	@Enumerated(EnumType.STRING)
 	private PerfilVendedor perfil;
 	private Boolean inativo;
 	@OneToMany(mappedBy = "usuario")

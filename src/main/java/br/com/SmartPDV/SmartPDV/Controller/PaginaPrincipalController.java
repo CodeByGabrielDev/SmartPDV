@@ -22,7 +22,7 @@ public class PaginaPrincipalController {
 	private final PaginaPrincipal paginaService;
 
 	@PostMapping("/register/employee")
-	public UsuarioLojaResponse registrarUsuario(@RequestBody FuncionarioRequest funcionario, @RequestParam int idLoja) {
+	public UsuarioLojaResponse registrarUsuario(@RequestBody FuncionarioRequest funcionario, @RequestParam Long idLoja) {
 		return this.paginaService.registrarFuncionario(funcionario, idLoja);
 	}
 

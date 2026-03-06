@@ -45,14 +45,16 @@ public class NotaFiscalItem {
 	@JoinColumn(name = "id_excecao_imposto")
 	private ExcecaoImposto excecaoImposto;
 
-	public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto, Integer numeroItem, Integer quantidadeItens,
-			Double desconto, Loja loja, ExcecaoImposto excecaoImposto) {
-		super();
+	public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto, Integer numeroItem,
+			Integer quantidadeItens, Double valorBrutoItem, Double valorLiquidoItem, Double desconto, Loja loja,
+			ExcecaoImposto excecaoImposto) {
 		this.nota = nota;
 		this.serieNfe = serieNfe;
 		this.produto = produto;
 		this.numeroItem = numeroItem;
 		this.quantidadeItens = quantidadeItens;
+		this.valorBrutoItem = valorBrutoItem;
+		this.valorLiquidoItem = valorLiquidoItem;
 		this.desconto = desconto;
 		this.loja = loja;
 		this.excecaoImposto = excecaoImposto;

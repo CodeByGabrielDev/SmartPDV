@@ -73,12 +73,15 @@ public class PaginaPrincipal {
 
 	}
 
-	private UsuarioLojaResponse salvaInfoNoBancoRetornaDto(FuncionarioRequest funcionarioRegister, long idLoja) {
+	private UsuarioLojaResponse salvaInfoNoBancoRetornaDto(FuncionarioRequest funcionarioRegister, Long idLoja) {
 		Loja loja = this.loja.findById(idLoja)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada"));
 		if (funcionarioRegister.getPerfil() == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Perfil do usuário é obrigatório");
 		}
+
+
+		System.out.println("Perfil do usuario: " +funcionarioRegister.getPerfil());
 		this.funcionario.save(new UsuariosLoja(funcionarioRegister.getNome_vendedor(), funcionarioRegister.getCpf(),
 				funcionarioRegister.getLogin(), funcionarioRegister.getEmail(),
 				this.hash.passwordEncoder().encode(funcionarioRegister.getSenha()),

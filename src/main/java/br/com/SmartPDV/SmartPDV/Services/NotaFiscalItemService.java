@@ -28,8 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotaFiscalItemService {
 
-	private final ExcecaoImpostoRepository excecao;
-
 	private final NotaFiscalitemRepository notaRepo;
 
 	private final NotaFiscalImpostoItemService notaImpostoItem;
@@ -44,10 +42,25 @@ public class NotaFiscalItemService {
 
 		List<NotaFiscalItem> notas = new ArrayList<>();
 		Integer interador = 0;
+
+		/*
+		 * public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto,
+		 * Integer numeroItem,
+		 * Integer quantidadeItens, Double valorBrutoItem, Double valorLiquidoItem,
+		 * Double desconto, Loja loja,
+		 * ExcecaoImposto excecaoImposto)
+		 */
 		for (ItemVenda i : itensVenda) {
-			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, notaFiscal.getSerieNf(), i.getProduto(),
-					interador++, i.getQtd(), i.getPorcentDesconto(), i.getLoja(),
-					this.excecao.findExcecaoByCodFilialAndCfop(notaFiscal.getCfop(), notaFiscal.getLoja().getId()));
+
+			Produto produtoFind = this.prodRepository.findById(i.getProduto().getId())
+					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
+			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, 5102,
+					produtoFind,
+					interador, i.getQtd(),
+					produtoFind.getPrecoVenda(), (i.getValorUnitario() * i.getQtd() * (i.getPorcentDesconto() / 100)),
+					i.getPorcentDesconto(), i.getLoja(),
+					this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaFiscal.getCfop(),
+							notaFiscal.getLoja().getId()));
 			notas.add(notaItem);
 
 		}
@@ -55,28 +68,43 @@ public class NotaFiscalItemService {
 		this.notaImpostoItem.calculaImposto(notas);
 	}
 
-	public void validacaoEPersistencia(List<NotaFiscalItemRequest> itens, NotaFiscalRequest notaItem,
+	@Transactional
+	public void validacaoEPersistencia(NotaFiscalRequest notaItem,
 			NotaFiscal notaEntity) {
 		List<NotaFiscalItem> notaItemEntity = new ArrayList<>();
+		Integer interador = 0;
+		Loja loja = this.loja.findById(notaItem.getIdLoja()).orElseThrow(
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Loja nao encontrada na base de dados"));
+		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
+				notaItem.getIdLoja());
+		if (exception == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
+		}
 		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
-			Produto prodFind = this.prodRepository.findByCodigoDeBarra(nota.getCodigo_barra());
+			Produto prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
+			System.out.println("Codigo Barra = " + nota.getCodigo_barra());
+
 			if (prodFind == null) {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 						" Nao foi encontrado item com esse codigo de barra,valide!");
 			}
-			Loja loja = this.loja.findById(notaItem.getId_Loja()).orElseThrow(
-					() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Loja nao encontrada na base de dados"));
-			ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
-					notaItem.getId_Loja());
-			if (exception == null) {
-				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
-			}
-			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaItem.getSerieNfe(), prodFind, null,
-					nota.getQuantidade_Itens(), nota.getDesconto(), loja, exception));
-		}
-		this.notaRepo.saveAll(notaItemEntity);
 
+			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getSerieNf(), prodFind, interador++,
+					nota.getQuantidade_Itens(),
+					prodFind.getPrecoVenda(),
+					(prodFind.getPrecoVenda() * nota.getQuantidade_Itens() * (nota.getDesconto() / 100)),
+					nota.getDesconto(), loja, exception));
+
+		}
+		Double totalBrutoNota = 0.0;
+		for (NotaFiscalItem n : notaItemEntity) {
+			totalBrutoNota += (n.getValorBrutoItem() * n.getQuantidadeItens());
+		}
+		notaEntity.setValorBrutoNota(totalBrutoNota);
+		this.notaRepo.saveAll(notaItemEntity);
+		this.notaFiscalRepo.save(notaEntity);
 		this.notaImpostoItem.calculaImposto(notaItemEntity);
 
 	}
+
 }

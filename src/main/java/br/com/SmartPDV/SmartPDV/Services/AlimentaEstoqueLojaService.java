@@ -34,7 +34,7 @@ public class AlimentaEstoqueLojaService {
 							+ transito.getDataRecebimento());
 		}
 		for (NotaFiscalItem notaItem : transito.getNotaFiscalEmitida().getItensFiscais()) {
-			EstoqueProduto estoque = this.estoqueRepository.buscarEstoqueProdutoByIdAndCodigoFilial(
+			EstoqueProduto estoque = this.estoqueRepository.selectEstoqueProdutoByIdAndCodigoFilial(
 					transito.getLojaDestino().getId(), notaItem.getProduto().getId());
 			if (estoque == null) {
 				estoque = new EstoqueProduto(notaItem.getProduto(), transito.getLojaDestino(), 0,
@@ -50,4 +50,5 @@ public class AlimentaEstoqueLojaService {
 		this.transitoLoja.save(transito);
 	}
 
+	
 }
