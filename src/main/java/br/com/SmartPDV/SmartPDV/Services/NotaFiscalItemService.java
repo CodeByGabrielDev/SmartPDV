@@ -107,10 +107,9 @@ public class NotaFiscalItemService {
 
 	}
 
-
-	/*
-	CRIAR METODO QUE CALCULA O VALOR LIQUIDO DO ITEM PARA EVITAR SERVICE MT POLUIDO DE CODIGO :)
-
-	 */
+	//METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
+	public Double calculaValorLiquido(NotaFiscal nota){
+		return null;
+	}
 
 }
