@@ -12,10 +12,7 @@ import jakarta.transaction.Transactional;
 public class ProdutoService {
 	@Autowired
 	ProdutoRepository produtoRepository;
-	@Transactional
-	public void inserirProdutoNaTabela(NotaFiscal notaEntrada) {
-		
-		
-	}
+	
+	
 
 }

@@ -1,5 +1,7 @@
 package br.com.SmartPDV.SmartPDV.Repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -11,5 +13,6 @@ import br.com.SmartPDV.SmartPDV.Entities.Produto;
 public interface ProdutoRepository extends CrudRepository<Produto, Long> {
 
 	@Query("SELECT E FROM Produto E WHERE E.codigoBarra = :codigoBarra")
-	Produto findByCodigoDeBarra(@Param("codigoBarra") String codigoBarra);
+	Produto selectByCodigoDeBarra(@Param("codigoBarra") String codigoBarra);
+
 }
