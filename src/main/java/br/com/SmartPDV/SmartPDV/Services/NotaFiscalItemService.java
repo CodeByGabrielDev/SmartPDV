@@ -42,22 +42,14 @@ public class NotaFiscalItemService {
 
 		List<NotaFiscalItem> notas = new ArrayList<>();
 		Integer interador = 0;
-
-		/*
-		 * public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto,
-		 * Integer numeroItem,
-		 * Integer quantidadeItens, Double valorBrutoItem, Double valorLiquidoItem,
-		 * Double desconto, Loja loja,
-		 * ExcecaoImposto excecaoImposto)
-		 */
 		for (ItemVenda i : itensVenda) {
 
 			Produto produtoFind = this.prodRepository.findById(i.getProduto().getId())
 					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
 			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, 5102,
 					produtoFind,
-					interador, i.getQtd(),
-					produtoFind.getPrecoVenda(), (i.getValorUnitario() * i.getQtd() * (i.getPorcentDesconto() / 100)),
+					interador++, i.getQtd(),
+					produtoFind.getPrecoVenda(),calculaValorLiquidoParaEmissaoDeNotaDeVenda(i),
 					i.getPorcentDesconto(), i.getLoja(),
 					this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaFiscal.getCfop(),
 							notaFiscal.getLoja().getId()));
@@ -72,7 +64,7 @@ public class NotaFiscalItemService {
 	public void validacaoEPersistencia(NotaFiscalRequest notaItem,
 			NotaFiscal notaEntity) {
 		List<NotaFiscalItem> notaItemEntity = new ArrayList<>();
-		Integer interador = 0;
+		Integer iterador = 1;
 		Loja loja = this.loja.findById(notaItem.getIdLoja()).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Loja nao encontrada na base de dados"));
 		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
@@ -82,25 +74,20 @@ public class NotaFiscalItemService {
 		}
 		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
 			Produto prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
-			System.out.println("Codigo Barra = " + nota.getCodigo_barra());
 
 			if (prodFind == null) {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 						" Nao foi encontrado item com esse codigo de barra,valide!");
 			}
 
-			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getSerieNf(), prodFind, interador++,
+			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getSerieNf(), prodFind, iterador++,
 					nota.getQuantidade_Itens(),
 					prodFind.getPrecoVenda(),
-					(prodFind.getPrecoVenda() * nota.getQuantidade_Itens() * (nota.getDesconto() / 100)),
+					calculaValorLiquido(nota,prodFind),
 					nota.getDesconto(), loja, exception));
 
 		}
-		Double totalBrutoNota = 0.0;
-		for (NotaFiscalItem n : notaItemEntity) {
-			totalBrutoNota += (n.getValorBrutoItem() * n.getQuantidadeItens());
-		}
-		notaEntity.setValorBrutoNota(totalBrutoNota);
+		
 		this.notaRepo.saveAll(notaItemEntity);
 		this.notaFiscalRepo.save(notaEntity);
 		this.notaImpostoItem.calculaImposto(notaItemEntity);
@@ -108,8 +95,16 @@ public class NotaFiscalItemService {
 	}
 
 	//METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
-	public Double calculaValorLiquido(NotaFiscal nota){
-		return null;
+	private Double calculaValorLiquido(NotaFiscalItemRequest notaItem,Produto produto){
+		Double valorBrutoNota = produto.getPrecoVenda() * notaItem.getQuantidade_Itens();
+		Double valorDescontado = valorBrutoNota *(notaItem.getDesconto()/100);
+		return valorBrutoNota -valorDescontado; 
+	}
+
+	private Double calculaValorLiquidoParaEmissaoDeNotaDeVenda(ItemVenda item){
+		Double valorBrutoNota = item.getProduto().getPrecoVenda() * item.getQtd();
+		Double valorDeDesconto = valorBrutoNota * (item.getPorcentDesconto()/100);
+		return valorBrutoNota - valorDeDesconto;
 	}
 
 }
