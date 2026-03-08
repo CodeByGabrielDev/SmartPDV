@@ -39,9 +39,9 @@ public class NotaFiscalItemService {
 
 	@Transactional
 	public void inserirItensFiscais(List<ItemVenda> itensVenda, NotaFiscal notaFiscal) {
-
 		List<NotaFiscalItem> notas = new ArrayList<>();
 		Integer interador = 0;
+		Double valorTotalDesconto = 0.0;
 		for (ItemVenda i : itensVenda) {
 
 			Produto produtoFind = this.prodRepository.findById(i.getProduto().getId())
@@ -65,6 +65,8 @@ public class NotaFiscalItemService {
 			NotaFiscal notaEntity) {
 		List<NotaFiscalItem> notaItemEntity = new ArrayList<>();
 		Integer iterador = 1;
+		Double valorTotalDesconto = 0.0;
+
 		Loja loja = this.loja.findById(notaItem.getIdLoja()).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Loja nao encontrada na base de dados"));
 		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
@@ -85,9 +87,9 @@ public class NotaFiscalItemService {
 					prodFind.getPrecoVenda(),
 					calculaValorLiquido(nota,prodFind),
 					nota.getDesconto(), loja, exception));
-
+			valorTotalDesconto += calculaTotalDeDescontoNaNota(nota, prodFind);
 		}
-		
+		notaEntity.setDesconto(valorTotalDesconto);
 		this.notaRepo.saveAll(notaItemEntity);
 		this.notaFiscalRepo.save(notaEntity);
 		this.notaImpostoItem.calculaImposto(notaItemEntity);
@@ -105,6 +107,11 @@ public class NotaFiscalItemService {
 		Double valorBrutoNota = item.getProduto().getPrecoVenda() * item.getQtd();
 		Double valorDeDesconto = valorBrutoNota * (item.getPorcentDesconto()/100);
 		return valorBrutoNota - valorDeDesconto;
+	}
+
+	private Double calculaTotalDeDescontoNaNota(NotaFiscalItemRequest notaRequest,Produto produto){
+		return  produto.getPrecoVenda()*(notaRequest.getDesconto()/100);
+
 	}
 
 }
