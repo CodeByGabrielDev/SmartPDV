@@ -16,7 +16,6 @@ import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
 import br.com.SmartPDV.SmartPDV.Entities.Produto;
-import br.com.SmartPDV.SmartPDV.Entities.Venda;
 import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
@@ -49,13 +48,16 @@ public class NotaFiscalItemService {
 			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, 5102,
 					produtoFind,
 					interador++, i.getQtd(),
-					produtoFind.getPrecoVenda(),calculaValorLiquidoParaEmissaoDeNotaDeVenda(i),
+					produtoFind.getPrecoVenda(), calculaValorLiquidoParaEmissaoDeNotaDeVenda(i),
 					i.getPorcentDesconto(), i.getLoja(),
 					this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaFiscal.getCfop(),
 							notaFiscal.getLoja().getId()));
+			valorTotalDesconto += calculaTotalDeDescontoNaNotaDeVenda(i);
 			notas.add(notaItem);
 
 		}
+		notaFiscal.setDesconto(valorTotalDesconto);
+		this.notaFiscalRepo.save(notaFiscal);
 		notaRepo.saveAll(notas);
 		this.notaImpostoItem.calculaImposto(notas);
 	}
@@ -85,7 +87,7 @@ public class NotaFiscalItemService {
 			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getSerieNf(), prodFind, iterador++,
 					nota.getQuantidade_Itens(),
 					prodFind.getPrecoVenda(),
-					calculaValorLiquido(nota,prodFind),
+					calculaValorLiquido(nota, prodFind),
 					nota.getDesconto(), loja, exception));
 			valorTotalDesconto += calculaTotalDeDescontoNaNota(nota, prodFind);
 		}
@@ -96,22 +98,27 @@ public class NotaFiscalItemService {
 
 	}
 
-	//METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
-	private Double calculaValorLiquido(NotaFiscalItemRequest notaItem,Produto produto){
+	// METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
+	private Double calculaValorLiquido(NotaFiscalItemRequest notaItem, Produto produto) {
 		Double valorBrutoNota = produto.getPrecoVenda() * notaItem.getQuantidade_Itens();
-		Double valorDescontado = valorBrutoNota *(notaItem.getDesconto()/100);
-		return valorBrutoNota -valorDescontado; 
+		Double valorDescontado = valorBrutoNota * (notaItem.getDesconto() / 100);
+		return valorBrutoNota - valorDescontado;
 	}
 
-	private Double calculaValorLiquidoParaEmissaoDeNotaDeVenda(ItemVenda item){
+	private Double calculaValorLiquidoParaEmissaoDeNotaDeVenda(ItemVenda item) {
 		Double valorBrutoNota = item.getProduto().getPrecoVenda() * item.getQtd();
-		Double valorDeDesconto = valorBrutoNota * (item.getPorcentDesconto()/100);
+		Double valorDeDesconto = valorBrutoNota * (item.getPorcentDesconto() / 100);
 		return valorBrutoNota - valorDeDesconto;
 	}
 
-	private Double calculaTotalDeDescontoNaNota(NotaFiscalItemRequest notaRequest,Produto produto){
-		return  produto.getPrecoVenda()*(notaRequest.getDesconto()/100);
+	private Double calculaTotalDeDescontoNaNota(NotaFiscalItemRequest notaRequest, Produto produto) {
+		return produto.getPrecoVenda() * (notaRequest.getDesconto() / 100);
 
 	}
+
+	private Double calculaTotalDeDescontoNaNotaDeVenda(ItemVenda item) {
+    Double valorBruto = item.getValorUnitario() * item.getQtd();
+    return valorBruto * (item.getPorcentDesconto() / 100);
+}
 
 }
