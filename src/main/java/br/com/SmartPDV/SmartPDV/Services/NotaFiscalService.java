@@ -12,12 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalRequest;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
-
+import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalImpostoItem;
 import br.com.SmartPDV.SmartPDV.Entities.TransitoLoja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Entities.Venda;
@@ -40,13 +41,12 @@ public class NotaFiscalService {
 	private final LojaRepository loja;
 	private final ClienteRepository clienteRepository;
 
-
 	@Transactional
 	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens) {
 
 		NotaFiscal notaEmissao = new NotaFiscal((long) 0, 65, (long) 0, 5102, venda.getCliente(),
 				venda.getCliente().getCpfCnpj(), venda.getLoja(), 0.0, null, null, null, venda, LocalDateTime.now(),
-				StatusNotaFiscal.PENDENTE);
+				StatusNotaFiscal.PENDENTE,verificaQtdItensNotaDeVenda(itens));
 		geraNumeroFiscal(notaEmissao);
 		realizaCalculo(notaEmissao, itens);
 	}
@@ -67,13 +67,18 @@ public class NotaFiscalService {
 		}
 		Loja loja = this.loja.findById(notaItem.getIdLoja())
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-		Clientes cliente= this.clienteRepository.selectByCpfOrCnpj(notaItem.getCpfCliente());
+		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(notaItem.getCpfCliente());
 		/*
-		public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
-			Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota,
-			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota) */
+		 * public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer
+		 * cfop, Clientes cliente, String cpfCliente,
+		 * Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double
+		 * valorBrutoNota,
+		 * Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao,
+		 * StatusNotaFiscal statusNota)
+		 */
 		NotaFiscal nota = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(), null, null, loja, null,
-				null, null, null, null, LocalDateTime.now(), StatusNotaFiscal.PENDENTE);
+				null, null, null, null, LocalDateTime.now(), StatusNotaFiscal.PENDENTE,
+				verificaQtdItensNotaAvulsa(notaItem));
 		geraNumeroFiscal(nota);
 		this.notaFiscalRepo.save(nota);
 		if (notaItem.getCfop() == 5152 || notaItem.getCfop() == 6152) {
@@ -81,9 +86,28 @@ public class NotaFiscalService {
 					.save(new TransitoLoja(usuario.getLojaVinculada(), usuario.getLojaVinculada().getRazaoSocial(),
 							loja, loja.getRazaoSocial(), nota, nota.getNfNumero(), LocalDateTime.now(), null));
 		}
-		
+
 		this.notaFiscalItemService.validacaoEPersistencia(notaItem, nota);
 	}
+
+	private Integer verificaQtdItensNotaAvulsa(NotaFiscalRequest notaItem){
+		Integer iteradorDeItens = 0;
+
+		for(NotaFiscalItemRequest i:notaItem.getCodigo_barra()){
+			iteradorDeItens += i.getQuantidade_Itens();
+		}
+		return iteradorDeItens;
+	}
+
+	private Integer verificaQtdItensNotaDeVenda(List<ItemVenda> itens){
+		Integer iteradorDeItens = 0;
+
+		for(ItemVenda i:itens){
+			iteradorDeItens += i.getQtd();
+		}
+		return iteradorDeItens;
+	}
+
 
 	private void realizaCalculo(NotaFiscal notaEmissao, List<ItemVenda> itens) {
 
@@ -114,8 +138,7 @@ public class NotaFiscalService {
 		List<NotaFiscal> sequential = this.notaFiscalRepo.findLastSequential(
 				nota.getLoja().getId(),
 				nota.getSerieNf(),
-				PageRequest.of(0, 1) 
-		);
+				PageRequest.of(0, 1));
 
 		if (!sequential.isEmpty() && sequential.get(0).getNfNumero() != null) {
 			nota.setNfNumero(sequential.get(0).getNfNumero() + 1);

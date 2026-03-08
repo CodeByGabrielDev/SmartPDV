@@ -3,17 +3,15 @@ package br.com.SmartPDV.SmartPDV.Services;
 import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
-import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Repository.CaixaRepository;
-import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
+
 import br.com.SmartPDV.SmartPDV.ResponseDTOs.CaixaAberturaResponse;
 import br.com.SmartPDV.SmartPDV.ResponseDTOs.CaixaFechamentoResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class CaixaService {
-	private final LojaRepository loja;
 	private final CaixaRepository caixa;
 
 	@Transactional

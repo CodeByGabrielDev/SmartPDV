@@ -2,7 +2,6 @@ package br.com.SmartPDV.SmartPDV.Services;
 
 import org.springframework.http.HttpStatus;
 
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -108,9 +107,4 @@ public class PaginaPrincipal {
 		return ("Token: " + this.token.gerarToken(user) + " Loja: " + user.getLojaVinculada().getRazaoSocial());
 	}
 
-	public void vinculaLojaAoTerminal(long idLoja) {
-		Loja lojaEntity = this.loja.findById(idLoja).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada no banco de dados"));
-
-	}
 }

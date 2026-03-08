@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaEntrada;
+import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
 import br.com.SmartPDV.SmartPDV.Entities.TransitoLoja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Repository.NotaEntradaRepository;
@@ -28,18 +29,33 @@ public class TransitoLojaService {
 	private final NotaEntradaRepository notaEntrada;
 
 	@Transactional
-	public void realizarEntradaDeMercadoria(Long id) {
+	public void realizarEntradaDeMercadoria(Long id, String obs) {
 		UsuariosLoja user = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		TransitoLoja notaTransito = this.transito.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nota nao encontrada na base de dados"));
 		alimentacao.alimentaEstoqueNotaTransito(notaTransito);
+		/*
+		 * public NotaEntrada(Long nfNumero, Integer serieNf, String chaveNfe, Loja
+		 * loja, LocalDateTime dataEmissao,
+		 * LocalDateTime dataEntrada, Double valorTotalNota, Integer valorTotalProdutos,
+		 * UsuariosLoja usuario,
+		 * String obs)
+		 */
 		this.notaEntrada
 				.save(new NotaEntrada(notaTransito.getNumeroNota(), notaTransito.getNotaFiscalEmitida().getSerieNf(),
 						null, notaTransito.getLojaDestino(), notaTransito.getNotaFiscalEmitida().getDataEmissao(),
 						LocalDateTime.now(), notaTransito.getNotaFiscalEmitida().getValorLiquidoNota(),
-						notaTransito.getNotaFiscalEmitida().getItensFiscais().size(), user, null));
+						validaQtdItensNota(notaTransito), user, obs));
 		this.transito.delete(notaTransito);
-		
+
+	}
+
+	private Integer validaQtdItensNota(TransitoLoja notaNoTransito) {
+		Integer iterador = 0;
+		for(NotaFiscalItem n:notaNoTransito.getNotaFiscalEmitida().getItensFiscais()){
+			iterador++;
+		}	
+		return iterador;
 	}
 
 	public List<TransitoLojaResponse> mostraNotasNoTransito() {

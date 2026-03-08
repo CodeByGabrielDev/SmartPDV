@@ -35,6 +35,8 @@ public class NotaFiscal {
 	@Column(name = "chave_nfe")
 	private Long chaveNfe;
 	private Integer cfop;
+	@Column(name = "qtd_total_itens")
+	private Integer qtdTotalItens;
 	@ManyToOne
 	@JoinColumn(name = "id_cliente")
 	private Clientes cliente;
@@ -67,7 +69,7 @@ public class NotaFiscal {
 
 	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
 			Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota,
-			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota) {
+			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota,Integer qtdTotalItens) {
 		this.nfNumero = nfNumero;
 		this.serieNf = serieNf;
 		this.chaveNfe = chaveNfe;
@@ -82,6 +84,7 @@ public class NotaFiscal {
 		this.venda = venda;
 		this.dataEmissao = dataEmissao;
 		this.statusNota = statusNota;
+		this.qtdTotalItens = qtdTotalItens;
 	}
 
 	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
