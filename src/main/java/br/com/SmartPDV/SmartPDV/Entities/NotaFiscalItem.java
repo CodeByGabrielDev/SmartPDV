@@ -26,8 +26,10 @@ public class NotaFiscalItem {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
-	@JoinColumn(name = "nf_numero")
+	@JoinColumn(name = "id_nota_fiscal")
 	private NotaFiscal nota;
+	@Column(name = "nf_numero")
+	private Long nfNumero;
 	@Column(name = "serie_nfe")
 	private Integer serieNfe;
 	@ManyToOne
@@ -45,10 +47,12 @@ public class NotaFiscalItem {
 	@JoinColumn(name = "id_excecao_imposto")
 	private ExcecaoImposto excecaoImposto;
 
-	public NotaFiscalItem(NotaFiscal nota, Integer serieNfe, Produto produto, Integer numeroItem,
+	public NotaFiscalItem(NotaFiscal nota, Long nfNumero,Integer serieNfe, Produto produto, Integer numeroItem,
 			Integer quantidadeItens, Double valorBrutoItem, Double valorLiquidoItem, Double desconto, Loja loja,
 			ExcecaoImposto excecaoImposto) {
+		
 		this.nota = nota;
+		this.nfNumero = nfNumero;
 		this.serieNfe = serieNfe;
 		this.produto = produto;
 		this.numeroItem = numeroItem;
