@@ -1,27 +1,43 @@
-🚀 SmartPDV - Sistema de Ponto de Venda Enterprise
-Sistema de Ponto de Venda (PDV) desenvolvido com Java e Spring Boot, focado em arquitetura backend robusta, segurança, regras de negócio complexas e boas práticas de desenvolvimento. O projeto evoluiu para um sistema fiscal completo, simulando cenários reais de operação de PDV corporativo.
+# 🚀 SmartPDV - Sistema de Ponto de Venda Enterprise
 
-📋 Visão Geral do Projeto
-O SmartPDV é mais do que um simples CRUD - é um sistema completo de gestão de vendas com:
+Sistema de **Ponto de Venda (PDV)** desenvolvido com **Java e Spring Boot**, focado em **arquitetura backend robusta, segurança, regras de negócio complexas e boas práticas de desenvolvimento**.
 
-✅ Autenticação Stateless com JWT
-✅ Módulo Fiscal Completo (NF-e, impostos, CFOP)
-✅ Controle de Estoque entre lojas
-✅ Gestão de Caixa (abertura/fechamento)
-✅ Segurança Empresarial com controle por filial
-✅ Integração Oracle com PL/SQL
-🛠️ Tecnologias Utilizadas
-Categoria	Tecnologia
-Linguagem	Java 17+
-Framework	Spring Boot 3.x
-Segurança	Spring Security + JWT
-Banco de Dados	Oracle Database
-ORM	JPA / Hibernate
-Build	Maven
-Anotações	Lombok
-🏗️ Arquitetura do Sistema
-O projeto segue uma arquitetura em camadas bem definida:
+O projeto evoluiu para um sistema fiscal completo, simulando **cenários reais de operação de PDV corporativo**.
 
+---
+
+# 📋 Visão Geral do Projeto
+
+O **SmartPDV** é mais do que um simples CRUD — é um sistema completo de gestão de vendas com:
+
+* ✅ Autenticação **Stateless com JWT**
+* ✅ **Módulo Fiscal Completo** (NF-e, impostos, CFOP)
+* ✅ **Controle de Estoque entre lojas**
+* ✅ **Gestão de Caixa** (abertura / fechamento)
+* ✅ **Segurança empresarial com controle por filial**
+* ✅ **Integração Oracle com PL/SQL**
+
+---
+
+# 🛠️ Tecnologias Utilizadas
+
+| Categoria      | Tecnologia            |
+| -------------- | --------------------- |
+| Linguagem      | Java 17+              |
+| Framework      | Spring Boot 3.x       |
+| Segurança      | Spring Security + JWT |
+| Banco de Dados | Oracle Database       |
+| ORM            | JPA / Hibernate       |
+| Build          | Maven                 |
+| Anotações      | Lombok                |
+
+---
+
+# 🏗️ Arquitetura do Sistema
+
+O projeto segue uma **arquitetura em camadas bem definida**, separando responsabilidades.
+
+```
 src/main/java/br/com/SmartPDV/SmartPDV/
 
 ├── Config/                  # Configurações de segurança
@@ -77,43 +93,70 @@ src/main/java/br/com/SmartPDV/SmartPDV/
 │   ├── PerfilVendedor.java
 │   └── ...
 │
-├── Exceptions/              # Tratamento de erros
+├── Exceptions/              # Tratamento global de erros
 │   └── GlobalExceptionHandler.java
 │
 └── Utils/                   # Utilitários
     └── Validator.java
-🧾 Módulo Fiscal
-O módulo fiscal é o coração do sistema, implementando toda a complexidade da legislação tributária brasileira.
+```
 
-Entidades Fiscais
-Entidade	Descrição
-NotaFiscal	Cabeçalho da nota fiscal (número, série, CFOP, valores)
-NotaFiscalItem	Itens individuais da nota fiscal
-NotaFiscalImpostoItem	Cálculo de impostos por item
-ExcecaoImposto	Regras fiscais específicas por filial
-ExcecaoImpostoItem	Itens da exceção fiscal (impostos, alíquotas)
-Tipos de Impostos Suportados
+---
+
+# 🧾 Módulo Fiscal
+
+O **módulo fiscal** é o coração do sistema, implementando a complexidade da **legislação tributária brasileira**.
+
+## Entidades Fiscais
+
+| Entidade              | Descrição                                               |
+| --------------------- | ------------------------------------------------------- |
+| NotaFiscal            | Cabeçalho da nota fiscal (número, série, CFOP, valores) |
+| NotaFiscalItem        | Itens individuais da nota fiscal                        |
+| NotaFiscalImpostoItem | Cálculo de impostos por item                            |
+| ExcecaoImposto        | Regras fiscais específicas por filial                   |
+| ExcecaoImpostoItem    | Itens da exceção fiscal                                 |
+
+---
+
+## Tipos de Impostos Suportados
+
+```java
 public enum TipoImposto {
+
     ICMS(1),   // Imposto sobre Circulação de Mercadorias
     PIS(2),    // Programa de Integração Social
     COFINS(3), // Contribuição para o PIS/PASEP
     IPI(4),    // Imposto sobre Produtos Industrializados
     IBS(5),    // Imposto sobre Bens e Serviços
     CBS(6);    // Contribuição sobre Bens e Serviços
+
 }
-Cálculo de Impostos
+```
+
+---
+
+## Cálculo de Impostos
+
 O sistema calcula automaticamente:
 
-✅ Base de cálculo com redução
-✅ Valor do imposto por alíquota
-✅ ICMS, PIS, COFINS, IPI por item
-✅ Total de impostos da nota
-// Exemplo de cálculo
+* ✅ Base de cálculo com redução
+* ✅ Valor do imposto por alíquota
+* ✅ ICMS, PIS, COFINS e IPI por item
+* ✅ Total de impostos da nota
+
+```java
 notaItemImposto.setValorImpostoCalculado(
     notaItemImposto.getBaseCalculo() * (e.getAliquota() / 100)
 );
-📦 Módulo de Estoque e Transferência
-Fluxo de Transferência entre Lojas
+```
+
+---
+
+# 📦 Módulo de Estoque e Transferência
+
+## Fluxo de Transferência entre Lojas
+
+```
 ┌─────────────┐    CFOP 5152/6152    ┌─────────────┐
 │   MATRIZ    │ ──────────────────→  │   FILIAL    │
 │  (Origem)   │   Gera Nota Fiscal   │  (Destino)  │
@@ -121,140 +164,269 @@ Fluxo de Transferência entre Lojas
                                               │
                                               ▼
                                     ┌─────────────────────┐
-                                    │  Entrada de         │
-                                    │  Mercadoria         │
-                                    │  (TransitoLoja)     │
+                                    │ Entrada de          │
+                                    │ Mercadoria          │
+                                    │ (TransitoLoja)      │
                                     └─────────────────────┘
                                               │
                                               ▼
                                     ┌─────────────────────┐
-                                    │  Alimenta Estoque   │
-                                    │  (Atualiza qtd)     │
+                                    │ Alimenta Estoque    │
+                                    │ (Atualiza estoque)  │
                                     └─────────────────────┘
-Entidades de Estoque
-Entidade	Descrição
-TransitoLoja	Controle de mercadorias em trânsito
-EstoqueProduto	Saldo de estoque por produto/loja
-AlimentaEstoqueLojaService	Engine de atualização de estoque
-💰 Módulo de Caixa
-Funcionalidades
-✅ Abertura de Caixa - Iniciar operações do dia
-✅ Fechamento de Caixa - Encerramento com resumo
-✅ Validação por Loja - Controle de acesso
-✅ Auditoria - Histórico completo de operações
-Regras de Negócio
-// Não permite fechar caixa de outra loja
+```
+
+---
+
+## Entidades de Estoque
+
+| Entidade                   | Descrição                           |
+| -------------------------- | ----------------------------------- |
+| TransitoLoja               | Controle de mercadorias em trânsito |
+| EstoqueProduto             | Saldo de estoque por produto/loja   |
+| AlimentaEstoqueLojaService | Engine de atualização de estoque    |
+
+---
+
+# 💰 Módulo de Caixa
+
+## Funcionalidades
+
+* ✅ **Abertura de Caixa** — iniciar operações do dia
+* ✅ **Fechamento de Caixa** — encerramento com resumo
+* ✅ **Validação por loja**
+* ✅ **Auditoria de operações**
+
+---
+
+## Regras de Negócio
+
+```java
 if (usuarioSession.getLojaVinculada().getId() != caixa.getLoja().getId()) {
-    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
-        "Você não possui autorização para fechar o caixa de outra loja");
+
+    throw new ResponseStatusException(
+        HttpStatus.UNAUTHORIZED,
+        "Você não possui autorização para fechar o caixa de outra loja"
+    );
+
 }
 
-// Não permite caixa já fechado
 if (caixa.getFechado()) {
-    throw new ResponseStatusException(HttpStatus.CONFLICT, "Caixa já fechado");
+    throw new ResponseStatusException(
+        HttpStatus.CONFLICT,
+        "Caixa já fechado"
+    );
 }
-🔐 Sistema de Segurança
-Autenticação JWT
-O sistema utiliza tokens JWT para autenticação stateless:
+```
 
-Usuário faz login
-Servidor gera token JWT
-Token é enviado no header Authorization: Bearer <token>
-JwtAuthenticationFilter valida token em cada requisição
-SecurityContext é populado com o usuário
-Recuperação do Usuário Autenticado
-UsuariosLoja usuarioSession = (UsuariosLoja) SecurityContextHolder
-    .getContext()
-    .getAuthentication()
-    .getPrincipal();
-Controle por Filial
-Cada usuário é vinculado a uma loja específica:
+---
 
-Operações são automaticamente associadas à loja correta
-Não há confusão entre filiais
-Redução de erros humanos
-Perfis de Usuário
-Perfil	Descrição
-MATRIZ	Pode emitir notas com CFOP 5152/6152 (transferência)
-FILIAL	Operações normais de venda
-📡 Endpoints da API
-Versionamento
-A API segue o padrão: /api-smartpdv/v1/
+# 🔐 Sistema de Segurança
 
-Endpoints Principais
-Autenticação
-POST /api-smartpdv/v1/auth/login     → Login
-POST /api-smartpdv/v1/auth/register  → Cadastro
-Caixa
-POST   /api-smartpdv/v1/cashiers/open        → Abrir caixa
-PUT    /api-smartpdv/v1/cashiers/{id}/close  → Fechar caixa
-Nota Fiscal
-POST /api-smartpdv/v1/invoice         → Emitir nota avulsa
-Entrada de Mercadoria
-GET  /api-smartpdv/goods-receipt        → Listar notas pendentes
-PUT  /api-smartpdv/goods-receipt/{id}   → Registrar entrada
-💾 Banco de Dados
-Características
-Oracle Database - Banco corporativo
-PL/SQL - Regras críticas no banco
-JPA/Hibernate - ORM com migrations
-Hibernate DDL Auto - update para produção
-Estrutura Relacional
-O banco mantém integridade referencial completa:
+O sistema utiliza **JWT para autenticação stateless**.
 
-Foreign Keys entre entidades
-Constraints de validação
-Triggers e procedures PL/SQL
-🎯 Boas Práticas Aplicadas
-Prática	Aplicação
-SOLID	Separação de responsabilidades
-DTOs	Transferência de dados limpa
-Transactions	@Transactional para consistência
-Exception Handling	GlobalExceptionHandler centralizado
-Repository Pattern	Abstração de acesso a dados
-Lombok	Redução de boilerplate
-Security	JWT + Spring Security
-🚀 Como Executar
-Pré-requisitos
-Java 17+
-Maven 3.8+
-Oracle Database (ou banco configurado)
-Configuração
-Edite o arquivo src/main/resources/application.properties:
+### Fluxo de autenticação
 
+1️⃣ Usuário faz login
+2️⃣ Servidor gera token JWT
+3️⃣ Token enviado no header:
+
+```
+Authorization: Bearer <token>
+```
+
+4️⃣ `JwtAuthenticationFilter` valida o token
+5️⃣ `SecurityContext` é populado com o usuário
+
+---
+
+## Recuperação do Usuário Autenticado
+
+```java
+UsuariosLoja usuarioSession =
+    (UsuariosLoja) SecurityContextHolder
+        .getContext()
+        .getAuthentication()
+        .getPrincipal();
+```
+
+---
+
+# 🏬 Controle por Filial
+
+Cada usuário é vinculado a uma **loja específica**, garantindo:
+
+* Operações associadas automaticamente à loja correta
+* Separação entre filiais
+* Redução de erros humanos
+
+---
+
+## Perfis de Usuário
+
+| Perfil | Descrição                                             |
+| ------ | ----------------------------------------------------- |
+| MATRIZ | Pode emitir notas de transferência (CFOP 5152 / 6152) |
+| FILIAL | Operações normais de venda                            |
+
+---
+
+# 📡 Endpoints da API
+
+## Versionamento
+
+```
+/api-smartpdv/v1/
+```
+
+---
+
+## Autenticação
+
+```
+POST /api-smartpdv/v1/auth/login
+POST /api-smartpdv/v1/auth/register
+```
+
+---
+
+## Caixa
+
+```
+POST /api-smartpdv/v1/cashiers/open
+PUT  /api-smartpdv/v1/cashiers/{id}/close
+```
+
+---
+
+## Nota Fiscal
+
+```
+POST /api-smartpdv/v1/invoice
+```
+
+---
+
+## Entrada de Mercadoria
+
+```
+GET /api-smartpdv/goods-receipt
+PUT /api-smartpdv/goods-receipt/{id}
+```
+
+---
+
+# 💾 Banco de Dados
+
+Características:
+
+* **Oracle Database**
+* **PL/SQL para regras críticas**
+* **JPA / Hibernate**
+* **Integridade referencial completa**
+
+Estrutura com:
+
+* Foreign Keys
+* Constraints
+* Procedures e Triggers PL/SQL
+
+---
+
+# 🎯 Boas Práticas Aplicadas
+
+| Prática            | Aplicação                            |
+| ------------------ | ------------------------------------ |
+| SOLID              | Separação clara de responsabilidades |
+| DTOs               | Transferência de dados estruturada   |
+| Transactions       | `@Transactional` para consistência   |
+| Exception Handling | `GlobalExceptionHandler`             |
+| Repository Pattern | Abstração de acesso a dados          |
+| Lombok             | Redução de boilerplate               |
+| Security           | JWT + Spring Security                |
+
+---
+
+# 🚀 Como Executar
+
+## Pré-requisitos
+
+* Java 17+
+* Maven 3.8+
+* Oracle Database
+
+---
+
+## Configuração
+
+Edite:
+
+```
+src/main/resources/application.properties
+```
+
+```properties
 spring.datasource.url=jdbc:oracle:thin:@localhost:1521:ORCL
 spring.datasource.username=SEU_USUARIO
 spring.datasource.password=SUA_SENHA
-Executando
-# Compilar
+```
+
+---
+
+## Executando o Projeto
+
+### Compilar
+
+```
 ./mvnw clean install
+```
 
-# Executar
+### Executar
+
+```
 ./mvnw spring-boot:run
-📊 Entidades do Domínio
-Módulo	Entidades
-Segurança	UsuariosLoja, Loja
-Cadastro	Produto, Clientes
-Vendas	Venda, ItemVenda, Pagamento
-Fiscal	NotaFiscal, NotaFiscalItem, NotaFiscalImpostoItem
-Estoque	EstoqueProduto, TransitoLoja
-Financeiro	Caixa, FormaPgto, BandeirasCartao
-🎓 Objetivo do Projeto
-O SmartPDV foi desenvolvido com foco em:
+```
 
-Modelagem de Domínio Real - Não é apenas CRUD, são regras de negócio complexas
-Arquitetura Escalável - Padrões enterprise prontos para produção
-Segurança Corporativa - Controle de acesso por filial e perfil
-Complexidade Fiscal - Simulação real de cálculo de impostos
-Boas Práticas - Código limpo, manutenível e testável
-📈 Em Evolução Constante
-O projeto está em constante evolução com:
+---
 
-🔄 Novas funcionalidades
-🐛 Correções de bugs
-⚡ Otimizações de performance
-📝 Melhores práticas
-👨‍💻 Autor
-Gabriel Lima de Oliveira
+# 📊 Entidades do Domínio
 
-Desenvolvedor Java Backend
+| Módulo     | Entidades                                         |
+| ---------- | ------------------------------------------------- |
+| Segurança  | UsuariosLoja, Loja                                |
+| Cadastro   | Produto, Clientes                                 |
+| Vendas     | Venda, ItemVenda, Pagamento                       |
+| Fiscal     | NotaFiscal, NotaFiscalItem, NotaFiscalImpostoItem |
+| Estoque    | EstoqueProduto, TransitoLoja                      |
+| Financeiro | Caixa, FormaPgto, BandeirasCartao                 |
+
+---
+
+# 🎓 Objetivo do Projeto
+
+O **SmartPDV** foi criado com foco em:
+
+* Modelagem de **domínio real de varejo**
+* **Arquitetura backend escalável**
+* **Segurança corporativa**
+* Simulação de **complexidade fiscal**
+* Aplicação de **boas práticas de engenharia de software**
+
+---
+
+# 📈 Em Evolução Constante
+
+O projeto continua evoluindo com:
+
+* 🔄 Novas funcionalidades
+* 🐛 Correções de bugs
+* ⚡ Otimizações de performance
+* 📝 Melhoria de arquitetura
+
+---
+
+# 👨‍💻 Autor
+
+**Gabriel Lima de Oliveira**
+
+Desenvolvedor **Java Backend**
