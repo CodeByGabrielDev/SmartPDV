@@ -28,13 +28,12 @@ import lombok.RequiredArgsConstructor;
 public class NotaFiscalItemService {
 
 	private final NotaFiscalitemRepository notaRepo;
-
 	private final NotaFiscalImpostoItemService notaImpostoItem;
-
 	private final NotaFiscalRepository notaFiscalRepo;
 	private final ProdutoRepository prodRepository;
 	private final ExcecaoImpostoRepository excecaoImpostoRepo;
 	private final LojaRepository loja;
+	private final NotaFiscalCalculatorService calculator;
 
 	@Transactional
 	public void inserirItensFiscais(List<ItemVenda> itensVenda, NotaFiscal notaFiscal) {
@@ -43,16 +42,19 @@ public class NotaFiscalItemService {
 		Double valorTotalDesconto = 0.0;
 		for (ItemVenda i : itensVenda) {
 
-			Produto produtoFind = this.prodRepository.findById(i.getProduto().getId())
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
-			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, 5102,
+			Produto produtoFind = this.prodRepository.findById(i.getProduto().getId()).orElse(null);
+			if(produtoFind == null){
+				this.notaFiscalRepo.delete(notaFiscal);
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Não foi encontrado produto com esse codigo, valide!");
+			}
+			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, notaFiscal.getNfNumero(),notaFiscal.getSerieNf(),
 					produtoFind,
 					interador++, i.getQtd(),
-					produtoFind.getPrecoVenda(), calculaValorLiquidoParaEmissaoDeNotaDeVenda(i),
+					produtoFind.getPrecoVenda(), this.calculator.calculaValorLiquidoParaEmissaoDeNotaDeVenda(i),
 					i.getPorcentDesconto(), i.getLoja(),
 					this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaFiscal.getCfop(),
 							notaFiscal.getLoja().getId()));
-			valorTotalDesconto += calculaTotalDeDescontoNaNotaDeVenda(i);
+			valorTotalDesconto += this.calculator.calculaTotalDeDescontoNaNotaDeVenda(i);
 			notas.add(notaItem);
 
 		}
@@ -68,7 +70,8 @@ public class NotaFiscalItemService {
 		List<NotaFiscalItem> notaItemEntity = new ArrayList<>();
 		Integer iterador = 1;
 		Double valorTotalDesconto = 0.0;
-
+		Double calculaTotalBrutoNota = 0.0;
+		Double calculaTotalLiquidoNota = 0.0;
 		Loja loja = this.loja.findById(notaItem.getIdLoja()).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Loja nao encontrada na base de dados"));
 		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
@@ -83,14 +86,17 @@ public class NotaFiscalItemService {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 						" Nao foi encontrado item com esse codigo de barra,valide!");
 			}
-
-			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getSerieNf(), prodFind, iterador++,
+			calculaTotalBrutoNota += (prodFind.getPrecoVenda()*nota.getQuantidade_Itens());
+			calculaTotalLiquidoNota += this.calculator.calculaValorLiquido(nota, prodFind);
+			notaItemEntity.add(new NotaFiscalItem(notaEntity,notaEntity.getNfNumero() ,notaEntity.getSerieNf(), prodFind, iterador++,
 					nota.getQuantidade_Itens(),
 					prodFind.getPrecoVenda(),
-					calculaValorLiquido(nota, prodFind),
+					this.calculator.calculaValorLiquido(nota, prodFind),
 					nota.getDesconto(), loja, exception));
-			valorTotalDesconto += calculaTotalDeDescontoNaNota(nota, prodFind);
+			valorTotalDesconto += this.calculator.calculaTotalDeDescontoNaNota(nota, prodFind);
 		}
+		notaEntity.setValorBrutoNota(calculaTotalBrutoNota);
+		notaEntity.setValorLiquidoNota(calculaTotalLiquidoNota);
 		notaEntity.setDesconto(valorTotalDesconto);
 		this.notaRepo.saveAll(notaItemEntity);
 		this.notaFiscalRepo.save(notaEntity);
@@ -98,27 +104,6 @@ public class NotaFiscalItemService {
 
 	}
 
-	// METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
-	private Double calculaValorLiquido(NotaFiscalItemRequest notaItem, Produto produto) {
-		Double valorBrutoNota = produto.getPrecoVenda() * notaItem.getQuantidade_Itens();
-		Double valorDescontado = valorBrutoNota * (notaItem.getDesconto() / 100);
-		return valorBrutoNota - valorDescontado;
-	}
-
-	private Double calculaValorLiquidoParaEmissaoDeNotaDeVenda(ItemVenda item) {
-		Double valorBrutoNota = item.getProduto().getPrecoVenda() * item.getQtd();
-		Double valorDeDesconto = valorBrutoNota * (item.getPorcentDesconto() / 100);
-		return valorBrutoNota - valorDeDesconto;
-	}
-
-	private Double calculaTotalDeDescontoNaNota(NotaFiscalItemRequest notaRequest, Produto produto) {
-		return produto.getPrecoVenda() * (notaRequest.getDesconto() / 100);
-
-	}
-
-	private Double calculaTotalDeDescontoNaNotaDeVenda(ItemVenda item) {
-    Double valorBruto = item.getValorUnitario() * item.getQtd();
-    return valorBruto * (item.getPorcentDesconto() / 100);
-}
+	
 
 }
