@@ -1,7 +1,5 @@
 package br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class VendaItemRequest {
+public class ItensVendaRequest {
 
-	private List<ItensVendaRequest>itens_venda;
-
+    private String codigo_barra;
+    private Integer qtd_item;
+    private Double desconto;
 }

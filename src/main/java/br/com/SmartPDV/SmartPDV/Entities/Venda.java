@@ -53,9 +53,10 @@ public class Venda {
 	@OneToMany(mappedBy = "venda")
 	private List<NotaFiscal> nota = new ArrayList<>();
 
-	public Venda(Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal, Loja loja, Double desconto,
+	public Venda(Long ticket,Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal, Loja loja, Double desconto,
 			UsuariosLoja usuario) {
 		super();
+		this.ticket = ticket;
 		this.caixa = caixa;
 		this.cliente = cliente;
 		this.dataHora = dataHora;

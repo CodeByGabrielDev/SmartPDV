@@ -26,6 +26,8 @@ public class ItemVenda {
 	@ManyToOne
 	@JoinColumn(name = "id_venda")
 	private Venda venda;
+
+	private Long ticket;
 	@ManyToOne
 	@JoinColumn(name = "id_produto")
 	private Produto produto;
@@ -40,13 +42,16 @@ public class ItemVenda {
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
 
-	public ItemVenda(Venda venda, Produto produto, Integer qtd, Double valorUnitario, Double valorTotal) {
-		super();
+	public ItemVenda(Venda venda,Long ticket, Produto produto, Integer qtd, Double valorUnitario, Double valorTotal,
+			Double porcentDesconto, Loja loja) {
 		this.venda = venda;
+		this.ticket = ticket;
 		this.produto = produto;
 		this.qtd = qtd;
 		this.valorUnitario = valorUnitario;
 		this.valorTotal = valorTotal;
+		this.porcentDesconto = porcentDesconto;
+		this.loja = loja;
 	}
 
 }
