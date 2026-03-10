@@ -9,6 +9,8 @@ import org.hibernate.annotations.Collate;
 import br.com.SmartPDV.SmartPDV.Enum.TiposCliente;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,6 +40,7 @@ public class Clientes {
 	private String cpfCnpj;
 	private String email;
 	private String telefone;
+	@Enumerated(EnumType.STRING)
 	private TiposCliente tipo;
 	@Column(name = "data_cadastramento") // auditoria
 	private LocalDateTime dataCadastramento;
