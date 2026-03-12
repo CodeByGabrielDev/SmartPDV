@@ -55,6 +55,8 @@ public class NotaFiscal {
 	@ManyToOne
 	@JoinColumn(name = "id_venda_vinculada")
 	private Venda venda;
+	@OneToMany(mappedBy = "notaFiscal")
+	private List<Pagamento>pgto = new ArrayList<>();
 	@Column(name = "data_emissao")
 	private LocalDateTime dataEmissao;
 	@Column(name = "status_nota")

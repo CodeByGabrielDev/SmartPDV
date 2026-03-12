@@ -19,6 +19,7 @@ import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalImpostoItem;
+import br.com.SmartPDV.SmartPDV.Entities.Pagamento;
 import br.com.SmartPDV.SmartPDV.Entities.TransitoLoja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Entities.Venda;
@@ -27,7 +28,7 @@ import br.com.SmartPDV.SmartPDV.Enum.StatusNotaFiscal;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
 import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
-
+import br.com.SmartPDV.SmartPDV.Repository.PagamentoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.TransitoLojaRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -40,15 +41,19 @@ public class NotaFiscalService {
 	private final TransitoLojaRepository transitoRepository;
 	private final LojaRepository loja;
 	private final ClienteRepository clienteRepository;
+	private final PagamentoRepository pagamentoRepository;
 
 	@Transactional
-	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens) {
+	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens,Pagamento pagamento) {
 
 		NotaFiscal notaEmissao = new NotaFiscal((long) 0, 65, (long) 0, 5102, venda.getCliente(),
 				venda.getCliente().getCpfCnpj(), venda.getLoja(), 0.0, null, null, null, venda, LocalDateTime.now(),
 				StatusNotaFiscal.PENDENTE,verificaQtdItensNotaDeVenda(itens));
 		geraNumeroFiscal(notaEmissao);
 		realizaCalculo(notaEmissao, itens);
+		pagamento.setNotaFiscal(notaEmissao);
+		pagamento.setNumero_fiscal_venda(notaEmissao.getNfNumero());
+		this.pagamentoRepository.save(pagamento);
 	}
 
 	public void emitirNotaAvulsa(NotaFiscalRequest notaItem) {
