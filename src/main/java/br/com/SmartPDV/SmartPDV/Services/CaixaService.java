@@ -67,7 +67,7 @@ public class CaixaService {
 					" Caixa fechado, por gentileza averiguar abertura de caixa.");
 		}
 		caixa.setValorFinal(caixa.getValorFinal() + valorParaAlimentar);
-
+		this.caixa.save(caixa);
 	}
 
 	private CaixaAberturaResponse ValidaSalvaNoBancoRetornaDto(UsuariosLoja usuarioSession) {

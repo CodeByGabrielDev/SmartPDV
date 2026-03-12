@@ -56,6 +56,7 @@ public class VendaService {
 		geraSequencialTicket(venda.getLoja().getId(), venda);
 		this.vendaRepository.save(venda);
 		this.vendaItem.insereItensVenda(itens, venda, caixa);
+		
 	}
 
 	private Clientes findCustomer(String cpfOrCnpj) {

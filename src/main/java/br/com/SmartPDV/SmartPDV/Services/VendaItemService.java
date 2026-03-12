@@ -56,7 +56,6 @@ public class VendaItemService {
         this.vendaRepository.save(venda);
         this.itemVendaRepository.saveAll(itensVenda);
         this.caixaRepository.save(caixa);
-        this.notaFiscalService.emitirNotaDeVenda(venda, itensVenda);
 
     }
 
