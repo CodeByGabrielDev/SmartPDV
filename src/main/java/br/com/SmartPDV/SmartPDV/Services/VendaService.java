@@ -1,5 +1,6 @@
 package br.com.SmartPDV.SmartPDV.Services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,6 +55,11 @@ public class VendaService {
 		
 	}
 
+	public void relatorioDeVendasPorDia(LocalDate diaInicial,LocalDate diaFinal){
+		
+	}
+
+
 	private Clientes findCustomer(String cpfOrCnpj) {
 		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(cpfOrCnpj);
 		if (cliente == null) {
@@ -63,9 +69,6 @@ public class VendaService {
 		return cliente;
 	}
 
-	public void cancelarVenda(){
-		
-	}
 
 
 

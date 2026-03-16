@@ -50,13 +50,16 @@ public class Loja {
 	@OneToMany(mappedBy = "loja")
 	private List<NotaFiscalItem> notaItem = new ArrayList<>();
 	@OneToMany(mappedBy = "lojaOrigem")
-	private List<TransitoLoja>transitoOrigem = new ArrayList<>();
+	private List<TransitoLoja> transitoOrigem = new ArrayList<>();
 	@OneToMany(mappedBy = "lojaDestino")
-	private List<TransitoLoja>transitoDestino = new ArrayList<>();
+	private List<TransitoLoja> transitoDestino = new ArrayList<>();
 	@OneToMany(mappedBy = "loja")
-	private List<Pagamento>pagamento = new ArrayList<>();
+	private List<Pagamento> pagamento = new ArrayList<>();
 	@OneToMany(mappedBy = "loja")
-	private List<Parcelas>parcelas = new ArrayList<>();
+	private List<Parcelas> parcelas = new ArrayList<>();
+	@OneToMany(mappedBy = "loja")
+	private List<Clientes> clientes = new ArrayList<>();
+
 	public Loja(String razaoSocial, String cnpj, String iE, String endereco, Boolean inativo) {
 		super();
 		this.razaoSocial = razaoSocial;
