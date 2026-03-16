@@ -19,7 +19,6 @@ import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
-import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalImpostoItem;
 import br.com.SmartPDV.SmartPDV.Entities.Pagamento;
 import br.com.SmartPDV.SmartPDV.Entities.TransitoLoja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;

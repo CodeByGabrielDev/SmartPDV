@@ -11,5 +11,6 @@ import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 public interface ClienteRepository extends CrudRepository<Clientes, Long> {
     @Query("SELECT E FROM Clientes E WHERE E.cpfCnpj = :documento")
     Clientes selectByCpfOrCnpj(@Param("documento") String documento);
-
+    @Query("SELECT E FROM Clientes E WHERE E.email = :email")
+    Clientes selectByEmail(@Param("email")String email);
 }
