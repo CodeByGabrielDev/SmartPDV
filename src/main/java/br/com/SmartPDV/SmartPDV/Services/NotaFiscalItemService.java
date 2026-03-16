@@ -38,7 +38,7 @@ public class NotaFiscalItemService {
 	@Transactional
 	public void inserirItensFiscais(List<ItemVenda> itensVenda, NotaFiscal notaFiscal) {
 		List<NotaFiscalItem> notas = new ArrayList<>();
-		Integer interador = 0;
+		Integer interador = 1;
 		Double valorTotalDesconto = 0.0;
 		for (ItemVenda i : itensVenda) {
 
@@ -61,7 +61,7 @@ public class NotaFiscalItemService {
 		notaFiscal.setDesconto(valorTotalDesconto);
 		this.notaFiscalRepo.save(notaFiscal);
 		notaRepo.saveAll(notas);
-		this.notaImpostoItem.calculaImposto(notas);
+		this.notaImpostoItem.calculaImposto(notas, notaFiscal);
 	}
 
 	@Transactional
@@ -86,6 +86,35 @@ public class NotaFiscalItemService {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 						" Nao foi encontrado item com esse codigo de barra,valide!");
 			}
+			/*
+			@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	@ManyToOne
+	@JoinColumn(name = "id_nota_fiscal")
+	private NotaFiscal nota;
+	@Column(name = "nf_numero")
+	private Long nfNumero;
+	@Column(name = "serie_nfe")
+	private Integer serieNfe;
+	@ManyToOne
+	@JoinColumn(name = "id_produto")
+	private Produto produto;
+	private Integer numeroItem;
+	private Integer quantidadeItens;
+	private Double valorBrutoItem;
+	private Double valorLiquidoItem;
+	private Double desconto;
+	@ManyToOne
+	@JoinColumn(name = "id_filial")
+	private Loja loja;
+	@ManyToOne
+	@JoinColumn(name = "id_excecao_imposto")
+	private ExcecaoImposto excecaoImposto;
+
+	public NotaFiscalItem(NotaFiscal nota, Long nfNumero,Integer serieNfe, Produto produto, Integer numeroItem,
+			Integer quantidadeItens, Double valorBrutoItem, Double valorLiquidoItem, Double desconto, Loja loja,
+			ExcecaoImposto excecaoImposto) */
 			calculaTotalBrutoNota += (prodFind.getPrecoVenda()*nota.getQuantidade_Itens());
 			calculaTotalLiquidoNota += this.calculator.calculaValorLiquido(nota, prodFind);
 			notaItemEntity.add(new NotaFiscalItem(notaEntity,notaEntity.getNfNumero() ,notaEntity.getSerieNf(), prodFind, iterador++,
@@ -100,7 +129,7 @@ public class NotaFiscalItemService {
 		notaEntity.setDesconto(valorTotalDesconto);
 		this.notaRepo.saveAll(notaItemEntity);
 		this.notaFiscalRepo.save(notaEntity);
-		this.notaImpostoItem.calculaImposto(notaItemEntity);
+		this.notaImpostoItem.calculaImposto(notaItemEntity, notaEntity);
 
 	}
 

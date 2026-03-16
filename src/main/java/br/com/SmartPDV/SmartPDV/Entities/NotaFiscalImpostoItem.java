@@ -3,6 +3,8 @@ package br.com.SmartPDV.SmartPDV.Entities;
 import br.com.SmartPDV.SmartPDV.Enum.TipoImposto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,10 +24,15 @@ public class NotaFiscalImpostoItem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@Enumerated(EnumType.STRING)
 	private TipoImposto tipo;
 	@ManyToOne
-	@JoinColumn(name = "nf_numero")
+	@JoinColumn(name = "id_nota_fiscal")
 	private NotaFiscal numero;
+	@Column(name = "numero_nota_fiscal")
+	private Long numeroNotaFiscal;
+	@Column(name = "serie_nota_fiscal")
+	private Integer serieNotaFiscal;
 	@Column(name = "valor_liquido_produto")
 	private Double valorLiquidoProduto;
 	@Column(name = "base_calculo")
@@ -43,17 +50,20 @@ public class NotaFiscalImpostoItem {
 	 * 
 	 */
 
-	public NotaFiscalImpostoItem(TipoImposto tipo, NotaFiscal numero, Double valorLiquidoProduto, Double baseCalculo,
-			Double aliquotaAplicada, Double reducaoBaseAplicada, Double valorImpostoCalculado) {
-		super();
+	public NotaFiscalImpostoItem(TipoImposto tipo, NotaFiscal numero, Long numeroNotaFiscal, Integer serieNotaFiscal,
+			Double valorLiquidoProduto, Double baseCalculo, Double aliquotaAplicada, Double reducaoBaseAplicada,
+			Double valorImpostoCalculado) {
 		this.tipo = tipo;
 		this.numero = numero;
+		this.numeroNotaFiscal = numeroNotaFiscal;
+		this.serieNotaFiscal = serieNotaFiscal;
 		this.valorLiquidoProduto = valorLiquidoProduto;
 		this.baseCalculo = baseCalculo;
 		this.aliquotaAplicada = aliquotaAplicada;
 		this.reducaoBaseAplicada = reducaoBaseAplicada;
 		this.valorImpostoCalculado = valorImpostoCalculado;
-
 	}
+
+	
 
 }

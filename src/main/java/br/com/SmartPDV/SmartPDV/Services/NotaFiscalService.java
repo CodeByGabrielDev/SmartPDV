@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.catalina.connector.Response;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,11 +45,11 @@ public class NotaFiscalService {
 	private final PagamentoRepository pagamentoRepository;
 
 	@Transactional
-	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens,Pagamento pagamento) {
+	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens, Pagamento pagamento) {
 
 		NotaFiscal notaEmissao = new NotaFiscal((long) 0, 65, (long) 0, 5102, venda.getCliente(),
 				venda.getCliente().getCpfCnpj(), venda.getLoja(), 0.0, null, null, null, venda, LocalDateTime.now(),
-				StatusNotaFiscal.PENDENTE,verificaQtdItensNotaDeVenda(itens));
+				StatusNotaFiscal.PENDENTE, verificaQtdItensNotaDeVenda(itens));
 		geraNumeroFiscal(notaEmissao);
 		realizaCalculo(notaEmissao, itens);
 		pagamento.setNotaFiscal(notaEmissao);
@@ -81,38 +82,55 @@ public class NotaFiscalService {
 		 * Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao,
 		 * StatusNotaFiscal statusNota)
 		 */
-		NotaFiscal nota = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(), null, null, loja, null,
+		/*NotaFiscal nota = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(), null, null, loja, null,
 				null, null, null, null, LocalDateTime.now(), StatusNotaFiscal.PENDENTE,
-				verificaQtdItensNotaAvulsa(notaItem));
-		geraNumeroFiscal(nota);
-		this.notaFiscalRepo.save(nota);
+				verificaQtdItensNotaAvulsa(notaItem));*/
+		/*
+		 * public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer
+		 * cfop, Integer qtdTotalItens,
+		 * Clientes cliente, String cpfCliente, Loja loja, Double desconto, Double
+		 * valorTotalDeImpostoAPagar,
+		 * Double valorBrutoNota, Double valorLiquidoNota, Venda venda, LocalDateTime
+		 * dataEmissao,
+		 * StatusNotaFiscal statusNota, Loja lojaDestino)
+		 */
+
+
+		/*
+			Gerei um objeto de Nota fiscal sem chave nfe porque nao tenho integração com sefaz, ai gera null para mock e teste
+			obs: nao tem validação com o atributo chaveNfe, evita dar null pointer exception.
+		*/
+		NotaFiscal notaFiscal = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(),
+				verificaQtdItensNotaAvulsa(notaItem), null, null, usuario.getLojaVinculada(), null, null, null, null, null, LocalDateTime.now(),
+				StatusNotaFiscal.PENDENTE, loja);
+		geraNumeroFiscal(notaFiscal);
+		this.notaFiscalRepo.save(notaFiscal);
 		if (notaItem.getCfop() == 5152 || notaItem.getCfop() == 6152) {
 			this.transitoRepository
 					.save(new TransitoLoja(usuario.getLojaVinculada(), usuario.getLojaVinculada().getRazaoSocial(),
-							loja, loja.getRazaoSocial(), nota, nota.getNfNumero(), LocalDateTime.now(), null));
+							loja, loja.getRazaoSocial(), notaFiscal, notaFiscal.getNfNumero(), LocalDateTime.now(), null));
 		}
 
-		this.notaFiscalItemService.validacaoEPersistencia(notaItem, nota);
+		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal);
 	}
 
-	private Integer verificaQtdItensNotaAvulsa(NotaFiscalRequest notaItem){
+	private Integer verificaQtdItensNotaAvulsa(NotaFiscalRequest notaItem) {
 		Integer iteradorDeItens = 0;
 
-		for(NotaFiscalItemRequest i:notaItem.getCodigo_barra()){
+		for (NotaFiscalItemRequest i : notaItem.getCodigo_barra()) {
 			iteradorDeItens += i.getQuantidade_Itens();
 		}
 		return iteradorDeItens;
 	}
 
-	private Integer verificaQtdItensNotaDeVenda(List<ItemVenda> itens){
+	private Integer verificaQtdItensNotaDeVenda(List<ItemVenda> itens) {
 		Integer iteradorDeItens = 0;
 
-		for(ItemVenda i:itens){
+		for (ItemVenda i : itens) {
 			iteradorDeItens += i.getQtd();
 		}
 		return iteradorDeItens;
 	}
-
 
 	private void realizaCalculo(NotaFiscal notaEmissao, List<ItemVenda> itens) {
 

@@ -11,7 +11,7 @@ import br.com.SmartPDV.SmartPDV.Services.VendaService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api-smartpdv/seller")
+@RequestMapping("/api-smartpdv/point-of-sale")
 @RequiredArgsConstructor
 public class VendaController {
 
