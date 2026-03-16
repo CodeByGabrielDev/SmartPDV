@@ -11,12 +11,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class FormaPgto {
 
 	@Id
@@ -27,10 +31,5 @@ public class FormaPgto {
 	@OneToMany(mappedBy = "formaPgto")
 	private List<Pagamento> pgto = new ArrayList<>();
 
-	public FormaPgto(Long id, String descFormaPgto) {
-		super();
-		this.id = id;
-		this.descFormaPgto = descFormaPgto;
-	}
 
 }

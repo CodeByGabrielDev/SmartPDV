@@ -30,8 +30,9 @@ public class Pagamento {
 	@ManyToOne
 	@JoinColumn(name = "forma_pgto")
 	private FormaPgto formaPgto;
-
-	
+	@ManyToOne
+	@JoinColumn(name = "id_loja")
+	private Loja loja;
 	private Double valor;
 	@ManyToOne
 	@JoinColumn(name = "bandeira_cartao")
@@ -43,10 +44,12 @@ public class Pagamento {
 	private Integer qtdParcelas;
 	@OneToMany(mappedBy = "pagamento")
 	private List<Parcelas>parcelas = new ArrayList<>();
-	public Pagamento(Venda venda, FormaPgto formaPgto, Double valor, BandeirasCartao bandeiraCartao,
+	private boolean concluida;
+	public Pagamento(Venda venda, FormaPgto formaPgto,Loja loja, Double valor, BandeirasCartao bandeiraCartao,
 			NotaFiscal notaFiscal, Long numero_fiscal_venda, Integer qtdParcelas) {
 		this.venda = venda;
 		this.formaPgto = formaPgto;
+		this.loja = loja;
 		this.valor = valor;
 		this.bandeiraCartao = bandeiraCartao;
 		this.notaFiscal = notaFiscal;

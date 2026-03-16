@@ -35,9 +35,13 @@ public class NotaFiscalItem {
 	@ManyToOne
 	@JoinColumn(name = "id_produto")
 	private Produto produto;
+	@Column(name = "numero_item")
 	private Integer numeroItem;
+	@Column(name = "quantidade_itens")
 	private Integer quantidadeItens;
+	@Column(name = "valor_bruto_item")
 	private Double valorBrutoItem;
+	@Column(name = "valor_liquido_item")
 	private Double valorLiquidoItem;
 	private Double desconto;
 	@ManyToOne

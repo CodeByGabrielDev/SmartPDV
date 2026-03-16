@@ -53,7 +53,10 @@ public class Loja {
 	private List<TransitoLoja>transitoOrigem = new ArrayList<>();
 	@OneToMany(mappedBy = "lojaDestino")
 	private List<TransitoLoja>transitoDestino = new ArrayList<>();
-
+	@OneToMany(mappedBy = "loja")
+	private List<Pagamento>pagamento = new ArrayList<>();
+	@OneToMany(mappedBy = "loja")
+	private List<Parcelas>parcelas = new ArrayList<>();
 	public Loja(String razaoSocial, String cnpj, String iE, String endereco, Boolean inativo) {
 		super();
 		this.razaoSocial = razaoSocial;

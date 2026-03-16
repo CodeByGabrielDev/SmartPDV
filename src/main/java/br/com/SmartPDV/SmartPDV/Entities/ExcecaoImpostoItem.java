@@ -2,6 +2,8 @@ package br.com.SmartPDV.SmartPDV.Entities;
 
 import br.com.SmartPDV.SmartPDV.Enum.TipoImposto;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,6 +26,7 @@ public class ExcecaoImpostoItem {
 	@ManyToOne
 	@JoinColumn(name = "id_excecao_imposto")
 	private ExcecaoImposto excecaoImposto;
+	@Enumerated(EnumType.STRING)
 	private TipoImposto tipo;
 	private Double aliquota;
 	private Double reducaoBase;

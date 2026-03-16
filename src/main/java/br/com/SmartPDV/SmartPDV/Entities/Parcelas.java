@@ -27,12 +27,16 @@ public class Parcelas {
     private Long numeroTicket;
     @Column(name = "numero_parcela")
     private Integer numeroParcela;
+    @ManyToOne
+    @JoinColumn(name = "id_loja")
+    private Loja loja;
     @Column(name = "valor_parcela")
     private Double valorParcela;
-    public Parcelas(Pagamento pagamento, Long numeroTicket, Integer numeroParcela, Double valorParcela) {
+    public Parcelas(Pagamento pagamento, Long numeroTicket, Integer numeroParcela,Loja loja, Double valorParcela) {
         this.pagamento = pagamento;
         this.numeroTicket = numeroTicket;
         this.numeroParcela = numeroParcela;
+        this.loja = loja;
         this.valorParcela = valorParcela;
     }
 

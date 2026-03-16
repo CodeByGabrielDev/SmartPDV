@@ -20,4 +20,6 @@ public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, Long> {
             Pageable pageable
     );
 
+   
+
 }

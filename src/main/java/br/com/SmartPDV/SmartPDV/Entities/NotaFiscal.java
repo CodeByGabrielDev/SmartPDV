@@ -89,15 +89,15 @@ public class NotaFiscal {
 		this.qtdTotalItens = qtdTotalItens;
 	}
 
-	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
-			Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota,
-			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota,
-			Loja lojaDestino) {
-		super();
+	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Integer qtdTotalItens,
+			Clientes cliente, String cpfCliente, Loja loja, Double desconto, Double valorTotalDeImpostoAPagar,
+			Double valorBrutoNota, Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao,
+			StatusNotaFiscal statusNota, Loja lojaDestino) {
 		this.nfNumero = nfNumero;
 		this.serieNf = serieNf;
 		this.chaveNfe = chaveNfe;
 		this.cfop = cfop;
+		this.qtdTotalItens = qtdTotalItens;
 		this.cliente = cliente;
 		this.cpfCliente = cpfCliente;
 		this.loja = loja;
@@ -110,5 +110,7 @@ public class NotaFiscal {
 		this.statusNota = statusNota;
 		this.lojaDestino = lojaDestino;
 	}
+
+	
 
 }

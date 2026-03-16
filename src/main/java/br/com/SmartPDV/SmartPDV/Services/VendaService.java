@@ -10,21 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ItensVendaRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.VendaItemRequest;
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
-import br.com.SmartPDV.SmartPDV.Entities.EstoqueProduto;
-import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
-import br.com.SmartPDV.SmartPDV.Entities.Loja;
-import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
+
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Entities.Venda;
 import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import br.com.SmartPDV.SmartPDV.Repository.CaixaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
-import br.com.SmartPDV.SmartPDV.Repository.EstoqueProdutoRepository;
-import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
+
 import br.com.SmartPDV.SmartPDV.Repository.VendaRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -68,6 +63,12 @@ public class VendaService {
 		return cliente;
 	}
 
+	public void cancelarVenda(){
+		
+	}
+
+
+
 	private void geraSequencialTicket(Long idLoja,Venda venda) {
 		List<Venda> sequential = this.vendaRepository.selectLastTicket(idLoja, PageRequest.of(0, 1));
 				
@@ -78,5 +79,7 @@ public class VendaService {
 			venda.setTicket(1L);
 		}
 	}
+
+
 
 }
