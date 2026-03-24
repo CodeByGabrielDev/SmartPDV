@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🚀 SmartPDV - Sistema de Ponto de Venda Enterprise
 
 Sistema de **Ponto de Venda (PDV)** desenvolvido com **Java e Spring Boot**, focado em **arquitetura backend robusta, segurança, regras de negócio complexas e boas práticas de desenvolvimento**.
