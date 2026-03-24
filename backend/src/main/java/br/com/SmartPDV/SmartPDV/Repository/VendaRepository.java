@@ -1,6 +1,7 @@
 package br.com.SmartPDV.SmartPDV.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.cglib.core.Local;
@@ -20,8 +21,8 @@ public interface VendaRepository extends CrudRepository<Venda, Long> {
     @Query("SELECT E FROM Venda E WHERE E.id = :idVenda AND E.loja.id = :idLoja")
     Venda selectByIdAndCodLoja(@Param("idLoja") Long idLoja, @Param("idVenda") Long idVenda);
 
-    @Query("SELECT E FROM Venda E WHERE E.dataHora BETWEEN :diaInicial AND :diaFinal")
-    List<Venda> selectVendaByDataFilter(@Param("diaInicial") LocalDate diaInicial,
-            @Param("diaFinal") LocalDate diaFinal);
+    @Query("SELECT DISTINCT E FROM Venda E LEFT JOIN FETCH E.pgto WHERE E.dataHora BETWEEN :diaInicial AND :diaFinal AND E.loja.id = :idLoja")
+    List<Venda> selectVendaByDataFilter(@Param("diaInicial") LocalDateTime diaInicial,
+            @Param("diaFinal") LocalDateTime diaFinal, @Param("idLoja") Long idLoja);
 
 }
