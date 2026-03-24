@@ -15,6 +15,7 @@ import br.com.SmartPDV.SmartPDV.Enum.TiposCliente;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
 import br.com.SmartPDV.SmartPDV.ResponseDTOs.ClienteResponse;
 import br.com.SmartPDV.SmartPDV.ResponseDTOs.ViaCepResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,8 +30,10 @@ public class ClienteService {
         UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         ViaCepResponse viaCepResponse = this.viaCepClient.buscarCep(clienteRequest.getCep()).block();
-        if (this.clienteRepository.selectByCpfOrCnpj(clienteRequest.getCpf_cnpj()) != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, " Ja existe um cliente cadastrado com esse cep");
+        Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(clienteRequest.getCpf_cnpj());
+
+        if (cliente != null && cliente.getLoja().getId() == usuariosLoja.getLojaVinculada().getId()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, " Ja existe um cliente cadastrado com esse cpf");
         }
         if (this.clienteRepository.selectByEmail(clienteRequest.getEmail()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "ja existe um cliente cadastrado com esse email");
@@ -50,6 +53,38 @@ public class ClienteService {
         return new ClienteResponse(clientes.getNomeCliente(), clientes.getCpfCnpj(), clientes.getEmail(),
                 clientes.getTelefone(), clientes.getTipo().toString(), clientes.getCep(), clientes.getLogradouro(),
                 clientes.getBairro(), clientes.getLocalidade(), clientes.getUf(), clientes.getEstado());
+
+    }
+
+    @Transactional
+    public ClienteResponse alterarCadastro(Long idCliente, ClienteRequest clienteRequest) {
+        UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        Clientes cliente = this.clienteRepository.findById(idCliente).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nao foi encontrado o respectivo cliente"));
+        if (cliente.getLoja().getId() != usuariosLoja.getLojaVinculada().getId()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "proibido alterar informacao de um cliente que esteja vinculado a outra loja");
+        }
+        if (clienteRequest.getCep() != null) {
+            cliente.setCep(clienteRequest.getCep());
+        }
+        if (clienteRequest.getCpf_cnpj() != null) {
+            cliente.setCpfCnpj(clienteRequest.getCpf_cnpj());
+        }
+        if (clienteRequest.getEmail() != null) {
+            cliente.setEmail(clienteRequest.getEmail());
+        }
+        if (clienteRequest.getNome_cliente() != null) {
+            cliente.setNomeCliente(clienteRequest.getNome_cliente());
+        }
+        if (clienteRequest.getTelefone() != null) {
+            cliente.setTelefone(clienteRequest.getTelefone());
+        }
+        this.clienteRepository.save(cliente);
+        return new ClienteResponse(cliente.getNomeCliente(), cliente.getCpfCnpj(), cliente.getEmail(),
+                cliente.getTelefone(), cliente.getTipo().toString(), cliente.getCep(), cliente.getLogradouro(),
+                cliente.getBairro(), cliente.getLocalidade(), cliente.getUf(), cliente.getEstado());
 
     }
 }
