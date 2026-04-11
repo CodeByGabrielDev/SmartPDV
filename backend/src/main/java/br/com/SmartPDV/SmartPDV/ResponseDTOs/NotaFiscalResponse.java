@@ -34,6 +34,11 @@ public class NotaFiscalResponse {
 	private Long ticket_venda;
 	private LocalDateTime data_Emissao;
 	private StatusNotaFiscal status_Nota;
-	 
+ 	 
+	public NotaFiscalResponse(Long nf_numero, Integer serieNf, StatusNotaFiscal status_Nota) {
+		this.nf_numero = nf_numero;
+		this.serieNf = serieNf;
+		this.status_Nota = status_Nota;
+	}
 	
 }

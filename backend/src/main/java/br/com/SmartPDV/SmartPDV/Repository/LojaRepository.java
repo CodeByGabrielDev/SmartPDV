@@ -1,5 +1,7 @@
 package br.com.SmartPDV.SmartPDV.Repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -11,4 +13,7 @@ public interface LojaRepository extends CrudRepository<Loja, Long> {
 
 	@Query("SELECT E FROM Loja E WHERE E.cnpj = :cnpj")
 	Loja findByCnpj(@Param("cnpj") String cnpj);
+
+	@Query("SELECT E FROM Loja E WHERE E.inativo = false")
+	List<Loja> selectAllLojas();
 }
