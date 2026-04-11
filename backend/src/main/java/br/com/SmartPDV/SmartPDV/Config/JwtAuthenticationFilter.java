@@ -28,24 +28,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 
 		String authHeader = request.getHeader("Authorization");
+		System.out.println("Auth header: " + authHeader);
 
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+			System.out.println("No Bearer token, continuing...");
 			filterChain.doFilter(request, response);
 			return;
 		}
 
 		String token = authHeader.substring(7);
-		String login = tokenService.getSubject(token);
+		System.out.println("Token extracted");
+		
+		String login;
+		try {
+			login = tokenService.getSubject(token);
+			System.out.println("Login from token: " + login);
+		} catch (Exception e) {
+			System.out.println("Token invalid: " + e.getMessage());
+			filterChain.doFilter(request, response);
+			return;
+		}
 
 		if (login != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 			UserDetails usuario = funcionarioRepository.findByLogin(login);
+			System.out.println("User found: " + (usuario != null));
 
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(usuario, null,
-					usuario.getAuthorities());
+			if (usuario != null) {
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(usuario, null,
+						usuario.getAuthorities());
 
-			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+				System.out.println("Authentication set!");
+			}
 		}
 
 		filterChain.doFilter(request, response);

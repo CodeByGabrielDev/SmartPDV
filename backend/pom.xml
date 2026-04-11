@@ -14,9 +14,9 @@
     </parent>
 
     <groupId>br.com.TrueUnion</groupId>
-    <artifactId>TrueUnion</artifactId>
+    <artifactId>SmartPDV</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>TrueUnion</name>
+    <name>SmartPDV</name>
     <description>Sistema PDV em Spring Boot + Oracle</description>
 
     <properties>

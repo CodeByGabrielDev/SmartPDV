@@ -40,7 +40,7 @@ public class VendaService {
 	private final VendaItemService vendaItem;
 
 	@Transactional
-	public void realizarVenda(VendaItemRequest itens, String cpfOrCnpj) {
+	public VendaResponse realizarVenda(VendaItemRequest itens, String cpfOrCnpj) {
 		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (usuarioLoja.getPerfil() != PerfilVendedor.GERENTE
 				&& usuarioLoja.getPerfil() != PerfilVendedor.FUNCIONARIO) {
@@ -58,7 +58,7 @@ public class VendaService {
 		geraSequencialTicket(venda.getLoja().getId(), venda);
 		this.vendaRepository.save(venda);
 		this.vendaItem.insereItensVenda(itens, venda, caixa);
-
+		return montaDto(venda);
 	}
 
 	public List<VendaResponse> relatorioDeVendasPorDia(LocalDateTime diaInicial, LocalDateTime diaFinal) {
@@ -69,7 +69,7 @@ public class VendaService {
 		System.out.println(vendas);
 		List<VendaResponse> vendaResponses = new ArrayList<>();
 		for (Venda venda : vendas) {
-			VendaResponse vendaResponse = new VendaResponse(venda.getTicket(), venda.getCaixa().getId(),
+			VendaResponse vendaResponse = new VendaResponse(venda.getId(),venda.getTicket(), venda.getCaixa().getId(),
 					venda.getCliente().getCpfCnpj(), venda.getDataHora(), venda.getValorTotal(),
 					venda.getLoja().getId(), venda.getDesconto(), venda.getUsuario().getNomeVendedor(), null);
 			for (Pagamento pagamento : venda.getPgto()) {
@@ -100,6 +100,12 @@ public class VendaService {
 		} else {
 			venda.setTicket(1L);
 		}
+	}
+
+	private VendaResponse montaDto(Venda venda) {
+		return new VendaResponse(venda.getId(),venda.getTicket(), venda.getCaixa().getId(), null, venda.getDataHora(),
+				venda.getValorTotal(), venda.getLoja().getId(), venda.getDesconto(),
+				venda.getUsuario().getNomeVendedor(), null);
 	}
 
 }
