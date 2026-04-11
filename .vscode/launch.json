@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-PdvApplication",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "mainClass": "br.com.SmartPDV.SmartPDV.PdvApplication",
+            "projectName": "SmartPDV",
+            "args": "",
+            "consoleType": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Debug PdvApplication (File Run)",
+            "request": "launch",
+            "mainClass": "br.com.SmartPDV.SmartPDV.PdvApplication",
+            "project": "SmartPDV",
+            "consoleType": "integratedTerminal"
+        }
+    ]
+}

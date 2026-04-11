@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "path": "backend",
+            "name": "SmartPDV-Backend"
+        },
+        {
+            "path": "front",
+            "name": "SmartPDV-Frontend"
+        }
+    ],
+    "settings": {
+        "java.configuration.runtimes": [
+            {
+                "name": "JavaSE-17",
+                "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot",
+                "default": true
+            }
+        ]
+    }
+}

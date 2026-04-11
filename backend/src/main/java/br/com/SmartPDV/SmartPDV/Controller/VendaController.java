@@ -24,8 +24,8 @@ public class VendaController {
 	private final VendaService vendaService;
 
 	@PostMapping
-	public void realizarVenda(@RequestBody VendaItemRequest itens, @RequestParam String cpfOrCnpj) {
-		this.vendaService.realizarVenda(itens, cpfOrCnpj);
+	public VendaResponse realizarVenda(@RequestBody VendaItemRequest itens, @RequestParam String cpfOrCnpj) {
+		return this.vendaService.realizarVenda(itens, cpfOrCnpj);
 	}
 
 	@GetMapping("/sales-report")

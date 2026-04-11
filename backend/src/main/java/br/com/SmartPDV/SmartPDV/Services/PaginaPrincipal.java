@@ -79,8 +79,7 @@ public class PaginaPrincipal {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Perfil do usuário é obrigatório");
 		}
 
-
-		System.out.println("Perfil do usuario: " +funcionarioRegister.getPerfil());
+		System.out.println("Perfil do usuario: " + funcionarioRegister.getPerfil());
 		this.funcionario.save(new UsuariosLoja(funcionarioRegister.getNome_vendedor(), funcionarioRegister.getCpf(),
 				funcionarioRegister.getLogin(), funcionarioRegister.getEmail(),
 				this.hash.passwordEncoder().encode(funcionarioRegister.getSenha()),
@@ -104,7 +103,10 @@ public class PaginaPrincipal {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha ou login incorreto!");
 		}
 
-		return ("Token: " + this.token.gerarToken(user) + " Loja: " + user.getLojaVinculada().getRazaoSocial());
+		return (this.token.gerarToken(user));
 	}
+
+
+
 
 }

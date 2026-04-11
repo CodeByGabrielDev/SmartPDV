@@ -22,6 +22,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class VendaResponse {
 
+	private Long id_banco;
+
 	private Long ticket;
 	private Long id_caixa;
 	private String cpf_cliente;
