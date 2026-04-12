@@ -72,13 +72,16 @@ public class NotaFiscalService {
 					"A nota deve conter obrigatoriamente uma SERIENFE");
 		}
 		Loja loja = this.loja.findByCnpj(notaItem.getCpfCliente());
-		if(loja == null){
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Loja nao encontrada");
+		if (loja == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada");
 		}
+
+		System.out.println("Tentando capturar o CNPJ da loja pelo request. " +loja.getCnpj());
 		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(notaItem.getCpfCliente());
-		
+
 		NotaFiscal notaFiscal = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(),
-				verificaQtdItensNotaAvulsa(notaItem), null, null, usuario.getLojaVinculada(), null, null, null, null,
+				verificaQtdItensNotaAvulsa(notaItem), null, loja.getCnpj(), usuario.getLojaVinculada(), null, null,
+				null, null,
 				null, LocalDateTime.now(),
 				StatusNotaFiscal.PENDENTE, loja);
 		geraNumeroFiscal(notaFiscal);
@@ -91,7 +94,7 @@ public class NotaFiscalService {
 		}
 
 		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal);
-		
+
 		return new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), notaFiscal.getStatusNota());
 	}
 
@@ -151,5 +154,4 @@ public class NotaFiscalService {
 		}
 	}
 
-	
 }
