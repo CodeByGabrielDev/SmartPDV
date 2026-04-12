@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalRequest;
+import br.com.SmartPDV.SmartPDV.ResponseDTOs.NotaFiscalResponse;
 import br.com.SmartPDV.SmartPDV.Services.NotaFiscalService;
 import lombok.RequiredArgsConstructor;
 
@@ -18,8 +19,8 @@ public class NotaFiscalController {
 
 
     @PostMapping    
-    public void emitirNotaFiscalAvulsa(@RequestBody NotaFiscalRequest notaRequest){
-        this.notaService.emitirNotaAvulsa(notaRequest);
+    public NotaFiscalResponse emitirNotaFiscalAvulsa(@RequestBody NotaFiscalRequest notaRequest){
+        return this.notaService.emitirNotaAvulsa(notaRequest);
     }
 
 }

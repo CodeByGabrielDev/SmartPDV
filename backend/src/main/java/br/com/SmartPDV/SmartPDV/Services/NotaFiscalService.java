@@ -30,6 +30,7 @@ import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
 import br.com.SmartPDV.SmartPDV.Repository.PagamentoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.TransitoLojaRepository;
+import br.com.SmartPDV.SmartPDV.ResponseDTOs.NotaFiscalResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -56,7 +57,7 @@ public class NotaFiscalService {
 		this.pagamentoRepository.save(pagamento);
 	}
 
-	public void emitirNotaAvulsa(NotaFiscalRequest notaItem) {
+	public NotaFiscalResponse emitirNotaAvulsa(NotaFiscalRequest notaItem) {
 
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (notaItem.getCfop() == null) {
@@ -70,47 +71,31 @@ public class NotaFiscalService {
 			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
 					"A nota deve conter obrigatoriamente uma SERIENFE");
 		}
-		Loja loja = this.loja.findById(notaItem.getIdLoja())
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+		Loja loja = this.loja.findByCnpj(notaItem.getCpfCliente());
+		if (loja == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada");
+		}
+
+		System.out.println("Tentando capturar o CNPJ da loja pelo request. " +loja.getCnpj());
 		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(notaItem.getCpfCliente());
-		/*
-		 * public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer
-		 * cfop, Clientes cliente, String cpfCliente,
-		 * Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double
-		 * valorBrutoNota,
-		 * Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao,
-		 * StatusNotaFiscal statusNota)
-		 */
-		/*NotaFiscal nota = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(), null, null, loja, null,
-				null, null, null, null, LocalDateTime.now(), StatusNotaFiscal.PENDENTE,
-				verificaQtdItensNotaAvulsa(notaItem));*/
-		/*
-		 * public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer
-		 * cfop, Integer qtdTotalItens,
-		 * Clientes cliente, String cpfCliente, Loja loja, Double desconto, Double
-		 * valorTotalDeImpostoAPagar,
-		 * Double valorBrutoNota, Double valorLiquidoNota, Venda venda, LocalDateTime
-		 * dataEmissao,
-		 * StatusNotaFiscal statusNota, Loja lojaDestino)
-		 */
 
-
-		/*
-			Gerei um objeto de Nota fiscal sem chave nfe porque nao tenho integração com sefaz, ai gera null para mock e teste
-			obs: nao tem validação com o atributo chaveNfe, evita dar null pointer exception.
-		*/
 		NotaFiscal notaFiscal = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(),
-				verificaQtdItensNotaAvulsa(notaItem), null, null, usuario.getLojaVinculada(), null, null, null, null, null, LocalDateTime.now(),
+				verificaQtdItensNotaAvulsa(notaItem), null, loja.getCnpj(), usuario.getLojaVinculada(), null, null,
+				null, null,
+				null, LocalDateTime.now(),
 				StatusNotaFiscal.PENDENTE, loja);
 		geraNumeroFiscal(notaFiscal);
 		this.notaFiscalRepo.save(notaFiscal);
 		if (notaItem.getCfop() == 5152 || notaItem.getCfop() == 6152) {
 			this.transitoRepository
 					.save(new TransitoLoja(usuario.getLojaVinculada(), usuario.getLojaVinculada().getRazaoSocial(),
-							loja, loja.getRazaoSocial(), notaFiscal, notaFiscal.getNfNumero(), LocalDateTime.now(), null));
+							loja, loja.getRazaoSocial(), notaFiscal, notaFiscal.getNfNumero(), LocalDateTime.now(),
+							null));
 		}
 
 		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal);
+
+		return new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), notaFiscal.getStatusNota());
 	}
 
 	private Integer verificaQtdItensNotaAvulsa(NotaFiscalRequest notaItem) {
@@ -168,4 +153,5 @@ public class NotaFiscalService {
 			nota.setNfNumero(1L);
 		}
 	}
+
 }
