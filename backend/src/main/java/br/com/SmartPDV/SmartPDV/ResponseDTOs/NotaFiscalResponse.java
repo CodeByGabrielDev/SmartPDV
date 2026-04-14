@@ -21,13 +21,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotaFiscalResponse {
-	
-	
+
 	private Long nf_numero;
 	private Integer serieNf;
 	private Long chaveNfe;
@@ -41,11 +41,5 @@ public class NotaFiscalResponse {
 	private Long ticket_venda;
 	private LocalDateTime data_Emissao;
 	private StatusNotaFiscal status_Nota;
- 	 
-	public NotaFiscalResponse(Long nf_numero, Integer serieNf, StatusNotaFiscal status_Nota) {
-		this.nf_numero = nf_numero;
-		this.serieNf = serieNf;
-		this.status_Nota = status_Nota;
-	}
-	
+
 }

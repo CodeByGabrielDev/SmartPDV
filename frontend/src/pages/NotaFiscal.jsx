@@ -21,6 +21,27 @@ export default function NotaFiscal() {
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
 
+  const [notasFiscais, setNotasFiscais] = useState([]);
+  const [carregandoNotas, setCarregandoNotas] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'historico') {
+      carregarNotas();
+    }
+  }, [activeTab]);
+
+  const carregarNotas = async () => {
+    setCarregandoNotas(true);
+    try {
+      const response = await notaFiscalService.listarNotas();
+      setNotasFiscais(response);
+    } catch (error) {
+      console.error('Erro ao carregar notas:', error);
+    } finally {
+      setCarregandoNotas(false);
+    }
+  };
+
   const buscarLojas = async () => {
     setCarregandoLojas(true);
     try {
@@ -94,7 +115,7 @@ export default function NotaFiscal() {
   return (
     <div className="notafiscal-container">
       <div className="notafiscal-main">
-        <div className="notafiscal-content">
+        <div className="notafiscal-content" >
           <h1>🧾 Módulo Fiscal</h1>
           
           <div className="tabs">
@@ -128,9 +149,66 @@ export default function NotaFiscal() {
 
           {activeTab === 'historico' && (
             <div className="tab-content">
-              <p className="info-text">
-                Em breve: histórico de notas fiscais emitidas.
-              </p>
+              {carregandoNotas ? (
+                <p className="loading">Carregando notas fiscais...</p>
+              ) : notasFiscais.length > 0 ? (
+                <div className="notas-cards">
+                  {notasFiscais.map((nota, index) => (
+                    <div key={index} className="nota-card">
+                      <div className="nota-card-header">
+                        <div className="nota-card-numero">
+                          NF <span>{nota.nf_numero}</span> / Série {nota.serieNf}
+                        </div>
+                        <span className={`nota-card-status status-${nota.status_Nota?.toLowerCase() || 'pendente'}`}>
+                          {nota.status_Nota || 'PENDENTE'}
+                        </span>
+                      </div>
+                      <div className="nota-card-body">
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">CFOP</span>
+                          <span className="nota-card-value">{nota.cfop}</span>
+                        </div>
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">Cliente</span>
+                          <span className="nota-card-value">{nota.cpf_Cliente || '-'}</span>
+                        </div>
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">Destino</span>
+                          <span className="nota-card-value">{nota.loja || '-'}</span>
+                        </div>
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">Data</span>
+                          <span className="nota-card-value">
+                            {nota.data_Emissao ? new Date(nota.data_Emissao).toLocaleDateString('pt-BR') : '-'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="nota-card-valores">
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">Bruto</span>
+                          <span className="nota-card-value">R$ {nota.valor_Bruto_Nota?.toFixed(2) || '0,00'}</span>
+                        </div>
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">Impostos</span>
+                          <span className="nota-card-value">R$ {nota.valor_Total_De_Imposto_A_Pagar?.toFixed(2) || '0,00'}</span>
+                        </div>
+                        <div className="nota-card-item">
+                          <span className="nota-card-label">Líquido</span>
+                          <span className="nota-card-value">R$ {nota.valor_Liquido_Nota?.toFixed(2) || '0,00'}</span>
+                        </div>
+                        {nota.desconto > 0 && (
+                          <div className="nota-card-item">
+                            <span className="nota-card-label">Desconto</span>
+                            <span className="nota-card-value">R$ {nota.desconto?.toFixed(2) || '0,00'}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-message">Nenhuma nota fiscal encontrada.</p>
+              )}
             </div>
           )}
         </div>

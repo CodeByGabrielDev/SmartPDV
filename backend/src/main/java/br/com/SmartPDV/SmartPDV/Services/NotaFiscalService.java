@@ -1,6 +1,7 @@
 package br.com.SmartPDV.SmartPDV.Services;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,7 +77,7 @@ public class NotaFiscalService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada");
 		}
 
-		System.out.println("Tentando capturar o CNPJ da loja pelo request. " +loja.getCnpj());
+		System.out.println("Tentando capturar o CNPJ da loja pelo request. " + loja.getCnpj());
 		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(notaItem.getCpfCliente());
 
 		NotaFiscal notaFiscal = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(),
@@ -95,7 +96,11 @@ public class NotaFiscalService {
 
 		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal);
 
-		return new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), notaFiscal.getStatusNota());
+		return new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null, notaFiscal.getCfop(),
+				notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
+				notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
+				notaFiscal.getValorLiquidoNota(), notaFiscal.getVenda().getTicket(), notaFiscal.getDataEmissao(),
+				notaFiscal.getStatusNota());
 	}
 
 	private Integer verificaQtdItensNotaAvulsa(NotaFiscalRequest notaItem) {
@@ -152,6 +157,31 @@ public class NotaFiscalService {
 		} else {
 			nota.setNfNumero(1L);
 		}
+	}
+
+	public List<NotaFiscalResponse> listarNotasEmitidasNaLoja() {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+		List<NotaFiscal> notasFiscais = this.notaFiscalRepo.findIssuedInvoices(usuariosLoja.getLojaVinculada().getId());
+		List<NotaFiscalResponse> notasResponse = new ArrayList<>();
+		for (NotaFiscal notaFiscal : notasFiscais) {
+			if(notaFiscal.getVenda() != null){
+				notasResponse.add(new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null,
+					notaFiscal.getCfop(),
+					notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
+					notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
+					notaFiscal.getValorLiquidoNota(), notaFiscal.getVenda().getTicket(), notaFiscal.getDataEmissao(),
+					notaFiscal.getStatusNota()));
+			}else{
+				notasResponse.add(new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null,
+					notaFiscal.getCfop(),
+					notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
+					notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
+					notaFiscal.getValorLiquidoNota(), null, notaFiscal.getDataEmissao(),
+					notaFiscal.getStatusNota()));
+			}
+		}
+		return notasResponse;
 	}
 
 }

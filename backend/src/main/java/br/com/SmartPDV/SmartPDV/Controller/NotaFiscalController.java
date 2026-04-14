@@ -1,5 +1,8 @@
 package br.com.SmartPDV.SmartPDV.Controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,10 +20,14 @@ public class NotaFiscalController {
 
     private final NotaFiscalService notaService;
 
-
-    @PostMapping    
-    public NotaFiscalResponse emitirNotaFiscalAvulsa(@RequestBody NotaFiscalRequest notaRequest){
+    @PostMapping
+    public NotaFiscalResponse emitirNotaFiscalAvulsa(@RequestBody NotaFiscalRequest notaRequest) {
         return this.notaService.emitirNotaAvulsa(notaRequest);
+    }
+
+    @GetMapping
+    public List<NotaFiscalResponse> listarNotasEmitidasPelaLoja() {
+        return this.notaService.listarNotasEmitidasNaLoja();
     }
 
 }
