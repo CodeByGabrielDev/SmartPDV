@@ -15,11 +15,11 @@ public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, Long> {
 
     @Query("SELECT e FROM NotaFiscal e WHERE e.loja.id = :idLoja AND e.serieNf = :serieNfe ORDER BY e.nfNumero DESC")
     List<NotaFiscal> findLastSequential(
-            @Param("idLoja") Long idLoja, 
-            @Param("serieNfe") Integer serieNfe, 
-            Pageable pageable
-    );
+            @Param("idLoja") Long idLoja,
+            @Param("serieNfe") Integer serieNfe,
+            Pageable pageable);
 
-   
+    @Query("SELECT E FROM NotaFiscal E WHERE E.loja.id = :idLoja")
+    List<NotaFiscal> findIssuedInvoices(@Param("idLoja") Long idLoja);
 
 }

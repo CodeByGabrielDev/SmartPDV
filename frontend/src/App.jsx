@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Venda from './pages/Venda';
@@ -15,24 +16,26 @@ function App() {
   const isAuthenticated = !!localStorage.getItem('token');
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
-        >
-          <Route path="venda" element={<Venda />} />
-          <Route path="caixa" element={<Caixa />} />
-          <Route path="cliente" element={<Cliente />} />
-          <Route path="notafiscal" element={<NotaFiscal />} />
-          <Route path="pagamento" element={<Pagamento />} />
-          <Route path="entrada-mercadoria" element={<EntradaMercadoria />} />
-          <Route path="excecao-imposto" element={<ExcecaoImposto />} />
-          <Route path="perfil" element={<Perfil />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route
+            path="/dashboard"
+            element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
+          >
+            <Route path="venda" element={<Venda />} />
+            <Route path="caixa" element={<Caixa />} />
+            <Route path="cliente" element={<Cliente />} />
+            <Route path="notafiscal" element={<NotaFiscal />} />
+            <Route path="pagamento" element={<Pagamento />} />
+            <Route path="entrada-mercadoria" element={<EntradaMercadoria />} />
+            <Route path="excecao-imposto" element={<ExcecaoImposto />} />
+            <Route path="perfil" element={<Perfil />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
