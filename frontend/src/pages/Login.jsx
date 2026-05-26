@@ -21,7 +21,9 @@ export default function Login() {
     localStorage.removeItem('login');
     try {
       let token = await authService.login(login, senha);
-      if (token && token.startsWith('Token: ')) {
+      // Remove aspas extras caso o backend retorne texto com aspas
+      token = String(token).trim().replace(/^"|"$/g, '');
+      if (token.startsWith('Token: ')) {
         token = token.substring(7);
       }
       localStorage.setItem('token', token);

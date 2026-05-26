@@ -94,19 +94,19 @@ public class PaginaPrincipal {
 	}
 
 	public String login(String login, String senha) {
-		UsuariosLoja user = this.funcionario.findByLogin(login);
-
-		if (user == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Senha ou login incorreto!");
+		if (login == null || senha == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " o login e a senha não podem estar vazio.");
 		}
+		UsuariosLoja user = this.funcionario.findByLogin(login);
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Senha ou login incorreto! user nao encontrado");
+		}
+
 		if (!this.hash.passwordEncoder().matches(senha, user.getSenha())) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha ou login incorreto!");
 		}
 
 		return (this.token.gerarToken(user));
 	}
-
-
-
 
 }

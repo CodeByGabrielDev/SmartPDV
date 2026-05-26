@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api-smartpdv/goods receipt/")
+@RequestMapping("/api-smartpdv/goods-receipt/")
 public class EntradaDeMercadoriaController {
 
     private final TransitoLojaService transitoLoja;
