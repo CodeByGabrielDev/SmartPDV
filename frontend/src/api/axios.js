@@ -10,15 +10,15 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const url = config.url || '';
   if (!url.includes('/auth/login')) {
-    let rawToken = localStorage.getItem('token');
-    let token = rawToken;
+    let token = localStorage.getItem('token');
     if (token) {
-      token = token.trim();
+      // Remove aspas extras que o axios pode adicionar ao salvar texto puro
+      token = token.trim().replace(/^"|"$/g, '');
+      // Remove prefixo legado "Token: " caso exista
       if (token.startsWith('Token: ')) {
         token = token.substring(7);
       }
-      const parts = token.split('.');
-      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
