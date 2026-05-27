@@ -9,14 +9,14 @@ import br.com.SmartPDV.SmartPDV.Config.HashSenha;
 import br.com.SmartPDV.SmartPDV.Config.TokenService;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.FuncionarioRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.LojaRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.LojaResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.UsuarioLojaResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import br.com.SmartPDV.SmartPDV.Repository.FuncionarioLoja;
 
 import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.LojaResponse;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.UsuarioLojaResponse;
 import br.com.SmartPDV.SmartPDV.Utils.Validator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,19 +38,6 @@ public class PaginaPrincipal {
 	public UsuarioLojaResponse registrarFuncionario(FuncionarioRequest funcionarioRegister, long idLoja) {
 		return validaDisponibilidadeLoginESenha(funcionarioRegister, idLoja);
 
-	}
-
-	@Transactional
-	public LojaResponse registrarLoja(LojaRequest loja) {
-		return validaDisponibilidadeRegistroDeLoja(loja);
-	}
-
-	private LojaResponse validaDisponibilidadeRegistroDeLoja(LojaRequest loja) {
-		loja.setCnpj(Validator.validaCnpj(loja.getCnpj()));
-		if (this.loja.findByCnpj(loja.getCnpj()) != null) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cnpj ja cadastrado na base de dados");
-		}
-		return salvaInfoNoBancoRetornaDtoLoja(loja);
 	}
 
 	private UsuarioLojaResponse validaDisponibilidadeLoginESenha(FuncionarioRequest funcionarioRegister, long idLoja) {
@@ -88,10 +75,7 @@ public class PaginaPrincipal {
 				funcionarioRegister.getLogin(), funcionarioRegister.getPerfil().toString(), loja.getRazaoSocial());
 	}
 
-	private LojaResponse salvaInfoNoBancoRetornaDtoLoja(LojaRequest loja) {
-		this.loja.save(new Loja(loja.getRazaoSocial(), loja.getCnpj(), loja.getIE(), loja.getEndereco(), false));
-		return new LojaResponse(loja.getRazaoSocial(), loja.getCnpj(), loja.getIE(), loja.getEndereco());
-	}
+	
 
 	public String login(String login, String senha) {
 		if (login == null || senha == null) {

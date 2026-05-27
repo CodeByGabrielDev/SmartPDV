@@ -9,12 +9,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.Client.ViaCepClient;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ClienteRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ClienteResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ViaCepResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Enum.TiposCliente;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ClienteResponse;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ViaCepResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 

@@ -1,4 +1,4 @@
-package br.com.SmartPDV.SmartPDV.ResponseDTOs;
+package br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs;
 
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Enum.TipoImposto;

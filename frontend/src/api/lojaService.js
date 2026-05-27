@@ -5,4 +5,9 @@ export const lojaService = {
     const response = await api.get('/api-smartpdv/shop');
     return response.data;
   },
+
+  registrarLoja: async (loja) => {
+    const response = await api.post('/api-smartpdv/auth/register-shop', loja);
+    return response.data;
+  },
 };

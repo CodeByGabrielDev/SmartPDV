@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.FormaPgtoResponse;
 import br.com.SmartPDV.SmartPDV.Entities.FormaPgto;
 import br.com.SmartPDV.SmartPDV.Repository.FormaPgtoRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.FormaPgtoResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

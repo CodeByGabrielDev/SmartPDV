@@ -5,7 +5,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ViaCepResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ViaCepResponse;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 

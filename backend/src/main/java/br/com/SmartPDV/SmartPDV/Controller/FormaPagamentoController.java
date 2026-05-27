@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.FormaPgtoResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.FormaPgtoResponse;
 import br.com.SmartPDV.SmartPDV.Services.FormaPagamentoService;
 import lombok.RequiredArgsConstructor;
 

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.CaixaAberturaResponse;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.CaixaFechamentoResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.CaixaAberturaResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.CaixaFechamentoResponse;
 import br.com.SmartPDV.SmartPDV.Services.CaixaService;
 import lombok.RequiredArgsConstructor;
 
