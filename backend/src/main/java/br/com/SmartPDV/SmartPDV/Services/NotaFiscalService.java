@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
@@ -31,7 +32,6 @@ import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
 import br.com.SmartPDV.SmartPDV.Repository.PagamentoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.TransitoLojaRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.NotaFiscalResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service

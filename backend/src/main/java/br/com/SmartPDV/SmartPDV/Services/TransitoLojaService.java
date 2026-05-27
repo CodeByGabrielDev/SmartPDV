@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.TransitoLojaResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaEntrada;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
@@ -16,7 +17,6 @@ import br.com.SmartPDV.SmartPDV.Entities.TransitoLoja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Repository.NotaEntradaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.TransitoLojaRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.TransitoLojaResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 

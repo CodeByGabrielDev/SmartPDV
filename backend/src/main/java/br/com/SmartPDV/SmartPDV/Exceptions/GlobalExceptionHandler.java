@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ErroResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ErroResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice

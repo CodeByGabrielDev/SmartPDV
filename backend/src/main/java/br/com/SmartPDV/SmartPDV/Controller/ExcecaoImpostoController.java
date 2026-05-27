@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ExcecaoImpostoItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ExcecaoImpostoRequest;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ExcecaoImpostoResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ExcecaoImpostoResponse;
 import br.com.SmartPDV.SmartPDV.Services.ExcecaoImpostoService;
 import lombok.RequiredArgsConstructor;
 

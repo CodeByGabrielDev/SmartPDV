@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.VendaItemRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.VendaResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
@@ -27,7 +28,6 @@ import br.com.SmartPDV.SmartPDV.Repository.CaixaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
 
 import br.com.SmartPDV.SmartPDV.Repository.VendaRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.VendaResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service

@@ -13,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ExcecaoImpostoItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ExcecaoImpostoRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ExcecaoImpostoItemResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ExcecaoImpostoResponse;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImpostoItem;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
@@ -21,8 +23,6 @@ import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Enum.TipoImposto;
 import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoItemRepository;
 import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ExcecaoImpostoItemResponse;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.ExcecaoImpostoResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service

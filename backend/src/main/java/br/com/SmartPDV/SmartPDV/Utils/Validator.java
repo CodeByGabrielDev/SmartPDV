@@ -39,9 +39,9 @@ public class Validator {
 
 		}
 		return cnpj.replace(".", "")
-				   .replace("-", "")
-				   .replace("/", "")
-				   .trim();
+				.replace("-", "")
+				.replace("/", "")
+				.trim();
 
 	}
 

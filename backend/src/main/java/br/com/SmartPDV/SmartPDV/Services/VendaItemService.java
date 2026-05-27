@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ItensVendaRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.VendaItemRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.PagamentoResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
 import br.com.SmartPDV.SmartPDV.Entities.EstoqueProduto;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
@@ -19,7 +20,6 @@ import br.com.SmartPDV.SmartPDV.Repository.CaixaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.EstoqueProdutoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.ItemVendaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.VendaRepository;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.PagamentoResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 

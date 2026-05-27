@@ -8,12 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.CaixaAberturaResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.CaixaFechamentoResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Repository.CaixaRepository;
-
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.CaixaAberturaResponse;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.CaixaFechamentoResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service

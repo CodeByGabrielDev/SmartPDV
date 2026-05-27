@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.FuncionarioRequest;
-import br.com.SmartPDV.SmartPDV.ResponseDTOs.UsuarioLojaResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.LojaRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.LojaResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.UsuarioLojaResponse;
+import br.com.SmartPDV.SmartPDV.Services.LojaService;
 import br.com.SmartPDV.SmartPDV.Services.PaginaPrincipal;
 import lombok.RequiredArgsConstructor;
 
@@ -17,18 +20,25 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api-smartpdv/auth")
 @RequiredArgsConstructor
 public class PaginaPrincipalController {
-	
-	
+
 	private final PaginaPrincipal paginaService;
 
+	private final LojaService lojaService;
+
 	@PostMapping("/register/employee")
-	public UsuarioLojaResponse registrarUsuario(@RequestBody FuncionarioRequest funcionario, @RequestParam Long idLoja) {
+	public UsuarioLojaResponse registrarUsuario(@RequestBody FuncionarioRequest funcionario,
+			@RequestParam Long idLoja) {
 		return this.paginaService.registrarFuncionario(funcionario, idLoja);
 	}
 
 	@GetMapping("/login/employee")
 	public String login(String login, String senha) {
-		
+
 		return this.paginaService.login(login, senha);
+	}
+
+	@PostMapping("/register-shop")
+	public LojaResponse registroDeLojas(@RequestBody LojaRequest loja) {
+		return this.lojaService.registrarLoja(loja);
 	}
 }

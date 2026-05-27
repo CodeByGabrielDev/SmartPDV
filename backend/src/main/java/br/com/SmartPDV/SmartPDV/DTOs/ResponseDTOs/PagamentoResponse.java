@@ -1,4 +1,4 @@
-package br.com.SmartPDV.SmartPDV.ResponseDTOs;
+package br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
