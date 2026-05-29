@@ -8,8 +8,8 @@ import br.com.SmartPDV.SmartPDV.Entities.Produto;
 
 @Service
 public class NotaFiscalCalculatorService {
-    
-    // METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
+
+	// METODO QUE VALIDA O VALOR LIQUIDO DA NOTA
 	public Double calculaValorLiquido(NotaFiscalItemRequest notaItem, Produto produto) {
 		Double valorBrutoNota = produto.getPrecoVenda() * notaItem.getQuantidade_Itens();
 		Double valorDescontado = valorBrutoNota * (notaItem.getDesconto() / 100);
@@ -28,7 +28,7 @@ public class NotaFiscalCalculatorService {
 	}
 
 	public Double calculaTotalDeDescontoNaNotaDeVenda(ItemVenda item) {
-    Double valorBruto = item.getValorUnitario() * item.getQtd();
-    return valorBruto * (item.getPorcentDesconto() / 100);
-    }
+		Double valorBruto = item.getValorUnitario() * item.getQtd();
+		return valorBruto * (item.getPorcentDesconto() / 100);
+	}
 }
