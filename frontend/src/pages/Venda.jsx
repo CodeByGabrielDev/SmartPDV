@@ -17,139 +17,195 @@ export default function Venda() {
 
   const adicionarItem = async () => {
     if (!codigoBarra.trim()) return;
-    
     const novoItem = {
-      codigo_barra: codigoBarra,
+      id: Date.now(),
+      codigo_barra: codigoBarra.trim().toUpperCase(),
       qtd_item: 1,
       desconto: 0,
+      preco: 0,
     };
-    
-    setItens([...itens, { ...novoItem, id: Date.now() }]);
+    setItens((prev) => [...prev, novoItem]);
     setCodigoBarra('');
     inputRef.current?.focus();
   };
 
-  const removerItem = (id) => {
-    setItens(itens.filter(item => item.id !== id));
-  };
+  const removerItem = (id) => setItens((prev) => prev.filter((i) => i.id !== id));
 
   const atualizarQtd = (id, qtd) => {
     if (qtd < 1) return;
-    setItens(itens.map(item => 
-      item.id === id ? { ...item, qtd_item: qtd } : item
-    ));
+    setItens((prev) => prev.map((i) => (i.id === id ? { ...i, qtd_item: qtd } : i)));
+  };
+
+  const limparVenda = () => {
+    setItens([]);
+    setCpfCnpj('');
+    setCodigoBarra('');
+    inputRef.current?.focus();
   };
 
   const finalizarVenda = async () => {
     if (itens.length === 0) {
-      alert('Adicione pelo menos um item');
+      showAlert('Adicione pelo menos um item', 'error');
       return;
     }
-    if (!cpfCnpj) {
-      alert('Informe o CPF/CNPJ do cliente');
+    if (!cpfCnpj.trim()) {
+      showAlert('Informe o CPF ou CNPJ do cliente', 'error');
       return;
     }
-
     setCarregando(true);
     try {
-      const itensFormatados = itens.map(item => ({
-        codigo_barra: item.codigo_barra,
-        qtd_item: item.qtd_item,
-        desconto: item.desconto || 0
-      }));
-      
-      const vendaRequest = { itens_venda: itensFormatados };
+      const vendaRequest = {
+        itens_venda: itens.map((i) => ({
+          codigo_barra: i.codigo_barra,
+          qtd_item: i.qtd_item,
+          desconto: i.desconto || 0,
+        })),
+      };
       const response = await vendaService.realizarVenda(vendaRequest, cpfCnpj);
-      
-      const idVenda = response?.ticket || response?.idVenda || response?.id || response?.numeroTicket;
-      
-      if (idVenda) {
-        navigate(`/dashboard/pagamento?idVenda=${idVenda}`);
-      } else {
-        alert('Venda realizada! Agora finalize o pagamento.');
-        navigate('/dashboard/pagamento');
-      }
+      const idVenda = response?.ticket || response?.idVenda || response?.id;
+      navigate(idVenda ? `/dashboard/pagamento?idVenda=${idVenda}` : '/dashboard/pagamento');
     } catch (error) {
-      const erroMsg = error.displayMessage || error.message || 'Erro ao processar venda';
-      showAlert(erroMsg, 'error');
+      showAlert(error.displayMessage || error.message || 'Erro ao processar venda', 'error');
     } finally {
       setCarregando(false);
     }
   };
 
-  const total = itens.reduce((acc, item) => acc + (item.qtd_item * (item.preco || 0)), 0);
+  const total = itens.reduce((acc, i) => acc + i.qtd_item * (i.preco || 0), 0);
+  const qtdItens = itens.reduce((acc, i) => acc + i.qtd_item, 0);
 
   return (
-    <div className="venda-container">
-      <div className="venda-header">
-        <h1>🛒 Nova Venda</h1>
+    <div className="pdv-container">
+
+      {/* ── Cabeçalho ── */}
+      <div className="pdv-header">
+        <div className="pdv-header-left">
+          <span className="pdv-header-icon">🛒</span>
+          <div>
+            <h1 className="pdv-title">PDV — Nova Venda</h1>
+            <span className="pdv-subtitle">Ponto de Venda</span>
+          </div>
+        </div>
+        <div className="pdv-header-right">
+          <span className="pdv-badge">{qtdItens} item{qtdItens !== 1 ? 's' : ''}</span>
+          <button className="pdv-btn-clear" onClick={limparVenda} disabled={itens.length === 0 && !cpfCnpj}>
+            🗑 Limpar
+          </button>
+        </div>
       </div>
 
-      <div className="venda-main">
-        <div className="venda-left">
-          <div className="bipador-section">
-            <label>Bipar Produto</label>
-            <div className="bipador-row">
+      {/* ── Corpo ── */}
+      <div className="pdv-body">
+
+        {/* Coluna esquerda */}
+        <div className="pdv-left">
+
+          {/* Bipador */}
+          <div className="pdv-section">
+            <div className="pdv-section-label">
+              <span className="pdv-section-icon">📷</span>
+              Código de Barras
+            </div>
+            <div className="pdv-bip-row">
               <input
                 ref={inputRef}
                 type="text"
                 value={codigoBarra}
                 onChange={(e) => setCodigoBarra(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && adicionarItem()}
-                placeholder="Bipe o código de barras..."
-                className="bipador-input"
+                placeholder="Bipe ou digite o código..."
+                className="pdv-bip-input"
+                autoComplete="off"
               />
-              <button onClick={adicionarItem} className="btn-add">+</button>
+              <button className="pdv-btn-add" onClick={adicionarItem} title="Adicionar item (Enter)">
+                +
+              </button>
             </div>
+            <p className="pdv-hint">Pressione <kbd>Enter</kbd> para adicionar</p>
           </div>
 
-          <div className="cpf-section">
-            <label>CPF/CNPJ Cliente</label>
+          {/* Cliente */}
+          <div className="pdv-section">
+            <div className="pdv-section-label">
+              <span className="pdv-section-icon">👤</span>
+              Identificação do Cliente
+            </div>
             <input
               type="text"
               value={cpfCnpj}
               onChange={(e) => setCpfCnpj(e.target.value)}
-              placeholder="Informe CPF ou CNPJ"
+              placeholder="000.000.000-00 ou 00.000.000/0001-00"
+              className={`pdv-cliente-input${cpfCnpj ? ' filled' : ''}`}
+              maxLength={18}
             />
-          </div>
-        </div>
-
-        <div className="venda-right">
-          <div className="itens-list">
-            <h3>Itens da Venda</h3>
-            {itens.length === 0 ? (
-              <p className="empty-message">Nenhum item bipado ainda...</p>
-            ) : (
-              <div className="itens-scroll">
-                {itens.map((item) => (
-                  <div key={item.id} className="item-card">
-                    <div className="item-info">
-                      <span className="item-codigo">{item.codigo_barra}</span>
-                      <div className="item-qtd">
-                        <button onClick={() => atualizarQtd(item.id, item.qtd_item - 1)}>−</button>
-                        <span>{item.qtd_item}</span>
-                        <button onClick={() => atualizarQtd(item.id, item.qtd_item + 1)}>+</button>
-                      </div>
-                    </div>
-                    <button className="btn-remove" onClick={() => removerItem(item.id)}>×</button>
-                  </div>
-                ))}
-              </div>
+            {cpfCnpj && (
+              <p className="pdv-cliente-ok">✅ Cliente identificado</p>
             )}
           </div>
 
-          <div className="venda-footer">
-            <div className="total-section">
-              <span>Total:</span>
-              <span className="total-value">R$ {total.toFixed(2)}</span>
+          {/* Resumo */}
+          <div className="pdv-resumo">
+            <div className="pdv-resumo-row">
+              <span>Subtotal</span>
+              <span>R$ {total.toFixed(2)}</span>
             </div>
-            <button 
-              className="btn-finalizar" 
-              onClick={finalizarVenda}
-              disabled={carregando || itens.length === 0}
-            >
-              {carregando ? 'Processando...' : '✓ FINALIZAR VENDA'}
-            </button>
+            <div className="pdv-resumo-row">
+              <span>Desconto</span>
+              <span>R$ 0,00</span>
+            </div>
+            <div className="pdv-resumo-total">
+              <span>Total</span>
+              <span>R$ {total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <button
+            className="pdv-btn-finalizar"
+            onClick={finalizarVenda}
+            disabled={carregando || itens.length === 0}
+          >
+            {carregando ? (
+              <span className="pdv-btn-loading">⏳ Processando...</span>
+            ) : (
+              <>✓ FINALIZAR VENDA</>
+            )}
+          </button>
+        </div>
+
+        {/* Coluna direita — lista de itens */}
+        <div className="pdv-right">
+          <div className="pdv-itens-header">
+            <span>Itens da Venda</span>
+            <span className="pdv-itens-count">{itens.length} produto{itens.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          <div className="pdv-itens-list">
+            {itens.length === 0 ? (
+              <div className="pdv-empty">
+                <span className="pdv-empty-icon">📦</span>
+                <p>Nenhum item adicionado</p>
+                <p className="pdv-empty-sub">Bipe um produto para começar</p>
+              </div>
+            ) : (
+              itens.map((item, idx) => (
+                <div key={item.id} className="pdv-item">
+                  <div className="pdv-item-num">{idx + 1}</div>
+                  <div className="pdv-item-info">
+                    <span className="pdv-item-codigo">{item.codigo_barra}</span>
+                    <span className="pdv-item-preco">R$ {(item.preco || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="pdv-item-qtd">
+                    <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item - 1)}>−</button>
+                    <span className="pdv-qtd-val">{item.qtd_item}</span>
+                    <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item + 1)}>+</button>
+                  </div>
+                  <div className="pdv-item-subtotal">
+                    R$ {(item.qtd_item * (item.preco || 0)).toFixed(2)}
+                  </div>
+                  <button className="pdv-item-remove" onClick={() => removerItem(item.id)} title="Remover">×</button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

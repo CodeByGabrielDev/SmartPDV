@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 import br.com.SmartPDV.SmartPDV.Entities.FormaPgto;
 
 @Repository
-public interface FormaPgtoRepository extends CrudRepository<FormaPgto,Integer>{
-    
+public interface FormaPgtoRepository extends CrudRepository<FormaPgto, Long> {
+
     @Query("SELECT E FROM FormaPgto E")
     List<FormaPgto> selectAll();
 }

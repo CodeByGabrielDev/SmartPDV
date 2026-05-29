@@ -31,7 +31,7 @@ public class PagamentoService {
         private final NotaFiscalService notaFiscalService;
 
         @Transactional
-        public void inserePagamento(Long idVenda, Integer formaPgto, Integer qtdParcelas) {
+        public void inserePagamento(Long idVenda, Long formaPgto, Integer qtdParcelas) {
                 UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
                                 .getPrincipal();
 

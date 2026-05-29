@@ -45,7 +45,7 @@ export default function Login() {
       if (token.startsWith('Token: ')) token = token.substring(7);
       localStorage.setItem('token', token);
       localStorage.setItem('login', login);
-      window.location.href = '/dashboard';
+      window.location.href = '/splash';
     } catch (error) {
       const msg = error.displayMessage || error.message || 'Erro ao conectar com o servidor';
       showAlert(msg, 'error');

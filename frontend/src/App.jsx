@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Login from './pages/Login';
+import Splash from './pages/Splash';
 import Dashboard from './pages/Dashboard';
+import DashboardHome from './pages/DashboardHome';
 import Venda from './pages/Venda';
 import Caixa from './pages/Caixa';
 import Cliente from './pages/Cliente';
@@ -10,6 +12,7 @@ import Pagamento from './pages/Pagamento';
 import EntradaMercadoria from './pages/EntradaMercadoria';
 import ExcecaoImposto from './pages/ExcecaoImposto';
 import Perfil from './pages/Perfil';
+import MeiosPagamento from './pages/MeiosPagamento';
 import './App.css';
 
 function App() {
@@ -21,9 +24,14 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route
+            path="/splash"
+            element={isAuthenticated ? <Splash /> : <Navigate to="/" />}
+          />
+          <Route
             path="/dashboard"
             element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
           >
+            <Route index element={<DashboardHome />} />
             <Route path="venda" element={<Venda />} />
             <Route path="caixa" element={<Caixa />} />
             <Route path="cliente" element={<Cliente />} />
@@ -31,6 +39,7 @@ function App() {
             <Route path="pagamento" element={<Pagamento />} />
             <Route path="entrada-mercadoria" element={<EntradaMercadoria />} />
             <Route path="excecao-imposto" element={<ExcecaoImposto />} />
+            <Route path="meios-pagamento" element={<MeiosPagamento />} />
             <Route path="perfil" element={<Perfil />} />
           </Route>
         </Routes>
