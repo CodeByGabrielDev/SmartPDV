@@ -16,7 +16,7 @@ public class PagamentoController {
     private final PagamentoService pagamentoService;
 
     @PostMapping("/{idVenda}/")
-    public void realizarPagamento(@PathVariable Long idVenda, @RequestParam Integer formaPgto,
+    public void realizarPagamento(@PathVariable Long idVenda, @RequestParam Long formaPgto,
             @RequestParam Integer qtdParcelas) {
         this.pagamentoService.inserePagamento(idVenda, formaPgto, qtdParcelas);
     }

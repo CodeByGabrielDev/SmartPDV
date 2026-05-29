@@ -20,14 +20,16 @@ export default function Dashboard() {
   };
 
   const navItems = [
-    { to: 'venda',             icon: '💰', label: 'PDV / Venda' },
-    { to: 'caixa',             icon: '💵', label: 'Caixa' },
-    { to: 'cliente',           icon: '👥', label: 'Clientes' },
-    { to: 'notafiscal',        icon: '🧾', label: 'Nota Fiscal' },
-    { to: 'pagamento',         icon: '💳', label: 'Pagamento' },
-    { to: 'entrada-mercadoria',icon: '📦', label: 'Entrada Merc.' },
-    { to: 'excecao-imposto',   icon: '📊', label: 'Impostos' },
-    { to: 'perfil',            icon: '⚙️', label: 'Configurações' },
+    { to: '/dashboard',         icon: '🏠', label: 'Dashboard' },
+    { to: 'venda',              icon: '💰', label: 'PDV / Venda' },
+    { to: 'caixa',              icon: '💵', label: 'Caixa' },
+    { to: 'cliente',            icon: '👥', label: 'Clientes' },
+    { to: 'notafiscal',         icon: '🧾', label: 'Nota Fiscal' },
+    { to: 'pagamento',          icon: '💳', label: 'Pagamento' },
+    { to: 'meios-pagamento',    icon: '🏧', label: 'Meios Pgto.' },
+    { to: 'entrada-mercadoria', icon: '📦', label: 'Entrada Merc.' },
+    { to: 'excecao-imposto',    icon: '📊', label: 'Impostos' },
+    { to: 'perfil',             icon: '⚙️', label: 'Configurações' },
   ];
 
   return (
@@ -83,6 +85,13 @@ export default function Dashboard() {
         <div className="content-wrapper">
           <Outlet />
         </div>
+        <footer className="dashboard-footer">
+          <span>SmartPDV &copy; {new Date().getFullYear()}</span>
+          <span className="footer-divider">|</span>
+          <span>Desenvolvido por <strong>Gabriel Lima</strong></span>
+          <span className="footer-divider">|</span>
+          <span className="footer-version">v1.0.0</span>
+        </footer>
       </main>
     </div>
   );
