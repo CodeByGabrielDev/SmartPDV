@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
@@ -33,6 +34,10 @@ public class Produto {
 	private Double precoVenda;
 	private Double custo;
 	private Boolean inativo;
+	@ManyToOne
+	@JoinColumn(name = "id_loja")
+	private Loja loja;
+
 	@OneToMany(mappedBy = "produto")
 	private List<EstoqueProduto> estoqueProd = new ArrayList<>();
 	@OneToMany(mappedBy = "produto")
@@ -42,9 +47,8 @@ public class Produto {
 	@OneToMany(mappedBy = "produto")
 	private List<NotaFiscalItem> notaFiscalItem = new ArrayList<>();
 
-	
-
-	public Produto(String descricao, String codigoBarra, String sku, Double precoVenda, Double custo, Boolean inativo) {
+	public Produto(String descricao, String codigoBarra, String sku, Double precoVenda, Double custo, Boolean inativo,
+			Loja loja) {
 		super();
 		this.descricao = descricao;
 		this.codigoBarra = codigoBarra;
@@ -52,8 +56,8 @@ public class Produto {
 		this.precoVenda = precoVenda;
 		this.custo = custo;
 		this.inativo = inativo;
-	}
+		this.loja = loja;
 
-	
+	}
 
 }

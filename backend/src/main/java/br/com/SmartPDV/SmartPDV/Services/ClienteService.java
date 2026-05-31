@@ -1,6 +1,8 @@
 package br.com.SmartPDV.SmartPDV.Services;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,6 +15,7 @@ import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ClienteResponse;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ViaCepResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
+import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import br.com.SmartPDV.SmartPDV.Enum.TiposCliente;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
 import jakarta.transaction.Transactional;
@@ -86,5 +89,20 @@ public class ClienteService {
                 cliente.getTelefone(), cliente.getTipo().toString(), cliente.getCep(), cliente.getLogradouro(),
                 cliente.getBairro(), cliente.getLocalidade(), cliente.getUf(), cliente.getEstado());
 
+    }
+
+    public List<ClienteResponse> retornaClientesDaLoja() {
+        UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        List<Clientes> findAllClientes = this.clienteRepository
+                .findAllClientesByShop(usuariosLoja.getLojaVinculada().getId());
+        List<ClienteResponse> listaDeclientes = new ArrayList<>();
+        for (Clientes clientes : findAllClientes) {
+            listaDeclientes.add(new ClienteResponse(clientes.getNomeCliente(), clientes.getCpfCnpj(),
+                    clientes.getEmail(), clientes.getTelefone(), clientes.getTipo().toString(), clientes.getCep(),
+                    clientes.getLogradouro(), clientes.getBairro(), clientes.getLocalidade(), clientes.getUf(),
+                    clientes.getEstado()));
+        }
+        return listaDeclientes;
     }
 }

@@ -1,5 +1,8 @@
 package br.com.SmartPDV.SmartPDV.Controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +23,11 @@ public class ClienteController {
     @PostMapping
     public ClienteResponse registrarCliente(@RequestBody ClienteRequest clienteRequest) {
         return this.clienteService.cadastraCliente(clienteRequest);
+    }
+
+    @GetMapping
+    public List<ClienteResponse> retornaTodosOsClientesDaLoja() {
+        return this.clienteService.retornaClientesDaLoja();
     }
 
 }

@@ -15,4 +15,9 @@ public interface ProdutoRepository extends CrudRepository<Produto, Long> {
 	@Query("SELECT E FROM Produto E WHERE E.codigoBarra = :codigoBarra")
 	Produto selectByCodigoDeBarra(@Param("codigoBarra") String codigoBarra);
 
+	Produto findBySku(@Param("sku") String sku);
+
+	@Query("SELECT E FROM Produto E WHERE E.loja.id = :id")
+	List<Produto> findAllProducts(@Param("id") Long id);
+
 }

@@ -13,6 +13,7 @@ import EntradaMercadoria from './pages/EntradaMercadoria';
 import ExcecaoImposto from './pages/ExcecaoImposto';
 import Perfil from './pages/Perfil';
 import MeiosPagamento from './pages/MeiosPagamento';
+import Produtos from './pages/Produtos';
 import './App.css';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             <Route path="venda" element={<Venda />} />
             <Route path="caixa" element={<Caixa />} />
             <Route path="cliente" element={<Cliente />} />
+            <Route path="produtos" element={<Produtos />} />
             <Route path="notafiscal" element={<NotaFiscal />} />
             <Route path="pagamento" element={<Pagamento />} />
             <Route path="entrada-mercadoria" element={<EntradaMercadoria />} />
