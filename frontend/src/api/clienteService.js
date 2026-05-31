@@ -5,4 +5,9 @@ export const clienteService = {
     const response = await api.post('/api-smartpdv/costumer/', clienteRequest);
     return response.data;
   },
+
+  listarClientes: async () => {
+    const response = await api.get('/api-smartpdv/costumer/');
+    return response.data;
+  },
 };

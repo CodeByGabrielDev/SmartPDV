@@ -59,6 +59,8 @@ public class Loja {
 	private List<Parcelas> parcelas = new ArrayList<>();
 	@OneToMany(mappedBy = "loja")
 	private List<Clientes> clientes = new ArrayList<>();
+	@OneToMany(mappedBy = "loja")
+	private List<Produto>produtos = new ArrayList<>();
 
 	public Loja(String razaoSocial, String cnpj, String iE, String endereco, Boolean inativo) {
 		super();
