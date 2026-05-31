@@ -15,15 +15,19 @@ export const pagamentoService = {
     return response.data;
   },
 
-  criarFormaPagamento: async (descricao) => {
-    const response = await api.post('/api-smartpdv/payment-method', {
-      desc_forma_pagamento: descricao,
-    });
+  // POST /api-smartpdv/payment-method/create?descricaoPagamento=X&formaPagamento=PIX
+  criarFormaPagamento: async (descricaoPagamento, formaPagamento) => {
+    const response = await api.post(
+      '/api-smartpdv/payment-method/create',
+      null,
+      { params: { descricaoPagamento, formaPagamento } }
+    );
     return response.data;
   },
 
+  // DELETE /api-smartpdv/payment-method/{id}/delete
   deletarFormaPagamento: async (id) => {
-    const response = await api.delete(`/api-smartpdv/payment-method/${id}`);
+    const response = await api.delete(`/api-smartpdv/payment-method/${id}/delete`);
     return response.data;
   },
 };
