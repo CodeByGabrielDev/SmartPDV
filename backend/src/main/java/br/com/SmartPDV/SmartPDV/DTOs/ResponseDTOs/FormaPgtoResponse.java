@@ -11,5 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class FormaPgtoResponse {
     
+    private Long id;
+    private String forma_pagamento;
     private String desc_forma_pagamento;
 }

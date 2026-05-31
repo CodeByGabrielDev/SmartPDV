@@ -44,7 +44,8 @@ public class FormaPagamentoService {
     public List<FormaPgtoResponse> listarFormasDePagamento() {
         List<FormaPgtoResponse> listaDeResposta = new ArrayList<>();
         for (FormaPgto f : this.formaPgtoRepository.selectAll()) {
-            listaDeResposta.add(new FormaPgtoResponse(f.getDescFormaPgto()));
+            listaDeResposta
+                    .add(new FormaPgtoResponse(f.getId(), f.getFormaPagamento().toString(), f.getDescFormaPgto()));
         }
         return listaDeResposta;
     }

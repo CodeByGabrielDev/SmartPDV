@@ -36,6 +36,6 @@ public class FormaPagamentoController {
 
     @DeleteMapping("{idLong}/delete")
     public void deletarFormaPgto(@PathVariable Long idLong) {
-        this.deletarFormaPgto(idLong);
+        this.formaPagamentoService.deletarFormaPgto(idLong);
     }
 }
