@@ -77,7 +77,6 @@ public class NotaFiscalService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada");
 		}
 
-		System.out.println("Tentando capturar o CNPJ da loja pelo request. " + loja.getCnpj());
 
 		NotaFiscal notaFiscal = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(),
 				verificaQtdItensNotaAvulsa(notaItem), null, loja.getCnpj(), usuario.getLojaVinculada(), null, null,
