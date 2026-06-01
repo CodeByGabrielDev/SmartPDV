@@ -73,13 +73,13 @@ public class NotaFiscalItemService {
 		Double valorTotalDesconto = 0.0;
 		Double calculaTotalBrutoNota = 0.0;
 		Double calculaTotalLiquidoNota = 0.0;
-
-		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
-				notaEntity.getLojaDestino().getId());
-
-		if (exception == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
+		ExcecaoImposto exception;
+		if (notaEntity.getCfop() == 5152 || notaEntity.getCfop() == 6152) {
+			exception = verificaSeExisteexcecaoDeImpostoNaLojaTransferida(notaEntity);
+		} else {
+			exception = verificaExcecaoImposto(notaEntity);
 		}
+
 		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
 			Produto prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
 
@@ -104,6 +104,26 @@ public class NotaFiscalItemService {
 		this.notaFiscalRepo.save(notaEntity);
 		this.notaImpostoItem.calculaImposto(notaItemEntity, notaEntity);
 
+	}
+
+	private ExcecaoImposto verificaSeExisteexcecaoDeImpostoNaLojaTransferida(NotaFiscal notaEntity) {
+		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
+				notaEntity.getLojaDestino().getId());
+		if (excecaoImposto == null) {
+			this.notaFiscalRepo.delete(notaEntity);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
+		}
+		return excecaoImposto;
+	}
+
+	private ExcecaoImposto verificaExcecaoImposto(NotaFiscal notaEntity) {
+		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
+				notaEntity.getLoja().getId());
+		if (excecaoImposto == null) {
+			this.notaFiscalRepo.delete(notaEntity);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
+		}
+		return excecaoImposto;
 	}
 
 }

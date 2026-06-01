@@ -13,4 +13,5 @@ public interface ExcecaoImpostoRepository extends CrudRepository<ExcecaoImposto,
 	@Query("SELECT E FROM ExcecaoImposto E WHERE E.naturezaoOperacao = :naturezaoOperacao" + " AND E.loja.id = :id")
 	ExcecaoImposto findExcecaoByCodFilialAndCfop(@Param("naturezaoOperacao") int naturezaoOperacao,
 			@Param("id") long id);
+	
 }

@@ -3,10 +3,7 @@ package br.com.SmartPDV.SmartPDV.Services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import org.apache.catalina.connector.Response;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,45 +56,122 @@ public class NotaFiscalService {
 	}
 
 	public NotaFiscalResponse emitirNotaAvulsa(NotaFiscalRequest notaItem) {
-
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (notaItem.getCfop() == null) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Null pointer exception " + notaItem.getCfop());
-		}
-		if ((notaItem.getCfop().equals(5152) || notaItem.getCfop().equals(6152))
-				&& usuario.getPerfil() != PerfilVendedor.MATRIZ) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, " Apenas a matriz pode emitir com essa CFOP");
-		}
-		if (notaItem.getSerieNfe() == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
-					"A nota deve conter obrigatoriamente uma SERIENFE");
-		}
-		Loja loja = this.loja.findByCnpj(notaItem.getCpfCliente());
-		if (loja == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada");
-		}
 
+		validarRequest(notaItem, usuario);
 
-		NotaFiscal notaFiscal = new NotaFiscal(null, notaItem.getSerieNfe(), null, notaItem.getCfop(),
-				verificaQtdItensNotaAvulsa(notaItem), null, loja.getCnpj(), usuario.getLojaVinculada(), null, null,
-				null, null,
-				null, LocalDateTime.now(),
-				StatusNotaFiscal.PENDENTE, loja);
+		boolean ehTransferencia = notaItem.getCfop().equals(5152) || notaItem.getCfop().equals(6152);
+
+		NotaFiscal notaFiscal = ehTransferencia
+				? criarNotaDeTransferencia(notaItem, usuario)
+				: criarNotaComCliente(notaItem, usuario);
+
 		geraNumeroFiscal(notaFiscal);
 		this.notaFiscalRepo.save(notaFiscal);
-		if (notaItem.getCfop() == 5152 || notaItem.getCfop() == 6152) {
-			this.transitoRepository
-					.save(new TransitoLoja(usuario.getLojaVinculada(), usuario.getLojaVinculada().getRazaoSocial(),
-							loja, loja.getRazaoSocial(), notaFiscal, notaFiscal.getNfNumero(), LocalDateTime.now(),
-							null));
+
+		if (ehTransferencia) {
+			registrarTransitoLoja(notaFiscal, usuario);
 		}
 
 		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal);
 
-		return new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null, notaFiscal.getCfop(),
-				notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
-				notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
-				notaFiscal.getValorLiquidoNota(), notaFiscal.getVenda().getTicket(), notaFiscal.getDataEmissao(),
+		return montarResponse(notaFiscal);
+	}
+
+	private void validarRequest(NotaFiscalRequest notaItem, UsuariosLoja usuario) {
+		if (notaItem.getCfop() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CFOP não pode ser nulo");
+		}
+		if (notaItem.getSerieNfe() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"A nota deve conter obrigatoriamente uma série NF-e");
+		}
+		if ((notaItem.getCfop().equals(5152) || notaItem.getCfop().equals(6152))
+				&& usuario.getPerfil() != PerfilVendedor.MATRIZ) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"Apenas a matriz pode emitir nota com CFOP de transferência");
+		}
+	}
+
+	private NotaFiscal criarNotaDeTransferencia(NotaFiscalRequest notaItem, UsuariosLoja usuario) {
+		Loja lojaDestino = buscarLojaDestino(notaItem.getIdLoja());
+
+		return new NotaFiscal(
+				null,
+				notaItem.getSerieNfe(),
+				null,
+				notaItem.getCfop(),
+				verificaQtdItensNotaAvulsa(notaItem),
+				null,
+				lojaDestino.getCnpj(),
+				usuario.getLojaVinculada(),
+				null, null, null, null, null,
+				LocalDateTime.now(),
+				StatusNotaFiscal.PENDENTE,
+				lojaDestino);
+	}
+
+	private NotaFiscal criarNotaComCliente(NotaFiscalRequest notaItem, UsuariosLoja usuario) {
+		Clientes cliente = buscarCliente(notaItem.getCpfCliente());
+
+		return new NotaFiscal(
+				null,
+				notaItem.getSerieNfe(),
+				null,
+				notaItem.getCfop(),
+				verificaQtdItensNotaAvulsa(notaItem),
+				cliente,
+				cliente.getCpfCnpj(),
+				usuario.getLojaVinculada(),
+				null, null, null, null, null,
+				LocalDateTime.now(),
+				StatusNotaFiscal.PENDENTE,
+				null);
+	}
+
+	private Loja buscarLojaDestino(Long idLoja) {
+		return this.loja.findById(idLoja)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						"Loja de destino não encontrada"));
+	}
+
+	private Clientes buscarCliente(String cpfCnpj) {
+		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(cpfCnpj);
+		if (cliente == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"Cliente não encontrado, verifique o CPF/CNPJ informado");
+		}
+		return cliente;
+	}
+
+	private void registrarTransitoLoja(NotaFiscal notaFiscal, UsuariosLoja usuario) {
+		Loja lojaDestino = notaFiscal.getLojaDestino();
+		this.transitoRepository.save(new TransitoLoja(
+				usuario.getLojaVinculada(),
+				usuario.getLojaVinculada().getRazaoSocial(),
+				lojaDestino,
+				lojaDestino.getRazaoSocial(),
+				notaFiscal,
+				notaFiscal.getNfNumero(),
+				LocalDateTime.now(),
+				null));
+	}
+
+	private NotaFiscalResponse montarResponse(NotaFiscal notaFiscal) {
+		Long ticket = notaFiscal.getVenda() != null ? notaFiscal.getVenda().getTicket() : null;
+		return new NotaFiscalResponse(
+				notaFiscal.getNfNumero(),
+				notaFiscal.getSerieNf(),
+				null,
+				notaFiscal.getCfop(),
+				notaFiscal.getCpfCliente(),
+				notaFiscal.getLoja().getRazaoSocial(),
+				notaFiscal.getDesconto(),
+				notaFiscal.getValorTotalDeImpostoAPagar(),
+				notaFiscal.getValorBrutoNota(),
+				notaFiscal.getValorLiquidoNota(),
+				ticket,
+				notaFiscal.getDataEmissao(),
 				notaFiscal.getStatusNota());
 	}
 
@@ -163,20 +237,21 @@ public class NotaFiscalService {
 		List<NotaFiscal> notasFiscais = this.notaFiscalRepo.findIssuedInvoices(usuariosLoja.getLojaVinculada().getId());
 		List<NotaFiscalResponse> notasResponse = new ArrayList<>();
 		for (NotaFiscal notaFiscal : notasFiscais) {
-			if(notaFiscal.getVenda() != null){
+			if (notaFiscal.getVenda() != null) {
 				notasResponse.add(new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null,
-					notaFiscal.getCfop(),
-					notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
-					notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
-					notaFiscal.getValorLiquidoNota(), notaFiscal.getVenda().getTicket(), notaFiscal.getDataEmissao(),
-					notaFiscal.getStatusNota()));
-			}else{
+						notaFiscal.getCfop(),
+						notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
+						notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
+						notaFiscal.getValorLiquidoNota(), notaFiscal.getVenda().getTicket(),
+						notaFiscal.getDataEmissao(),
+						notaFiscal.getStatusNota()));
+			} else {
 				notasResponse.add(new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null,
-					notaFiscal.getCfop(),
-					notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
-					notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
-					notaFiscal.getValorLiquidoNota(), null, notaFiscal.getDataEmissao(),
-					notaFiscal.getStatusNota()));
+						notaFiscal.getCfop(),
+						notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
+						notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
+						notaFiscal.getValorLiquidoNota(), null, notaFiscal.getDataEmissao(),
+						notaFiscal.getStatusNota()));
 			}
 		}
 		return notasResponse;

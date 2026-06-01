@@ -23,7 +23,8 @@ public class LojaService {
         List<LojaResponse> lojas = new ArrayList<>();
         List<Loja> lojasEntity = this.lojaRepository.selectAllLojas();
         for (Loja loja : lojasEntity) {
-            lojas.add(new LojaResponse(loja.getRazaoSocial(), loja.getCnpj(), loja.getIE(), loja.getEndereco()));
+            lojas.add(new LojaResponse(loja.getId(), loja.getRazaoSocial(), loja.getCnpj(), loja.getIE(),
+                    loja.getEndereco()));
         }
         return lojas;
     }
@@ -39,7 +40,7 @@ public class LojaService {
                 lojaRequest.getEndereco(), false);
 
         this.lojaRepository.save(loja);
-        return new LojaResponse(lojaRequest.getRazaoSocial(), lojaRequest.getCnpj(), lojaRequest.getIE(),
+        return new LojaResponse(loja.getId(), lojaRequest.getRazaoSocial(), lojaRequest.getCnpj(), lojaRequest.getIE(),
                 lojaRequest.getEndereco());
     }
 

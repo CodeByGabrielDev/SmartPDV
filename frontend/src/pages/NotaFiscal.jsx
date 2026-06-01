@@ -73,6 +73,7 @@ export default function NotaFiscal() {
     setCarregandoLojas(true);
     try {
       const data = await lojaService.listarLojasAtivas();
+      console.log('[DEBUG] Lojas recebidas da API:', JSON.stringify(data?.[0]));
       setLojas(data || []);
     } catch (err) {
       showAlert(err.displayMessage || 'Erro ao buscar lojas', 'error');
@@ -83,7 +84,6 @@ export default function NotaFiscal() {
 
   const selecionarLoja = (loja) => {
     setLojaSelecionada(loja);
-    setForm((f) => ({ ...f, idLoja: loja.id }));
     setBuscaLoja('');
   };
 
@@ -100,7 +100,7 @@ export default function NotaFiscal() {
   const removerItem = (idx) => setItens((prev) => prev.filter((_, i) => i !== idx));
 
   const podeProsseguir = ehTransferencia
-    ? !!form.idLoja
+    ? lojaSelecionada !== null
     : !!form.cpfCliente.trim();
 
   const emitirNota = async () => {
@@ -115,9 +115,11 @@ export default function NotaFiscal() {
         serieNfe: Number(form.serieNfe),
         codigo_barra: itens,
         ...(ehTransferencia
-          ? { id_Loja: form.idLoja }
+          ? { id_Loja: lojaSelecionada.id }
           : { cpf_cliente: form.cpfCliente }),
       };
+      console.log('[DEBUG] Payload enviado:', JSON.stringify(payload));
+      console.log('[DEBUG] lojaSelecionada:', JSON.stringify(lojaSelecionada));
       const response = await notaFiscalService.emitirNotaAvulsa(payload);
       showAlert(`NF-e nº ${response.nf_numero} emitida com sucesso!`, 'success');
       fecharModal();
@@ -339,7 +341,7 @@ export default function NotaFiscal() {
                         </div>
                         <button
                           className="nf-btn-trocar"
-                          onClick={() => { setLojaSelecionada(null); setForm((f) => ({ ...f, idLoja: null })); }}
+                          onClick={() => setLojaSelecionada(null)}
                         >
                           Trocar
                         </button>
