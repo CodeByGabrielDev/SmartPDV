@@ -48,7 +48,7 @@ public class CaixaService {
 		caixa.setDataFechamento(LocalDateTime.now());
 		caixa.setFechado(true);
 		this.caixa.save(caixa);
-		return new CaixaFechamentoResponse(caixa.getLoja().getRazaoSocial(), usuarioSession.getLogin(),
+		return new CaixaFechamentoResponse(caixa.getId(), caixa.getLoja().getRazaoSocial(), usuarioSession.getLogin(),
 				caixa.getDataAbertura(), LocalDateTime.now(), caixa.getValorInicial(), caixa.getValorFinal());
 	}
 
@@ -75,9 +75,9 @@ public class CaixaService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
 					"Ja existe um caixa aberto nessa loja, validar o caixa numero: " + caixa.getId());
 		}
-		this.caixa.save(new Caixa(usuarioSession.getLojaVinculada(), usuarioSession, LocalDateTime.now(), null, 0.0,
+		Caixa novoCaixa = this.caixa.save(new Caixa(usuarioSession.getLojaVinculada(), usuarioSession, LocalDateTime.now(), null, 0.0,
 				0.0, false));
-		return new CaixaAberturaResponse(usuarioSession.getLojaVinculada().getRazaoSocial(), usuarioSession.getLogin(),
+		return new CaixaAberturaResponse(novoCaixa.getId(), usuarioSession.getLojaVinculada().getRazaoSocial(), usuarioSession.getLogin(),
 				LocalDateTime.now());
 	}
 }
