@@ -53,7 +53,8 @@ public class ClienteService {
                 usuariosLoja.getLojaVinculada(), false);
 
         this.clienteRepository.save(clientes);
-        return new ClienteResponse(clientes.getNomeCliente(), clientes.getCpfCnpj(), clientes.getEmail(),
+        return new ClienteResponse(clientes.getId(), clientes.getNomeCliente(), clientes.getCpfCnpj(),
+                clientes.getEmail(),
                 clientes.getTelefone(), clientes.getTipo().toString(), clientes.getCep(), clientes.getLogradouro(),
                 clientes.getBairro(), clientes.getLocalidade(), clientes.getUf(), clientes.getEstado());
 
@@ -85,7 +86,7 @@ public class ClienteService {
             cliente.setTelefone(clienteRequest.getTelefone());
         }
         this.clienteRepository.save(cliente);
-        return new ClienteResponse(cliente.getNomeCliente(), cliente.getCpfCnpj(), cliente.getEmail(),
+        return new ClienteResponse(cliente.getId(), cliente.getNomeCliente(), cliente.getCpfCnpj(), cliente.getEmail(),
                 cliente.getTelefone(), cliente.getTipo().toString(), cliente.getCep(), cliente.getLogradouro(),
                 cliente.getBairro(), cliente.getLocalidade(), cliente.getUf(), cliente.getEstado());
 
@@ -98,7 +99,7 @@ public class ClienteService {
                 .findAllClientesByShop(usuariosLoja.getLojaVinculada().getId());
         List<ClienteResponse> listaDeclientes = new ArrayList<>();
         for (Clientes clientes : findAllClientes) {
-            listaDeclientes.add(new ClienteResponse(clientes.getNomeCliente(), clientes.getCpfCnpj(),
+            listaDeclientes.add(new ClienteResponse(clientes.getId(), clientes.getNomeCliente(), clientes.getCpfCnpj(),
                     clientes.getEmail(), clientes.getTelefone(), clientes.getTipo().toString(), clientes.getCep(),
                     clientes.getLogradouro(), clientes.getBairro(), clientes.getLocalidade(), clientes.getUf(),
                     clientes.getEstado()));

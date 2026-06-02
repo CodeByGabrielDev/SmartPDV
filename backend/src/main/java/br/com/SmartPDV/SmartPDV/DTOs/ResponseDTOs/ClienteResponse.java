@@ -13,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ClienteResponse {
 
+	private Long id;
 	private String nome_cliente;
 	private String cpf_cnpj;
 	private String email;
