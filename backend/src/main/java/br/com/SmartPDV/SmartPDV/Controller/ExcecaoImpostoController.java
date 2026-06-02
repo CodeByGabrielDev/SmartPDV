@@ -1,5 +1,8 @@
 package br.com.SmartPDV.SmartPDV.Controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +24,11 @@ public class ExcecaoImpostoController {
 	@PostMapping
 	public ExcecaoImpostoResponse insereExcecaoImposto(@RequestBody ExcecaoImpostoRequest excecaoImpostoRequest) {
 		return this.excecao.criarExcecaoImposto(excecaoImpostoRequest);
+	}
+
+	@GetMapping
+	public List<ExcecaoImpostoResponse> buscarTodasExcecoesDaLoja() {
+		return this.excecao.buscarTodasAsExcecoesImposto();
 	}
 
 }

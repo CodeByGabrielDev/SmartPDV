@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderThreadLocalAccessor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Enum.TipoImposto;
 import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoItemRepository;
 import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -32,6 +34,7 @@ public class ExcecaoImpostoService {
 	private final ExcecaoImpostoRepository excecaoImposto;
 	private final ExcecaoImpostoItemRepository excecaoImpostoItem;
 
+	@Transactional
 	public ExcecaoImpostoResponse criarExcecaoImposto(ExcecaoImpostoRequest excecao) {
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (usuario.getPerfil().getCodigo() != 4) {
@@ -56,24 +59,46 @@ public class ExcecaoImpostoService {
 			ExcecaoImposto exceptionEntity) {
 
 		List<ExcecaoImpostoItemResponse> excecaoItem = new ArrayList<>();
-
-		for (ExcecaoImpostoItemRequest e : excecao.getItens()) {
-			ExcecaoImpostoItem exceptionItem = new ExcecaoImpostoItem(exceptionEntity, e.getTipo(), e.getAliquota(),
-					e.getReducao_Base(), false);
-			this.excecaoImpostoItem.save(exceptionItem);
-			excecaoItem.add(new ExcecaoImpostoItemResponse(e.getTipo(), e.getAliquota(), e.getReducao_Base()));
+		if (excecao.getItens() != null && !excecao.getItens().isEmpty()) {
+			for (ExcecaoImpostoItemRequest e : excecao.getItens()) {
+				ExcecaoImpostoItem exceptionItem = new ExcecaoImpostoItem(exceptionEntity, e.getTipo(), e.getAliquota(),
+						e.getReducao_Base(), false);
+				this.excecaoImpostoItem.save(exceptionItem);
+				excecaoItem.add(new ExcecaoImpostoItemResponse(e.getTipo(), e.getAliquota(), e.getReducao_Base()));
+			}
 		}
+
 		return excecaoItem;
 	}
+	@org.springframework.transaction.annotation.Transactional(readOnly = true)
+	public List<ExcecaoImpostoResponse> buscarTodasAsExcecoesImposto() {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
 
-	public void vinculaExcecaoDeImpostoNaNota(NotaFiscal notaFiscal) {
+		List<ExcecaoImpostoResponse> listaDeExcecoes = new ArrayList<>();
+		List<ExcecaoImposto> findAll = this.excecaoImposto.findAllExcecoes(usuariosLoja.getLojaVinculada().getId());
 
-		ExcecaoImposto exception = this.excecaoImposto.findExcecaoByCodFilialAndCfop(notaFiscal.getCfop(),
-				notaFiscal.getLoja().getId());
-		if (exception == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-					"Nao foi encontado excecao de imposto para essa CFOP e filial");
+		return montaDto(listaDeExcecoes, findAll);
+	}
+
+	private List<ExcecaoImpostoResponse> montaDto(List<ExcecaoImpostoResponse> listaDeExcecoes,
+			List<ExcecaoImposto> findAll) {
+		for (ExcecaoImposto excecaoImposto : findAll) {
+			List<ExcecaoImpostoItemResponse> excecaoImpostoItemResponses = new ArrayList<>();
+			ExcecaoImpostoResponse excecaoImpostoResponse = new ExcecaoImpostoResponse(excecaoImposto.getId(),
+					excecaoImposto.getNaturezaoOperacao(), excecaoImposto.getLoja().getRazaoSocial(),
+					excecaoImposto.getDescricao());
+			if (excecaoImposto.getExcecaoImpostoItem() != null) {
+				for (ExcecaoImpostoItem excecaoImpostoItem : excecaoImposto.getExcecaoImpostoItem()) {
+					excecaoImpostoItemResponses.add(new ExcecaoImpostoItemResponse(excecaoImpostoItem.getTipo(),
+							excecaoImpostoItem.getAliquota(), excecaoImpostoItem.getReducaoBase()));
+				}
+
+			}
+			excecaoImpostoResponse.setExcecaoImpostoItem(excecaoImpostoItemResponses);
+			listaDeExcecoes.add(excecaoImpostoResponse);
 		}
-		
+		return listaDeExcecoes;
+
 	}
 }
