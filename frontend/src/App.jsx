@@ -14,6 +14,7 @@ import ExcecaoImposto from './pages/ExcecaoImposto';
 import Perfil from './pages/Perfil';
 import MeiosPagamento from './pages/MeiosPagamento';
 import Produtos from './pages/Produtos';
+import Estoque from './pages/Estoque';
 import './App.css';
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
             <Route path="entrada-mercadoria" element={<EntradaMercadoria />} />
             <Route path="excecao-imposto" element={<ExcecaoImposto />} />
             <Route path="meios-pagamento" element={<MeiosPagamento />} />
+            <Route path="estoque" element={<Estoque />} />
             <Route path="perfil" element={<Perfil />} />
           </Route>
         </Routes>

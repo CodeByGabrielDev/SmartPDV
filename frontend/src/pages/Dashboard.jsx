@@ -28,6 +28,7 @@ export default function Dashboard() {
     { to: 'notafiscal',         icon: '🧾', label: 'Nota Fiscal' },
     { to: 'meios-pagamento',    icon: '🏧', label: 'Meios Pgto.' },
     { to: 'entrada-mercadoria', icon: '📦', label: 'Entrada Merc.' },
+    { to: 'estoque',            icon: '🗃️', label: 'Estoque' },
     { to: 'excecao-imposto',    icon: '📊', label: 'Impostos' },
     { to: 'perfil',             icon: '⚙️', label: 'Configurações' },
   ];
