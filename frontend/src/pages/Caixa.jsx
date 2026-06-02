@@ -26,9 +26,20 @@ const calcDuracao = (abertura) => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
+const STORAGE_KEY = 'smartpdv_caixa_aberto';
+
+function carregarCaixaDoStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function Caixa() {
-  const [caixaAberto, setCaixaAberto] = useState(null);
-  const [caixaId, setCaixaId]         = useState(null);
+  const [caixaAberto, setCaixaAberto] = useState(() => carregarCaixaDoStorage());
+  const [caixaId, setCaixaId]         = useState(() => carregarCaixaDoStorage()?.id ?? null);
   const [loading, setLoading]         = useState(false);
   const [confirmFechar, setConfirmFechar] = useState(false);
   const [resumoFechamento, setResumoFechamento] = useState(null);
@@ -50,6 +61,7 @@ export default function Caixa() {
     setLoading(true);
     try {
       const response = await caixaService.abrirCaixa();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(response));
       setCaixaAberto(response);
       setCaixaId(response.id);
       setResumoFechamento(null);
@@ -65,6 +77,7 @@ export default function Caixa() {
     setLoading(true);
     try {
       const response = await caixaService.fecharCaixa(caixaId);
+      localStorage.removeItem(STORAGE_KEY);
       setResumoFechamento(response);
       setCaixaAberto(null);
       setCaixaId(null);
