@@ -29,4 +29,12 @@ public class ExcecaoImpostoResponse {
 	private String loja;
 	private String descricao;
 	private List<ExcecaoImpostoItemResponse> excecaoImpostoItem = new ArrayList<>();
+    public ExcecaoImpostoResponse(long id, int naturezao_operacao, String loja, String descricao) {
+        this.id = id;
+        this.naturezao_operacao = naturezao_operacao;
+        this.loja = loja;
+        this.descricao = descricao;
+    }
+
+	
 }

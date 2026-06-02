@@ -5,4 +5,9 @@ export const excecaoImpostoService = {
     const response = await api.post('/api-smartpdv/v1/tax-exception', excecaoRequest);
     return response.data;
   },
+
+  listarExcecoes: async () => {
+    const response = await api.get('/api-smartpdv/v1/tax-exception');
+    return response.data;
+  },
 };
