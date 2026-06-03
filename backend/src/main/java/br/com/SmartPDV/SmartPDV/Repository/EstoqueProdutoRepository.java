@@ -18,6 +18,8 @@ public interface EstoqueProdutoRepository extends CrudRepository<EstoqueProduto,
 	@Query("SELECT E FROM EstoqueProduto E WHERE E.codigoBarra = :codigo_barra")
 	EstoqueProduto selectByCodigoBarra(@Param("codigo_barra") String codigo_barra);
 
+	@Query("SELECT E FROM EstoqueProduto E WHERE E.codigoBarra = :codigo_barra AND E.loja.id = :id")
+	EstoqueProduto selectByCodigoBarra(@Param("codigo_barra") String codigo_barra,@Param("id")  Long id);
 	@Query("SELECT E FROM EstoqueProduto E WHERE E.loja.id =:id")
 	List<EstoqueProduto> findAllItens(@Param("id") Long id);
 }

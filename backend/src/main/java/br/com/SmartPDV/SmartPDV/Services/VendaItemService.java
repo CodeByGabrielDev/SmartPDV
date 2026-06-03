@@ -33,17 +33,15 @@ public class VendaItemService {
     private final NotaFiscalService notaFiscalService;
     private final VendaRepository vendaRepository;
     private final VendaCalculoService vendaCalculoService;
+    private final EstoqueProdutoService estoqueProdutoService;
 
     @Transactional
     public void insereItensVenda(VendaItemRequest itens, Venda venda, Caixa caixa) {
         List<ItemVenda> itensVenda = new ArrayList<>();
         for (ItensVendaRequest itensForEach : itens.getItens_venda()) {
-            EstoqueProduto estoqueItem = findItem(itensForEach.getCodigo_barra(), venda);
-            if (estoqueItem.getQtdAtual() < itensForEach.getQtd_item()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Foi informado uma quantidade que não esta de acordo com o estoque da loja, quantidade atual para esse item: "
-                                + estoqueItem.getQtdAtual());
-            }
+            EstoqueProduto estoqueItem = this.estoqueProdutoService.validaSeExisteItemNoEstoquePorCodigo(
+                    itensForEach.getCodigo_barra(),
+                    itensForEach.getQtd_item());
             estoqueItem.setQtdAtual(estoqueItem.getQtdAtual() - itensForEach.getQtd_item());
             this.estoqueRepository.save(estoqueItem);
             Double calculo = vendaCalculoService.calculaValorTotal(estoqueItem, itensForEach);
@@ -72,5 +70,4 @@ public class VendaItemService {
         return estoque;
     }
 
-    
 }
