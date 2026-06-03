@@ -3112,20 +3112,35 @@ button:disabled {
   opacity: 0.6;
 }
 
-/* Item da venda */
+/* Item da venda — duas linhas */
 .pdv-item {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  background: var(--background);
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   transition: border-color 0.15s;
 }
 
 .pdv-item:hover {
   border-color: var(--primary);
+}
+
+/* Linha 1: número + nome + subtotal + remover */
+.pdv-item-row1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Linha 2: qtd + desconto */
+.pdv-item-row2 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 34px; /* alinha com o nome (após o número) */
 }
 
 .pdv-item-num {
@@ -3215,6 +3230,48 @@ button:disabled {
   min-width: 80px;
   text-align: right;
   flex-shrink: 0;
+}
+
+/* Desconto por item */
+.pdv-item-desconto {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.pdv-desconto-input {
+  width: 48px;
+  padding: 4px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.8rem;
+  text-align: center;
+  outline: none;
+}
+
+.pdv-desconto-input:focus {
+  border-color: var(--primary);
+}
+
+/* remove setas do input number */
+.pdv-desconto-input::-webkit-inner-spin-button,
+.pdv-desconto-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pdv-desconto-label {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.pdv-desconto-valor {
+  font-size: 0.75rem;
+  color: #f87171;
+  font-weight: 600;
 }
 
 .pdv-item-remove {
