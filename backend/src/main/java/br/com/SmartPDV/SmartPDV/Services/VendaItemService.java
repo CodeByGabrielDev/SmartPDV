@@ -30,7 +30,6 @@ public class VendaItemService {
     private final EstoqueProdutoRepository estoqueRepository;
     private final ItemVendaRepository itemVendaRepository;
     private final CaixaRepository caixaRepository;
-    private final NotaFiscalService notaFiscalService;
     private final VendaRepository vendaRepository;
     private final VendaCalculoService vendaCalculoService;
 
