@@ -3,6 +3,7 @@ package br.com.SmartPDV.SmartPDV.Controller;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,4 +22,10 @@ public class EstoqueProdutoController {
     public List<EstoqueProdutoResponse> findAll() {
         return this.estoqueProdutoService.mostrarTodosOsProdutosNoEstoque();
     }
+
+    @PutMapping
+    public void validaDisponibilidadeDeItemNoEstoque(String codigoBarras, Integer qtdInteger) {
+        this.estoqueProdutoService.validaSeExisteItemNoEstoquePorCodigo(codigoBarras, qtdInteger);
+    }
+
 }

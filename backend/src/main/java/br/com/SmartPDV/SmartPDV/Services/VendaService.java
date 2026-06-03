@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.ItensVendaRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.VendaItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.VendaResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
@@ -42,6 +43,7 @@ public class VendaService {
 	@Transactional
 	public VendaResponse realizarVenda(VendaItemRequest itens, String cpfOrCnpj) {
 		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
 		if (usuarioLoja.getPerfil() != PerfilVendedor.GERENTE
 				&& usuarioLoja.getPerfil() != PerfilVendedor.FUNCIONARIO) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
@@ -69,7 +71,7 @@ public class VendaService {
 		System.out.println(vendas);
 		List<VendaResponse> vendaResponses = new ArrayList<>();
 		for (Venda venda : vendas) {
-			VendaResponse vendaResponse = new VendaResponse(venda.getId(),venda.getTicket(), venda.getCaixa().getId(),
+			VendaResponse vendaResponse = new VendaResponse(venda.getId(), venda.getTicket(), venda.getCaixa().getId(),
 					venda.getCliente().getCpfCnpj(), venda.getDataHora(), venda.getValorTotal(),
 					venda.getLoja().getId(), venda.getDesconto(), venda.getUsuario().getNomeVendedor(), null);
 			for (Pagamento pagamento : venda.getPgto()) {
@@ -103,9 +105,11 @@ public class VendaService {
 	}
 
 	private VendaResponse montaDto(Venda venda) {
-		return new VendaResponse(venda.getId(),venda.getTicket(), venda.getCaixa().getId(), null, venda.getDataHora(),
+		return new VendaResponse(venda.getId(), venda.getTicket(), venda.getCaixa().getId(), null, venda.getDataHora(),
 				venda.getValorTotal(), venda.getLoja().getId(), venda.getDesconto(),
 				venda.getUsuario().getNomeVendedor(), null);
 	}
+
+	
 
 }
