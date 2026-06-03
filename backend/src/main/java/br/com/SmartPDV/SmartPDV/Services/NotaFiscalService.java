@@ -73,7 +73,7 @@ public class NotaFiscalService {
 			registrarTransitoLoja(notaFiscal, usuario);
 		}
 
-		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal);
+		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal, usuario);
 
 		return montarResponse(notaFiscal);
 	}

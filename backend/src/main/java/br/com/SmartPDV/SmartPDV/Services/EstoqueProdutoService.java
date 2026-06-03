@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.EstoqueProdutoResponse;
 import br.com.SmartPDV.SmartPDV.Entities.EstoqueProduto;
+import br.com.SmartPDV.SmartPDV.Entities.Produto;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Repository.EstoqueProdutoRepository;
 import jakarta.transaction.Transactional;
@@ -38,7 +39,7 @@ public class EstoqueProdutoService {
     }
 
     @Transactional
-    public EstoqueProduto validaSeExisteItemNoEstoquePorCodigo(String codigoBarraString, Integer qtd) {
+    public Produto validaSeExisteItemNoEstoquePorCodigo(String codigoBarraString, Integer qtd) {
         UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
 
@@ -53,7 +54,7 @@ public class EstoqueProdutoService {
 
         estoqueProduto.setQtdAtual(estoqueProduto.getQtdAtual() - qtd);
         this.estoqueProdutoRepository.save(estoqueProduto);
-        return estoqueProduto;
+        return estoqueProduto.getProduto();
     }
 
 }
