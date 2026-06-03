@@ -32,7 +32,8 @@ public class EstoqueProdutoService {
         for (EstoqueProduto estoqueProduto : findAll) {
             findAllResponse.add(new EstoqueProdutoResponse(estoqueProduto.getId(),
                     estoqueProduto.getProduto().getDescricao(), estoqueProduto.getLoja().getRazaoSocial(),
-                    estoqueProduto.getQtdAtual(), estoqueProduto.getCodigoBarra()));
+                    estoqueProduto.getQtdAtual(), estoqueProduto.getCodigoBarra(),
+                    estoqueProduto.getProduto().getPrecoVenda()));
         }
 
         return findAllResponse;

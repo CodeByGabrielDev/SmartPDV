@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { vendaService } from '../api/vendaService';
+import { estoqueService } from '../api/estoqueService';
 import { useNavigate } from 'react-router-dom';
 import { showAlert } from '../components/Alert';
 
@@ -8,6 +9,7 @@ export default function Venda() {
   const [itens, setItens] = useState([]);
   const [cpfCnpj, setCpfCnpj] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [validando, setValidando] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -16,27 +18,80 @@ export default function Venda() {
   }, []);
 
   const adicionarItem = async () => {
-    if (!codigoBarra.trim()) return;
-    const novoItem = {
-      id: Date.now(),
-      codigo_barra: codigoBarra.trim().toUpperCase(),
-      qtd_item: 1,
-      desconto: 0,
-      preco: 0,
-    };
-    setItens((prev) => [...prev, novoItem]);
-    setCodigoBarra('');
-    inputRef.current?.focus();
+    const codigo = codigoBarra.trim().toUpperCase();
+    if (!codigo) return;
+
+    // Verifica se o item já está na lista
+    const itemExistente = itens.find((i) => i.codigo_barra === codigo);
+    if (itemExistente) {
+      showAlert('Item já adicionado. Ajuste a quantidade diretamente na lista.', 'error');
+      setCodigoBarra('');
+      inputRef.current?.focus();
+      return;
+    }
+
+    setValidando(true);
+    try {
+      // Valida no estoque antes de adicionar
+      const estoque = await estoqueService.listarEstoque();
+      const itemEstoque = estoque.find(
+        (e) => e.codigo_barra?.toUpperCase() === codigo
+      );
+
+      if (!itemEstoque) {
+        showAlert(`Produto "${codigo}" não encontrado no estoque.`, 'error');
+        return;
+      }
+
+      if (itemEstoque.quantidade_atual < 1) {
+        showAlert(`Produto "${codigo}" sem saldo no estoque.`, 'error');
+        return;
+      }
+
+      setItens((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          codigo_barra: codigo,
+          qtd_item: 1,
+          desconto: 0,
+          preco: itemEstoque.preco_venda ?? 0,
+          qtdDisponivel: itemEstoque.quantidade_atual,
+          descricao: itemEstoque.nome_produto ?? codigo,
+          validado: true,
+        },
+      ]);
+      setCodigoBarra('');
+    } catch (error) {
+      showAlert('Erro ao validar produto no estoque.', 'error');
+    } finally {
+      setValidando(false);
+      inputRef.current?.focus();
+    }
   };
 
   const removerItem = (id) => setItens((prev) => prev.filter((i) => i.id !== id));
 
   const atualizarQtd = (id, qtd) => {
     if (qtd < 1) return;
+    const item = itens.find((i) => i.id === id);
+    if (item && qtd > item.qtdDisponivel) {
+      showAlert(`Saldo disponível no estoque: ${item.qtdDisponivel} unidade(s).`, 'error');
+      return;
+    }
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, qtd_item: qtd } : i)));
   };
 
-  const limparVenda = () => {
+  const atualizarDesconto = (id, desconto) => {
+    const valor = Math.min(100, Math.max(0, Number(desconto) || 0));
+    setItens((prev) => prev.map((i) => (i.id === id ? { ...i, desconto: valor } : i)));
+  };
+
+  const calcularSubtotalItem = (item) => {
+    const bruto = item.qtd_item * (item.preco || 0);
+    const desconto = bruto * ((item.desconto || 0) / 100);
+    return bruto - desconto;
+  };
     setItens([]);
     setCpfCnpj('');
     setCodigoBarra('');
@@ -52,6 +107,7 @@ export default function Venda() {
       showAlert('Informe o CPF ou CNPJ do cliente', 'error');
       return;
     }
+
     setCarregando(true);
     try {
       const vendaRequest = {
@@ -71,8 +127,14 @@ export default function Venda() {
     }
   };
 
-  const total = itens.reduce((acc, i) => acc + i.qtd_item * (i.preco || 0), 0);
+  const totalBruto = itens.reduce((acc, i) => acc + i.qtd_item * (i.preco || 0), 0);
+  const totalDesconto = itens.reduce((acc, i) => {
+    const bruto = i.qtd_item * (i.preco || 0);
+    return acc + bruto * ((i.desconto || 0) / 100);
+  }, 0);
+  const total = totalBruto - totalDesconto;
   const qtdItens = itens.reduce((acc, i) => acc + i.qtd_item, 0);
+  const todosValidados = itens.length > 0 && itens.every((i) => i.validado);
 
   return (
     <div className="pdv-container">
@@ -112,13 +174,19 @@ export default function Venda() {
                 type="text"
                 value={codigoBarra}
                 onChange={(e) => setCodigoBarra(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && adicionarItem()}
+                onKeyDown={(e) => e.key === 'Enter' && !validando && adicionarItem()}
                 placeholder="Bipe ou digite o código..."
                 className="pdv-bip-input"
                 autoComplete="off"
+                disabled={validando}
               />
-              <button className="pdv-btn-add" onClick={adicionarItem} title="Adicionar item (Enter)">
-                +
+              <button
+                className="pdv-btn-add"
+                onClick={adicionarItem}
+                title="Adicionar item (Enter)"
+                disabled={validando}
+              >
+                {validando ? '⏳' : '+'}
               </button>
             </div>
             <p className="pdv-hint">Pressione <kbd>Enter</kbd> para adicionar</p>
@@ -147,11 +215,11 @@ export default function Venda() {
           <div className="pdv-resumo">
             <div className="pdv-resumo-row">
               <span>Subtotal</span>
-              <span>R$ {total.toFixed(2)}</span>
+              <span>R$ {totalBruto.toFixed(2)}</span>
             </div>
             <div className="pdv-resumo-row">
               <span>Desconto</span>
-              <span>R$ 0,00</span>
+              <span>− R$ {totalDesconto.toFixed(2)}</span>
             </div>
             <div className="pdv-resumo-total">
               <span>Total</span>
@@ -162,7 +230,7 @@ export default function Venda() {
           <button
             className="pdv-btn-finalizar"
             onClick={finalizarVenda}
-            disabled={carregando || itens.length === 0}
+            disabled={carregando || !todosValidados || !cpfCnpj.trim()}
           >
             {carregando ? (
               <span className="pdv-btn-loading">⏳ Processando...</span>
@@ -189,20 +257,44 @@ export default function Venda() {
             ) : (
               itens.map((item, idx) => (
                 <div key={item.id} className="pdv-item">
-                  <div className="pdv-item-num">{idx + 1}</div>
-                  <div className="pdv-item-info">
-                    <span className="pdv-item-codigo">{item.codigo_barra}</span>
-                    <span className="pdv-item-preco">R$ {(item.preco || 0).toFixed(2)}</span>
+                  {/* Linha 1: número, nome, subtotal, remover */}
+                  <div className="pdv-item-row1">
+                    <div className="pdv-item-num">{idx + 1}</div>
+                    <div className="pdv-item-info">
+                      <span className="pdv-item-codigo">{item.descricao}</span>
+                      <span className="pdv-item-preco">R$ {(item.preco || 0).toFixed(2)} / un</span>
+                    </div>
+                    <div className="pdv-item-subtotal">
+                      R$ {calcularSubtotalItem(item).toFixed(2)}
+                    </div>
+                    <button className="pdv-item-remove" onClick={() => removerItem(item.id)} title="Remover">×</button>
                   </div>
-                  <div className="pdv-item-qtd">
-                    <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item - 1)}>−</button>
-                    <span className="pdv-qtd-val">{item.qtd_item}</span>
-                    <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item + 1)}>+</button>
+                  {/* Linha 2: qtd e desconto */}
+                  <div className="pdv-item-row2">
+                    <div className="pdv-item-qtd">
+                      <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item - 1)}>−</button>
+                      <span className="pdv-qtd-val">{item.qtd_item}</span>
+                      <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item + 1)}>+</button>
+                    </div>
+                    <div className="pdv-item-desconto">
+                      <span className="pdv-desconto-label">Desconto:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={item.desconto}
+                        onChange={(e) => atualizarDesconto(item.id, e.target.value)}
+                        className="pdv-desconto-input"
+                        placeholder="0"
+                      />
+                      <span className="pdv-desconto-label">%</span>
+                      {item.desconto > 0 && (
+                        <span className="pdv-desconto-valor">
+                          − R$ {(item.qtd_item * (item.preco || 0) * item.desconto / 100).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="pdv-item-subtotal">
-                    R$ {(item.qtd_item * (item.preco || 0)).toFixed(2)}
-                  </div>
-                  <button className="pdv-item-remove" onClick={() => removerItem(item.id)} title="Remover">×</button>
                 </div>
               ))
             )}

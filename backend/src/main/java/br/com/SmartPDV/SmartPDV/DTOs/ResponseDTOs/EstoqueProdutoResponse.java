@@ -15,4 +15,5 @@ public class EstoqueProdutoResponse {
     private String nome_loja;
     private Integer quantidade_atual;
     private String codigo_barra;
+    private Double preco_venda;
 }
