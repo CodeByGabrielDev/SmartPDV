@@ -10,12 +10,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalRequest;
+import br.com.SmartPDV.SmartPDV.Entities.EstoqueProduto;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
 import br.com.SmartPDV.SmartPDV.Entities.Produto;
+import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
+import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
@@ -31,6 +34,7 @@ public class NotaFiscalItemService {
 	private final NotaFiscalImpostoItemService notaImpostoItem;
 	private final NotaFiscalRepository notaFiscalRepo;
 	private final ProdutoRepository prodRepository;
+	private final EstoqueProdutoService estoqueProdutoService;
 	private final ExcecaoImpostoRepository excecaoImpostoRepo;
 	private final LojaRepository loja;
 	private final NotaFiscalCalculatorService calculator;
@@ -67,7 +71,7 @@ public class NotaFiscalItemService {
 
 	@Transactional
 	public void validacaoEPersistencia(NotaFiscalRequest notaItem,
-			NotaFiscal notaEntity) {
+			NotaFiscal notaEntity, UsuariosLoja usuariosLoja) {
 		List<NotaFiscalItem> notaItemEntity = new ArrayList<>();
 		Integer iterador = 1;
 		Double valorTotalDesconto = 0.0;
@@ -81,12 +85,18 @@ public class NotaFiscalItemService {
 		}
 
 		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
-			Produto prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
-
+			Produto prodFind;
+			if (notaEntity.getCfop() == 5152 || notaEntity.getCfop() == 6152) {
+				prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
+			} else {
+				prodFind = this.estoqueProdutoService
+						.validaSeExisteItemNoEstoquePorCodigo(nota.getCodigo_barra(), nota.getQuantidade_Itens());
+			}
 			if (prodFind == null) {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 						" Nao foi encontrado item com esse codigo de barra,valide!");
 			}
+
 			calculaTotalBrutoNota += (prodFind.getPrecoVenda() * nota.getQuantidade_Itens());
 			calculaTotalLiquidoNota += this.calculator.calculaValorLiquido(nota, prodFind);
 			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getNfNumero(), notaEntity.getSerieNf(),

@@ -23,8 +23,8 @@ public class NotaFiscalCalculatorService {
 	}
 
 	public Double calculaTotalDeDescontoNaNota(NotaFiscalItemRequest notaRequest, Produto produto) {
-		return produto.getPrecoVenda() * (notaRequest.getDesconto() / 100);
-
+		Double valorBruto = produto.getPrecoVenda() * notaRequest.getQuantidade_Itens();
+		return valorBruto * (notaRequest.getDesconto() / 100);
 	}
 
 	public Double calculaTotalDeDescontoNaNotaDeVenda(ItemVenda item) {
