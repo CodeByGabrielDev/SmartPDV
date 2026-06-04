@@ -32,7 +32,7 @@ public class TransitoLojaService {
 	public void realizarEntradaDeMercadoria(Long id, String obs) {
 		UsuariosLoja user = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		TransitoLoja notaTransito = this.transito.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nota nao encontrada na base de dados"));
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nota fiscal em trânsito não encontrada. Verifique se o ID '" + id + "' está correto ou se a nota já foi processada"));
 		alimentacao.alimentaEstoqueNotaTransito(notaTransito);
 		/*
 		 * public NotaEntrada(Long nfNumero, Integer serieNf, String chaveNfe, Loja

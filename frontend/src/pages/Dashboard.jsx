@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { theme, toggleTheme } = useTheme();
   const loginName = localStorage.getItem('login') || 'Usuário';
+  const [animKey, setAnimKey] = useState(location.pathname);
+
+  useEffect(() => {
+    setAnimKey(location.pathname);
+  }, [location.pathname]);
 
   const getInitial = (name) => {
     if (!name) return 'U';
@@ -84,7 +90,9 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="main-content">
         <div className="content-wrapper">
-          <Outlet />
+          <div key={animKey} className="page-transition">
+            <Outlet />
+          </div>
         </div>
         <footer className="dashboard-footer">
           <span>SmartPDV &copy; {new Date().getFullYear()}</span>

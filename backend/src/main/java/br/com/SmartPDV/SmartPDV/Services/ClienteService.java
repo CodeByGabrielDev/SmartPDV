@@ -36,15 +36,15 @@ public class ClienteService {
         Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(clienteRequest.getCpf_cnpj());
 
         if (cliente != null && cliente.getLoja().getId() == usuariosLoja.getLojaVinculada().getId()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, " Ja existe um cliente cadastrado com esse cpf");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um cliente cadastrado com o CPF/CNPJ '" + clienteRequest.getCpfCnpj() + "' nesta loja.");
         }
         if (this.clienteRepository.selectByEmail(clienteRequest.getEmail()) != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "ja existe um cliente cadastrado com esse email");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um cliente cadastrado com o email '" + clienteRequest.getEmail() + "'.");
         }
 
         if (viaCepResponse == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    " Nao foi encontrado inforamcoes para esse Cep, utilize um cep vizinho ou cep da loja");
+                    "Não foi possível localizar informações para o CEP informado. Verifique o CEP ou utilize um CEP vizinho.");
         }
         Clientes clientes = new Clientes(clienteRequest.getNome_cliente(), clienteRequest.getCpf_cnpj(),
                 clienteRequest.getEmail(), clienteRequest.getTelefone(), viaCepResponse.getCep(),
@@ -65,10 +65,10 @@ public class ClienteService {
         UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         Clientes cliente = this.clienteRepository.findById(idCliente).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nao foi encontrado o respectivo cliente"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente com ID '" + idCliente + "' não foi encontrado no sistema."));
         if (cliente.getLoja().getId() != usuariosLoja.getLojaVinculada().getId()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "proibido alterar informacao de um cliente que esteja vinculado a outra loja");
+                    "Acesso negado. Você não pode alterar informações de clientes vinculados a outras lojas.");
         }
         if (clienteRequest.getCep() != null) {
             cliente.setCep(clienteRequest.getCep());

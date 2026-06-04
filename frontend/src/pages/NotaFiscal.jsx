@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { notaFiscalService } from '../api/notaFiscalService';
 import { lojaService } from '../api/lojaService';
 import { showAlert } from '../components/Alert';
@@ -260,7 +261,7 @@ export default function NotaFiscal() {
       {/* ══════════════════════════════════════
           MODAL DE EMISSÃO
       ══════════════════════════════════════ */}
-      {modalAberto && (
+      {modalAberto && createPortal(
         <div className="nf-modal-overlay" onClick={fecharModal}>
           <div className="nf-modal" onClick={(e) => e.stopPropagation()}>
 
@@ -295,37 +296,35 @@ export default function NotaFiscal() {
             {etapa === 1 && (
               <div className="nf-modal-body">
 
-                <div className="nf-form-grid">
-                  {/* CFOP */}
-                  <div className="nf-field nf-field-wide">
-                    <label className="nf-label">CFOP</label>
-                    <select
-                      className="nf-select"
-                      value={form.cfop}
-                      onChange={(e) => setForm((f) => ({ ...f, cfop: Number(e.target.value) }))}
-                    >
-                      {CFOPS_COMUNS.map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                      ))}
-                    </select>
-                    {ehTransferencia && (
-                      <p className="nf-field-hint nf-hint-transfer">
-                        ⇄ CFOP de transferência — selecione a loja de destino abaixo
-                      </p>
-                    )}
-                  </div>
+                {/* CFOP */}
+                <div className="nf-field">
+                  <label className="nf-label">CFOP</label>
+                  <select
+                    className="nf-select"
+                    value={form.cfop}
+                    onChange={(e) => setForm((f) => ({ ...f, cfop: Number(e.target.value) }))}
+                  >
+                    {CFOPS_COMUNS.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                  {ehTransferencia && (
+                    <p className="nf-field-hint nf-hint-transfer">
+                      ⇄ CFOP de transferência — selecione a loja de destino abaixo
+                    </p>
+                  )}
+                </div>
 
-                  {/* Série */}
-                  <div className="nf-field">
-                    <label className="nf-label">Série NF-e</label>
-                    <input
-                      className="nf-input"
-                      type="number"
-                      min="1"
-                      value={form.serieNfe}
-                      onChange={(e) => setForm((f) => ({ ...f, serieNfe: e.target.value }))}
-                    />
-                  </div>
+                {/* Série */}
+                <div className="nf-field">
+                  <label className="nf-label">Série NF-e</label>
+                  <input
+                    className="nf-input"
+                    type="number"
+                    min="1"
+                    value={form.serieNfe}
+                    onChange={(e) => setForm((f) => ({ ...f, serieNfe: e.target.value }))}
+                  />
                 </div>
 
                 {/* ── Transferência: busca de loja ── */}
@@ -523,7 +522,8 @@ export default function NotaFiscal() {
             )}
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

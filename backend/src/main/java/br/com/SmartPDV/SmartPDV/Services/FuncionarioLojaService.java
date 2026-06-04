@@ -27,10 +27,10 @@ public class FuncionarioLojaService {
                 .getPrincipal();
 
         if (!this.hashSenha.passwordEncoder().matches(senhaDeUsuario, usuariosLoja.getSenha())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, " Senha incorreta, por gentileza validar.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "A senha atual está incorreta. Verifique e tente novamente.");
         }
         if (!Validator.validarSenha(senhaDesejada)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha informada fora do padrao estipulado.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "A nova senha não atende aos requisitos mínimos. Use ao menos 8 caracteres com letras, números e caracteres especiais.");
         }
 
         usuariosLoja.setSenha(senhaDesejada);

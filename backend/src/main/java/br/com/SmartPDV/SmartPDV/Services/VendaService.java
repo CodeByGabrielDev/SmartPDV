@@ -20,6 +20,7 @@ import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.VendaItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.VendaResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Caixa;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
+import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
 import br.com.SmartPDV.SmartPDV.Entities.Pagamento;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
@@ -39,20 +40,22 @@ public class VendaService {
 	private final VendaRepository vendaRepository;
 	private final CaixaRepository caixa;
 	private final VendaItemService vendaItem;
+	private final EstoqueRollbackService estoqueRollbackService;
 
 	@Transactional
 	public VendaResponse realizarVenda(VendaItemRequest itens, String cpfOrCnpj) {
 		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
 		if (usuarioLoja.getPerfil() != PerfilVendedor.GERENTE
-				&& usuarioLoja.getPerfil() != PerfilVendedor.FUNCIONARIO) {
+				&& usuarioLoja.getPerfil() != PerfilVendedor.FUNCIONARIO
+				&& usuarioLoja.getPerfil() != PerfilVendedor.ADMIN) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-					"Apenas a gerencia ou o funcionario da loja pode realizar vendas.");
+					"Acesso negado. Somente funcionários, gerentes ou administradores podem registrar vendas.");
 		}
 		Caixa caixa = this.caixa.findCaixaAberto(usuarioLoja.getLojaVinculada().getId());
 		if (caixa == null) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					" Não foi realizado a abertura de um caixa para realizar vendas, efetue a abertura do caixa");
+					"Nenhum caixa aberto encontrado. Abra o caixa antes de iniciar uma venda.");
 		}
 		Clientes cliente = findCustomer(cpfOrCnpj);
 		Venda venda = new Venda(null, caixa, cliente, LocalDateTime.now(), 0.0, usuarioLoja.getLojaVinculada(), 0.0,
@@ -89,7 +92,7 @@ public class VendaService {
 		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(cpfOrCnpj);
 		if (cliente == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-					"Cliente nao encontrado na base, valide o documento ou cadastre.");
+					"Cliente não encontrado. Verifique o CPF/CNPJ informado ou realize o cadastro antes de prosseguir.");
 		}
 		return cliente;
 	}
@@ -110,6 +113,23 @@ public class VendaService {
 				venda.getUsuario().getNomeVendedor(), null);
 	}
 
-	
+
+	@Transactional(readOnly = true)
+	public void cancelarVenda(Long idVenda) {
+		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+		Venda venda = this.vendaRepository.selectByIdAndCodLoja(
+				usuarioLoja.getLojaVinculada().getId(), idVenda);
+
+		if (venda == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"Venda não encontrada. Verifique o ID informado e tente novamente.");
+		}
+
+		List<ItemVenda> itensCarregados = new ArrayList<>(venda.getItemVenda());
+
+		this.estoqueRollbackService.retornarEstoqueParaSuaOrigem(venda, itensCarregados);
+		this.estoqueRollbackService.deletarVenda(venda);
+	}
 
 }

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.hibernate.annotations.Collate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,14 +47,15 @@ public class Venda {
 	@ManyToOne
 	@JoinColumn(name = "id_funcionario")
 	private UsuariosLoja usuario;
-	@OneToMany(mappedBy = "venda")
+	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ItemVenda> itemVenda = new ArrayList<>();
-	@OneToMany(mappedBy = "venda")
+	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Pagamento> pgto = new ArrayList<>();
-	@OneToMany(mappedBy = "venda")
+	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<NotaFiscal> nota = new ArrayList<>();
 
-	public Venda(Long ticket,Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal, Loja loja, Double desconto,
+	public Venda(Long ticket, Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal, Loja loja,
+			Double desconto,
 			UsuariosLoja usuario) {
 		super();
 		this.ticket = ticket;

@@ -30,11 +30,11 @@ public class Validator {
 
 	public static String validaCnpj(String cnpj) {
 		if (cnpj.isBlank() || cnpj == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "o cnpj fornecido esta vazio ou null");
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O CNPJ fornecido está vazio ou nulo. Informe um CNPJ válido.");
 		}
 		for (char c : cnpj.toCharArray()) {
 			if (Character.isAlphabetic(c)) {
-				throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Cnpj nao pode conter letras.");
+				throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O CNPJ não pode conter letras. Use apenas números e caracteres especiais permitidos (. - /).");
 			}
 
 		}

@@ -45,14 +45,14 @@ public class PaginaPrincipal {
 
 		if (funcionario != null && !funcionario.isInativo()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"Ja existe um usuario com esse cpf atrelado a essa loja");
+					"Já existe um funcionário cadastrado com o CPF '" + funcionarioRegister.getCpf() + "' nesta loja.");
 		}
 		if (!Validator.validarSenha(funcionarioRegister.getSenha())) {
-			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Senha muito fraca");
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "A senha não atende aos requisitos mínimos. Use ao menos 8 caracteres com letras, números e caracteres especiais.");
 		}
 
 		if (this.funcionario.findByEmail(funcionarioRegister.getEmail()) != null) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Usuario ja existentente com esse email");
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um usuário cadastrado com o email '" + funcionarioRegister.getEmail() + "'.");
 		}
 
 		return salvaInfoNoBancoRetornaDto(funcionarioRegister, idLoja);
@@ -61,9 +61,9 @@ public class PaginaPrincipal {
 
 	private UsuarioLojaResponse salvaInfoNoBancoRetornaDto(FuncionarioRequest funcionarioRegister, Long idLoja) {
 		Loja loja = this.loja.findById(idLoja)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja nao encontrada"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja com ID '" + idLoja + "' não encontrada no sistema."));
 		if (funcionarioRegister.getPerfil() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Perfil do usuário é obrigatório");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O perfil do usuário é obrigatório. Selecione um perfil antes de prosseguir.");
 		}
 
 		System.out.println("Perfil do usuario: " + funcionarioRegister.getPerfil());
@@ -79,15 +79,15 @@ public class PaginaPrincipal {
 
 	public String login(String login, String senha) {
 		if (login == null || senha == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " o login e a senha não podem estar vazio.");
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Login e senha são obrigatórios para acessar o sistema.");
 		}
 		UsuariosLoja user = this.funcionario.findByLogin(login);
 		if (user == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Senha ou login incorreto! user nao encontrado");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Login ou senha incorretos. Verifique suas credenciais e tente novamente.");
 		}
 
 		if (!this.hash.passwordEncoder().matches(senha, user.getSenha())) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha ou login incorreto!");
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login ou senha incorretos. Verifique suas credenciais e tente novamente.");
 		}
 
 		return (this.token.gerarToken(user));
