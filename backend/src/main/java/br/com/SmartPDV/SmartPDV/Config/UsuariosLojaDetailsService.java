@@ -20,7 +20,7 @@ public class UsuariosLojaDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		UsuariosLoja usuario = this.funcionario.findByLogin(username);
 		if (usuario == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nao encontrado");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário com login '" + username + "' não encontrado no sistema.");
 
 		}
 		return usuario;

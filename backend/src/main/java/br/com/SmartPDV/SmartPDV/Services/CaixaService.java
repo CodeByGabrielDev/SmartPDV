@@ -36,14 +36,14 @@ public class CaixaService {
 				.getPrincipal();
 
 		Caixa caixa = this.caixa.findById(idCaixa).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa nao encontrado na base de dados"));
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa #" + idCaixa + " não encontrado. Verifique o ID e tente novamente."));
 		if (caixa.getFechado()) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Caixa ja fechado");
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Este caixa já foi fechado e não pode ser operado novamente.");
 		}
 
 		if (usuarioSession.getLojaVinculada().getId() != caixa.getLoja().getId()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-					"Voce nao possui autorizacao para fechar o caixa de uma loja que nao esta atrelada ao seu login");
+					"Você não tem permissão para fechar o caixa de outra loja. Verifique o caixa vinculado ao seu login.");
 		}
 		caixa.setDataFechamento(LocalDateTime.now());
 		caixa.setFechado(true);
@@ -55,15 +55,15 @@ public class CaixaService {
 	@Transactional
 	public void alimentaCaixaAberto(Double valorParaAlimentar, long idCaixa, UsuariosLoja funcionarioAtual) {
 		Caixa caixa = this.caixa.findById(idCaixa).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa nao encontrado na base de dados"));
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa #" + idCaixa + " não encontrado. Verifique se o caixa está aberto nesta loja."));
 
 		if (caixa.getLoja().getId() != funcionarioAtual.getLojaVinculada().getId()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-					"Conflito de codigos de filiais, validar o codigo atrelado ao login realiznado a vneda e o caixa aberto");
+					"O caixa informado pertence a uma loja diferente da vinculada ao seu login. Verifique o caixa correto.");
 		}
 		if (caixa.getFechado()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					" Caixa fechado, por gentileza averiguar abertura de caixa.");
+					"Operação negada. O caixa está fechado. Realize a abertura do caixa antes de continuar.");
 		}
 		caixa.setValorFinal(caixa.getValorFinal() + valorParaAlimentar);
 		this.caixa.save(caixa);

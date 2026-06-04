@@ -92,6 +92,8 @@ export default function Venda() {
     const desconto = bruto * ((item.desconto || 0) / 100);
     return bruto - desconto;
   };
+
+  const limparVenda = () => {
     setItens([]);
     setCpfCnpj('');
     setCodigoBarra('');
@@ -117,9 +119,12 @@ export default function Venda() {
           desconto: i.desconto || 0,
         })),
       };
-      const response = await vendaService.realizarVenda(vendaRequest, cpfCnpj);
-      const idVenda = response?.ticket || response?.idVenda || response?.id;
-      navigate(idVenda ? `/dashboard/pagamento?idVenda=${idVenda}` : '/dashboard/pagamento');
+      // Remove pontuações do CPF/CNPJ antes de enviar (ex: 000.000.000-00 → 00000000000)
+      const cpfCnpjLimpo = cpfCnpj.replace(/[.\-\/]/g, '').trim();
+      const response = await vendaService.realizarVenda(vendaRequest, cpfCnpjLimpo);
+      const idVenda = response?.id_banco || response?.ticket || response?.idVenda;
+      if (!idVenda) throw new Error('Resposta da venda sem ID. Contate o suporte.');
+      navigate(`/dashboard/pagamento?idVenda=${idVenda}`);
     } catch (error) {
       showAlert(error.displayMessage || error.message || 'Erro ao processar venda', 'error');
     } finally {

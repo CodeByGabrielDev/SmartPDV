@@ -32,7 +32,7 @@ public class LojaService {
     public LojaResponse registrarLoja(LojaRequest lojaRequest) {
         if (this.lojaRepository.findByRazaoSocialOrCnpjOrIe(lojaRequest.getCnpj(), lojaRequest.getRazaoSocial(),
                 lojaRequest.getIE()) != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, " Loja ja criada com essas informacoes, valide");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma loja cadastrada com este CNPJ, Razão Social ou Inscrição Estadual. Verifique os dados informados.");
         }
         System.out.println("Teste do IE nivel QA: " + lojaRequest.getIE());
         validator(lojaRequest);
@@ -46,16 +46,16 @@ public class LojaService {
 
     private void validator(LojaRequest lojaRequest) {
         if (lojaRequest.getCnpj() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " o campo CNPJ não pode estar null");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O campo CNPJ é obrigatório para cadastrar uma loja.");
         }
         if (lojaRequest.getEndereco() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O campo endereco não pode estar null");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O campo endereço é obrigatório para cadastrar uma loja.");
         }
         if (lojaRequest.getIE() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " o campo IE nao pode estar null");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O campo Inscrição Estadual (IE) é obrigatório para cadastrar uma loja.");
         }
         if (lojaRequest.getRazaoSocial() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " o campo Razao social nao pode estar null");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O campo Razão Social é obrigatório para cadastrar uma loja.");
         }
     }
 

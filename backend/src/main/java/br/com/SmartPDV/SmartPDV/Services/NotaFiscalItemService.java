@@ -50,7 +50,7 @@ public class NotaFiscalItemService {
 			if (produtoFind == null) {
 				this.notaFiscalRepo.delete(notaFiscal);
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-						"Não foi encontrado produto com esse codigo, valide!");
+						"Produto não encontrado na base de dados. Verifique o código de barras do item da venda.");
 			}
 			NotaFiscalItem notaItem = new NotaFiscalItem(notaFiscal, notaFiscal.getNfNumero(), notaFiscal.getSerieNf(),
 					produtoFind,
@@ -94,7 +94,7 @@ public class NotaFiscalItemService {
 			}
 			if (prodFind == null) {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-						" Nao foi encontrado item com esse codigo de barra,valide!");
+						"Produto com código de barras '" + nota.getCodigo_barra() + "' não encontrado ou sem saldo suficiente no estoque.");
 			}
 
 			calculaTotalBrutoNota += (prodFind.getPrecoVenda() * nota.getQuantidade_Itens());
@@ -121,7 +121,8 @@ public class NotaFiscalItemService {
 				notaEntity.getLojaDestino().getId());
 		if (excecaoImposto == null) {
 			this.notaFiscalRepo.delete(notaEntity);
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"A loja destino '" + notaEntity.getLojaDestino().getRazaoSocial() + "' não possui exceção de imposto configurada para o CFOP " + notaEntity.getCfop() + ". Configure em Impostos na loja de destino antes de emitir a transferência.");
 		}
 		return excecaoImposto;
 	}
@@ -131,7 +132,8 @@ public class NotaFiscalItemService {
 				notaEntity.getLoja().getId());
 		if (excecaoImposto == null) {
 			this.notaFiscalRepo.delete(notaEntity);
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Excecao nao encontrada");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"Esta loja não possui exceção de imposto configurada para o CFOP " + notaEntity.getCfop() + ". Acesse Impostos e configure antes de emitir notas.");
 		}
 		return excecaoImposto;
 	}

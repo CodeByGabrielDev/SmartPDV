@@ -15,6 +15,7 @@ import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
+import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
@@ -25,6 +26,7 @@ import br.com.SmartPDV.SmartPDV.Entities.Venda;
 import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import br.com.SmartPDV.SmartPDV.Enum.StatusNotaFiscal;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
+import br.com.SmartPDV.SmartPDV.Repository.ExcecaoImpostoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.LojaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
 import br.com.SmartPDV.SmartPDV.Repository.PagamentoRepository;
@@ -41,10 +43,17 @@ public class NotaFiscalService {
 	private final LojaRepository loja;
 	private final ClienteRepository clienteRepository;
 	private final PagamentoRepository pagamentoRepository;
+	private final ExcecaoImpostoRepository excecaoImpostoRepository;
+	private final EstoqueRollbackService estoqueRollbackService; // TODO: usar no endpoint desacoplado de cancelamento
 
 	@Transactional
 	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens, Pagamento pagamento) {
-
+		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepository.findExcecaoByCodFilialAndCfop(5102,
+				venda.getLoja().getId());
+		if (excecaoImposto == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"Esta loja não possui exceção de imposto configurada para o CFOP 5102 (venda). Acesse Impostos e configure antes de realizar vendas.");
+		}
 		NotaFiscal notaEmissao = new NotaFiscal((long) 0, 65, (long) 0, 5102, venda.getCliente(),
 				venda.getCliente().getCpfCnpj(), venda.getLoja(), 0.0, null, null, null, venda, LocalDateTime.now(),
 				StatusNotaFiscal.PENDENTE, verificaQtdItensNotaDeVenda(itens));
@@ -57,7 +66,8 @@ public class NotaFiscalService {
 
 	public NotaFiscalResponse emitirNotaAvulsa(NotaFiscalRequest notaItem) {
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
+		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepository.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
+				usuario.getLojaVinculada().getId());
 		validarRequest(notaItem, usuario);
 
 		boolean ehTransferencia = notaItem.getCfop().equals(5152) || notaItem.getCfop().equals(6152);
@@ -80,16 +90,17 @@ public class NotaFiscalService {
 
 	private void validarRequest(NotaFiscalRequest notaItem, UsuariosLoja usuario) {
 		if (notaItem.getCfop() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CFOP não pode ser nulo");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo CFOP é obrigatório para emissão de nota fiscal.");
 		}
 		if (notaItem.getSerieNfe() == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"A nota deve conter obrigatoriamente uma série NF-e");
+					"A série NF-e é obrigatória. Informe a série antes de prosseguir.");
 		}
 		if ((notaItem.getCfop().equals(5152) || notaItem.getCfop().equals(6152))
-				&& usuario.getPerfil() != PerfilVendedor.MATRIZ) {
+				&& usuario.getPerfil() != PerfilVendedor.MATRIZ
+				&& usuario.getPerfil() != PerfilVendedor.ADMIN) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-					"Apenas a matriz pode emitir nota com CFOP de transferência");
+					"Acesso negado. Somente a matriz ou administradores podem emitir notas com CFOP de transferência (5152/6152).");
 		}
 	}
 
@@ -132,14 +143,14 @@ public class NotaFiscalService {
 	private Loja buscarLojaDestino(Long idLoja) {
 		return this.loja.findById(idLoja)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-						"Loja de destino não encontrada"));
+						"Loja de destino não encontrada. Verifique se o ID informado está correto."));
 	}
 
 	private Clientes buscarCliente(String cpfCnpj) {
 		Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(cpfCnpj);
 		if (cliente == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-					"Cliente não encontrado, verifique o CPF/CNPJ informado");
+					"Cliente não encontrado para o CPF/CNPJ informado. Cadastre o cliente antes de emitir a nota.");
 		}
 		return cliente;
 	}

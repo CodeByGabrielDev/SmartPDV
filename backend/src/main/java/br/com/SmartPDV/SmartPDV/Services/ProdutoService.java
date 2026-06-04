@@ -45,16 +45,16 @@ public class ProdutoService {
         if (usuariosLoja.getPerfil() != PerfilVendedor.GERENTE && usuariosLoja.getPerfil() != PerfilVendedor.ADMIN
                 && usuariosLoja.getPerfil() != PerfilVendedor.MATRIZ) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    " Apenas usuario com perfil de gerente pode realizar o registro de novos produtos.");
+                    "Acesso negado. Somente gerentes, administradores ou matriz podem cadastrar produtos.");
         }
         validadorDeAtributos(produtoRequest);
         if (this.produtoRepository.selectByCodigoDeBarra(produtoRequest.getCodigoBarra()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    " Ja existe um produto com esse codigo de barras cadastrado no sistema.");
+                    "Já existe um produto cadastrado com o código de barras '" + produtoRequest.getCodigoBarra() + "'. Use um código diferente.");
         }
         if (this.produtoRepository.findBySku(produtoRequest.getSku()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    " Ja existe um produto com esse sku cadastrado no sistema.");
+                    "Já existe um produto cadastrado com o SKU '" + produtoRequest.getSku() + "'. Use um SKU diferente.");
         }
         this.produtoRepository.save(new Produto(produtoRequest.getDescricao(), produtoRequest.getCodigoBarra(),
                 produtoRequest.getSku(), produtoRequest.getPrecoVenda(), produtoRequest.getCusto(), false,
@@ -66,21 +66,21 @@ public class ProdutoService {
 
     private void validadorDeAtributos(ProdutoRequest produtoRequest) {
         if (produtoRequest.getCodigoBarra() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " Codigo de barra não pode estar nullo");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O código de barras é obrigatório para cadastrar um produto.");
         }
         if (produtoRequest.getCusto() == null || produtoRequest.getCusto() <= 0.0) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
-                    " Custo não pode estar nulo ou abaixo de valor 0");
+                    "O custo do produto deve ser informado e maior que zero.");
         }
         if (produtoRequest.getDescricao() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " Descricao não pode estar nullo");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "A descrição do produto é obrigatória.");
         }
         if (produtoRequest.getPrecoVenda() == null || produtoRequest.getPrecoVenda() <= 0.0) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
-                    "  preço de venda não pode estar nulo ou abaixo de valor 0");
+                    "O preço de venda deve ser informado e maior que zero.");
         }
         if (produtoRequest.getSku() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " Sku não pode estar nullo");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "O SKU é obrigatório para cadastrar um produto.");
         }
     }
 
@@ -92,14 +92,14 @@ public class ProdutoService {
         if (usuariosLoja.getPerfil() != PerfilVendedor.GERENTE && usuariosLoja.getPerfil() != PerfilVendedor.ADMIN
                 && usuariosLoja.getPerfil() != PerfilVendedor.MATRIZ) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    " Apenas usuario com perfil de gerente/admin/Matriz pode realizar a deleção de novos produtos.");
+                    "Acesso negado. Somente gerentes, administradores ou matriz podem inativar produtos.");
         }
         Produto produto = this.produtoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto com ID '" + id + "' não encontrado no sistema."));
 
         if (produto.getLoja().getId() != usuariosLoja.getLojaVinculada().getId()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    " não pode ser realizado a deleção de itens de outras lojas que voce não possui acesso");
+                    "Acesso negado. Você não pode inativar produtos de outras lojas.");
         }
 
         produto.setInativo(true);

@@ -12,4 +12,7 @@ import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 public interface ItemVendaRepository extends CrudRepository<ItemVenda, Long> {
     @Query("SELECT E FROM ItemVenda E WHERE E.venda.id =:idVenda AND E.loja.id = :idLoja")
     List<ItemVenda> selectByVendaAndCodigoFilial(Long idVenda, Long idLoja);
+
+    
+
 }

@@ -18,6 +18,7 @@ import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ExcecaoImpostoItemResponse;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.ExcecaoImpostoResponse;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImpostoItem;
+import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
@@ -37,13 +38,14 @@ public class ExcecaoImpostoService {
 	@Transactional
 	public ExcecaoImpostoResponse criarExcecaoImposto(ExcecaoImpostoRequest excecao) {
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (usuario.getPerfil().getCodigo() != 4) {
+		if (usuario.getPerfil() != PerfilVendedor.CONTABILIDADE
+				&& usuario.getPerfil() != PerfilVendedor.ADMIN) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-					"Nao autorizado, apenas a contabilidade pode efetuar criação da exceção de imposto");
+					"Acesso negado. Somente usuários de contabilidade ou administradores podem criar exceções de imposto.");
 		}
 
 		if (excecao.getNaturezao_operacao() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nao foi inserido todos os campos necessarios");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo 'Natureza da Operação' é obrigatório para criar uma exceção de imposto.");
 		}
 
 		ExcecaoImposto exceptionEntity = new ExcecaoImposto(LocalDateTime.now(), excecao.getNaturezao_operacao(),

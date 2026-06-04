@@ -23,10 +23,10 @@ public class FormaPagamentoService {
     @Transactional
     public void criarFormaDePagamento(String descricaoPagamento, FormaPagamento formaPagamento) {
         if (descricaoPagamento == null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, " descricao não pode estar nula");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A descrição da forma de pagamento é obrigatória.");
         }
         if (formaPagamento == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, " forma de pagamento nao pode estar null");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "A forma de pagamento não pode estar nula. Selecione uma opção válida.");
         }
 
         this.formaPgtoRepository.save(new FormaPgto(descricaoPagamento, formaPagamento));
@@ -36,7 +36,7 @@ public class FormaPagamentoService {
     public void deletarFormaPgto(Long idLong) {
         FormaPgto formaPgto = this.formaPgtoRepository.findById(idLong)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        " Nao foi encontrado forma de pagamento com esse ID no banco de dados"));
+                        "Forma de pagamento com ID '" + idLong + "' não foi encontrada no sistema."));
 
         this.formaPgtoRepository.delete(formaPgto);
     }

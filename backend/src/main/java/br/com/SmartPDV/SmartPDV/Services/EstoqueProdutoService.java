@@ -47,10 +47,10 @@ public class EstoqueProdutoService {
         EstoqueProduto estoqueProduto = this.estoqueProdutoRepository.selectByCodigoBarra(codigoBarraString,
                 usuariosLoja.getLojaVinculada().getId());
         if (estoqueProduto == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, " Produto nao encontrado no estoque");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto com código de barras '" + codigoBarraString + "' não foi encontrado no estoque desta loja");
         }
         if (estoqueProduto.getQtdAtual() < qtd) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Saldo do estoque insuficiente");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Estoque insuficiente para o produto '" + estoqueProduto.getProduto().getDescricao() + "'. Disponível: " + estoqueProduto.getQtdAtual() + ", solicitado: " + qtd);
         }
 
         estoqueProduto.setQtdAtual(estoqueProduto.getQtdAtual() - qtd);
