@@ -36,7 +36,7 @@ public class ClienteService {
         Clientes cliente = this.clienteRepository.selectByCpfOrCnpj(clienteRequest.getCpf_cnpj());
 
         if (cliente != null && cliente.getLoja().getId() == usuariosLoja.getLojaVinculada().getId()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um cliente cadastrado com o CPF/CNPJ '" + clienteRequest.getCpfCnpj() + "' nesta loja.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um cliente cadastrado com o CPF/CNPJ '" + clienteRequest.getCpf_cnpj() + "' nesta loja.");
         }
         if (this.clienteRepository.selectByEmail(clienteRequest.getEmail()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um cliente cadastrado com o email '" + clienteRequest.getEmail() + "'.");

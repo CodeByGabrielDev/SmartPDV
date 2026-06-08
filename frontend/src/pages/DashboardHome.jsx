@@ -25,7 +25,7 @@ function BarChart({ data, color = '#2563eb' }) {
         const x = i * (W / data.length) + 0.5;
         const y = H - barH;
         return (
-          <g key={i}>
+          <g key={`bar-${i}-${d.label}`}>
             <rect x={x} y={y} width={barW} height={barH} rx="1" fill="url(#barGrad)" />
           </g>
         );
@@ -179,7 +179,7 @@ export default function DashboardHome() {
               </div>
               <div className="dash-chart-labels">
                 {[0, 6, 12, 18, 23].map((h) => (
-                  <span key={h}>{h}h</span>
+                  <span key={`label-${h}`}>{h}h</span>
                 ))}
               </div>
             </div>

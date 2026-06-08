@@ -45,7 +45,7 @@ public class VendaService {
 	@Transactional
 	public VendaResponse realizarVenda(VendaItemRequest itens, String cpfOrCnpj) {
 		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		
+
 		if (usuarioLoja.getPerfil() != PerfilVendedor.GERENTE
 				&& usuarioLoja.getPerfil() != PerfilVendedor.FUNCIONARIO
 				&& usuarioLoja.getPerfil() != PerfilVendedor.ADMIN) {
@@ -57,25 +57,48 @@ public class VendaService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
 					"Nenhum caixa aberto encontrado. Abra o caixa antes de iniciar uma venda.");
 		}
-		Clientes cliente = findCustomer(cpfOrCnpj);
-		Venda venda = new Venda(null, caixa, cliente, LocalDateTime.now(), 0.0, usuarioLoja.getLojaVinculada(), 0.0,
-				usuarioLoja);
+		Venda venda = validaIfExisteClienteInformadoESalva(caixa, itens, cpfOrCnpj, usuarioLoja);
 		geraSequencialTicket(venda.getLoja().getId(), venda);
 		this.vendaRepository.save(venda);
 		this.vendaItem.insereItensVenda(itens, venda, caixa);
 		return montaDto(venda);
 	}
 
+	private Venda validaIfExisteClienteInformadoESalva(Caixa caixa, VendaItemRequest itens, String cpfOrCnpj,
+			UsuariosLoja usuariosLoja) {
+		Venda venda;
+		if (cpfOrCnpj == null) {
+			venda = new Venda(null, caixa, null, LocalDateTime.now(), 0.0, usuariosLoja.getLojaVinculada(), 0.0,
+					usuariosLoja);
+		} else {
+			Clientes cliente = findCustomer(cpfOrCnpj);
+			venda = new Venda(null, caixa, cliente, LocalDateTime.now(), 0.0, usuariosLoja.getLojaVinculada(), 0.0,
+					usuariosLoja);
+		}
+		return venda;
+	}
+
 	public List<VendaResponse> relatorioDeVendasPorDia(LocalDateTime diaInicial, LocalDateTime diaFinal) {
 		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
+
+		System.out.println("🔍 Buscando vendas - Período: " + diaInicial + " até " + diaFinal);
+		System.out.println("🏪 ID da Loja: " + usuariosLoja.getLojaVinculada().getId());
+
 		List<Venda> vendas = this.vendaRepository.selectVendaByDataFilter(diaInicial, diaFinal,
 				usuariosLoja.getLojaVinculada().getId());
-		System.out.println(vendas);
+
+		System.out.println("📊 Quantidade de vendas encontradas: " + vendas.size());
+		if (!vendas.isEmpty()) {
+			System.out.println(
+					"📅 Primeira venda: " + vendas.get(0).getDataHora() + " - Valor: " + vendas.get(0).getValorTotal());
+		}
+
 		List<VendaResponse> vendaResponses = new ArrayList<>();
 		for (Venda venda : vendas) {
 			VendaResponse vendaResponse = new VendaResponse(venda.getId(), venda.getTicket(), venda.getCaixa().getId(),
-					venda.getCliente().getCpfCnpj(), venda.getDataHora(), venda.getValorTotal(),
+					venda.getCliente() != null ? venda.getCliente().getCpfCnpj() : null,
+					venda.getDataHora(), venda.getValorTotal(),
 					venda.getLoja().getId(), venda.getDesconto(), venda.getUsuario().getNomeVendedor(), null);
 			for (Pagamento pagamento : venda.getPgto()) {
 				if (venda.getId().equals(pagamento.getVenda().getId())) {
@@ -83,7 +106,6 @@ public class VendaService {
 				}
 			}
 			vendaResponses.add(vendaResponse);
-
 		}
 		return vendaResponses;
 	}
@@ -112,7 +134,6 @@ public class VendaService {
 				venda.getValorTotal(), venda.getLoja().getId(), venda.getDesconto(),
 				venda.getUsuario().getNomeVendedor(), null);
 	}
-
 
 	@Transactional(readOnly = true)
 	public void cancelarVenda(Long idVenda) {

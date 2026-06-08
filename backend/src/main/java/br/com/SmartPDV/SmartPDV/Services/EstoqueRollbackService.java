@@ -13,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.Entities.EstoqueProduto;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
+import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
+import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
 import br.com.SmartPDV.SmartPDV.Entities.Venda;
 import br.com.SmartPDV.SmartPDV.Repository.EstoqueProdutoRepository;
 import br.com.SmartPDV.SmartPDV.Repository.VendaRepository;
@@ -42,20 +44,25 @@ public class EstoqueRollbackService {
 
         if (estoqueProdutos == null || estoqueProdutos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Nenhum item de estoque encontrado para reverter a venda #" + venda.getTicket() + ". Verifique se os produtos estão cadastrados no estoque desta loja.");
+                    "Nenhum item de estoque encontrado para reverter a venda #" + venda.getTicket()
+                            + ". Verifique se os produtos estão cadastrados no estoque desta loja.");
         }
 
         for (EstoqueProduto estoqueProduto : estoqueProdutos) {
             ItemVenda itemVenda = mapperItens.get(estoqueProduto.getCodigoBarra());
             if (itemVenda == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Produto '" + estoqueProduto.getCodigoBarra() + "' não localizado durante a reversão do estoque. Contate o suporte.");
+                        "Produto '" + estoqueProduto.getCodigoBarra()
+                                + "' não localizado durante a reversão do estoque. Contate o suporte.");
             }
             estoqueProduto.setQtdAtual(estoqueProduto.getQtdAtual() + itemVenda.getQtd());
         }
 
         this.estoqueProdutoRepository.saveAll(estoqueProdutos);
     }
+
+   
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deletarVenda(Venda venda) {
         this.vendaRepository.delete(venda);

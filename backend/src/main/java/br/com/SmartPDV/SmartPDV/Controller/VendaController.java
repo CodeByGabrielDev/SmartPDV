@@ -28,7 +28,8 @@ public class VendaController {
 	private final VendaService vendaService;
 
 	@PostMapping
-	public VendaResponse realizarVenda(@RequestBody VendaItemRequest itens, @RequestParam String cpfOrCnpj) {
+	public VendaResponse realizarVenda(@RequestBody VendaItemRequest itens,
+			@RequestParam(required = false) String cpfOrCnpj) {
 		return this.vendaService.realizarVenda(itens, cpfOrCnpj);
 	}
 

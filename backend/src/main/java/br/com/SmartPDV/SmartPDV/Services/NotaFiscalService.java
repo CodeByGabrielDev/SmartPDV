@@ -3,6 +3,7 @@ package br.com.SmartPDV.SmartPDV.Services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -13,12 +14,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalItemRequest;
 import br.com.SmartPDV.SmartPDV.DTOs.RequestDTOs.NotaFiscalRequest;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalImpostoResponse;
+import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalItemResponse;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
+import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalImpostoItem;
+import br.com.SmartPDV.SmartPDV.Entities.NotaFiscalItem;
 import br.com.SmartPDV.SmartPDV.Entities.Pagamento;
 import br.com.SmartPDV.SmartPDV.Entities.TransitoLoja;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
@@ -43,19 +48,20 @@ public class NotaFiscalService {
 	private final LojaRepository loja;
 	private final ClienteRepository clienteRepository;
 	private final PagamentoRepository pagamentoRepository;
-	private final ExcecaoImpostoRepository excecaoImpostoRepository;
-	private final EstoqueRollbackService estoqueRollbackService; // TODO: usar no endpoint desacoplado de cancelamento
+	private final ExcecaoImpostoRepository excecaoImpostoRepo;
 
 	@Transactional
 	public void emitirNotaDeVenda(Venda venda, List<ItemVenda> itens, Pagamento pagamento) {
-		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepository.findExcecaoByCodFilialAndCfop(5102,
+		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(5102,
 				venda.getLoja().getId());
 		if (excecaoImposto == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 					"Esta loja não possui exceção de imposto configurada para o CFOP 5102 (venda). Acesse Impostos e configure antes de realizar vendas.");
 		}
-		NotaFiscal notaEmissao = new NotaFiscal((long) 0, 65, (long) 0, 5102, venda.getCliente(),
-				venda.getCliente().getCpfCnpj(), venda.getLoja(), 0.0, null, null, null, venda, LocalDateTime.now(),
+		NotaFiscal notaEmissao = new NotaFiscal((long) 0, 65, (long) 0, 5102,
+				venda.getCliente(),
+				venda.getCliente() != null ? venda.getCliente().getCpfCnpj() : null,
+				venda.getLoja(), 0.0, null, null, null, venda, LocalDateTime.now(),
 				StatusNotaFiscal.PENDENTE, verificaQtdItensNotaDeVenda(itens));
 		geraNumeroFiscal(notaEmissao);
 		realizaCalculo(notaEmissao, itens);
@@ -66,8 +72,7 @@ public class NotaFiscalService {
 
 	public NotaFiscalResponse emitirNotaAvulsa(NotaFiscalRequest notaItem) {
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepository.findExcecaoByCodFilialAndCfop(notaItem.getCfop(),
-				usuario.getLojaVinculada().getId());
+
 		validarRequest(notaItem, usuario);
 
 		boolean ehTransferencia = notaItem.getCfop().equals(5152) || notaItem.getCfop().equals(6152);
@@ -76,6 +81,7 @@ public class NotaFiscalService {
 				? criarNotaDeTransferencia(notaItem, usuario)
 				: criarNotaComCliente(notaItem, usuario);
 
+		verificaExcecaoImposto(notaFiscal);
 		geraNumeroFiscal(notaFiscal);
 		this.notaFiscalRepo.save(notaFiscal);
 
@@ -90,7 +96,8 @@ public class NotaFiscalService {
 
 	private void validarRequest(NotaFiscalRequest notaItem, UsuariosLoja usuario) {
 		if (notaItem.getCfop() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo CFOP é obrigatório para emissão de nota fiscal.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"O campo CFOP é obrigatório para emissão de nota fiscal.");
 		}
 		if (notaItem.getSerieNfe() == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -102,6 +109,17 @@ public class NotaFiscalService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
 					"Acesso negado. Somente a matriz ou administradores podem emitir notas com CFOP de transferência (5152/6152).");
 		}
+	}
+
+	private ExcecaoImposto verificaExcecaoImposto(NotaFiscal notaEntity) {
+		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
+				notaEntity.getLoja().getId());
+		if (excecaoImposto == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"Esta loja não possui exceção de imposto configurada para o CFOP " + notaEntity.getCfop()
+							+ ". Acesse Impostos e configure antes de emitir notas.");
+		}
+		return excecaoImposto;
 	}
 
 	private NotaFiscal criarNotaDeTransferencia(NotaFiscalRequest notaItem, UsuariosLoja usuario) {
@@ -242,28 +260,68 @@ public class NotaFiscalService {
 		}
 	}
 
+	public void cancelarNotaFiscal() {
+
+	}
+
 	public List<NotaFiscalResponse> listarNotasEmitidasNaLoja() {
 		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
-		List<NotaFiscal> notasFiscais = this.notaFiscalRepo.findIssuedInvoices(usuariosLoja.getLojaVinculada().getId());
+		Long idLoja = usuariosLoja.getLojaVinculada().getId();
+
+		List<NotaFiscal> notasComItens = this.notaFiscalRepo.findIssuedInvoicesWithItens(idLoja);
+		List<NotaFiscal> notasComImpostos = this.notaFiscalRepo.findIssuedInvoicesWithImpostos(idLoja);
+
+		Map<Long, NotaFiscal> impostosMap = new java.util.HashMap<>();
+		for (NotaFiscal n : notasComImpostos) {
+			impostosMap.put(n.getId(), n);
+		}
+
 		List<NotaFiscalResponse> notasResponse = new ArrayList<>();
-		for (NotaFiscal notaFiscal : notasFiscais) {
-			if (notaFiscal.getVenda() != null) {
-				notasResponse.add(new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null,
-						notaFiscal.getCfop(),
-						notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
-						notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
-						notaFiscal.getValorLiquidoNota(), notaFiscal.getVenda().getTicket(),
-						notaFiscal.getDataEmissao(),
-						notaFiscal.getStatusNota()));
-			} else {
-				notasResponse.add(new NotaFiscalResponse(notaFiscal.getNfNumero(), notaFiscal.getSerieNf(), null,
-						notaFiscal.getCfop(),
-						notaFiscal.getCpfCliente(), notaFiscal.getLoja().getRazaoSocial(), notaFiscal.getDesconto(),
-						notaFiscal.getValorTotalDeImpostoAPagar(), notaFiscal.getValorBrutoNota(),
-						notaFiscal.getValorLiquidoNota(), null, notaFiscal.getDataEmissao(),
-						notaFiscal.getStatusNota()));
+		for (NotaFiscal notaFiscal : notasComItens) {
+			NotaFiscalResponse response = new NotaFiscalResponse(
+					notaFiscal.getNfNumero(),
+					notaFiscal.getSerieNf(),
+					null,
+					notaFiscal.getCfop(),
+					notaFiscal.getCpfCliente(),
+					notaFiscal.getLoja().getRazaoSocial(),
+					notaFiscal.getDesconto(),
+					notaFiscal.getValorTotalDeImpostoAPagar(),
+					notaFiscal.getValorBrutoNota(),
+					notaFiscal.getValorLiquidoNota(),
+					notaFiscal.getVenda() != null ? notaFiscal.getVenda().getTicket() : null,
+					notaFiscal.getDataEmissao(),
+					notaFiscal.getStatusNota());
+
+			List<NotaFiscalItemResponse> itensResponse = new ArrayList<>();
+			for (NotaFiscalItem item : notaFiscal.getItensFiscais()) {
+				itensResponse.add(new NotaFiscalItemResponse(
+						item.getNumeroItem(),
+						item.getProduto() != null ? item.getProduto().getDescricao() : "—",
+						item.getProduto() != null ? item.getProduto().getCodigoBarra() : "—",
+						item.getQuantidadeItens(),
+						item.getValorBrutoItem(),
+						item.getValorLiquidoItem(),
+						item.getDesconto()));
 			}
+			response.setItens(itensResponse);
+
+			List<NotaFiscalImpostoResponse> impostosResponse = new ArrayList<>();
+			NotaFiscal notaComImposto = impostosMap.get(notaFiscal.getId());
+			if (notaComImposto != null) {
+				for (NotaFiscalImpostoItem imposto : notaComImposto.getNumero()) {
+					impostosResponse.add(new NotaFiscalImpostoResponse(
+							imposto.getTipo() != null ? imposto.getTipo().name() : "—",
+							imposto.getBaseCalculo(),
+							imposto.getAliquotaAplicada(),
+							imposto.getReducaoBaseAplicada(),
+							imposto.getValorImpostoCalculado()));
+				}
+			}
+			response.setImpostos(impostosResponse);
+
+			notasResponse.add(response);
 		}
 		return notasResponse;
 	}

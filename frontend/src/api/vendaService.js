@@ -2,10 +2,10 @@ import api from './axios';
 
 export const vendaService = {
   realizarVenda: async (itens, cpfOrCnpj) => {
-    const response = await api.post(
-      `/api-smartpdv/point-of-sale?cpfOrCnpj=${cpfOrCnpj}`,
-      itens
-    );
+    const url = cpfOrCnpj
+      ? `/api-smartpdv/point-of-sale?cpfOrCnpj=${cpfOrCnpj}`
+      : `/api-smartpdv/point-of-sale`;
+    const response = await api.post(url, itens);
     return response.data;
   },
 

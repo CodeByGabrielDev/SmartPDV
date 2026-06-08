@@ -77,12 +77,8 @@ public class NotaFiscalItemService {
 		Double valorTotalDesconto = 0.0;
 		Double calculaTotalBrutoNota = 0.0;
 		Double calculaTotalLiquidoNota = 0.0;
-		ExcecaoImposto exception;
-		if (notaEntity.getCfop() == 5152 || notaEntity.getCfop() == 6152) {
-			exception = verificaSeExisteexcecaoDeImpostoNaLojaTransferida(notaEntity);
-		} else {
-			exception = verificaExcecaoImposto(notaEntity);
-		}
+		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
+				usuariosLoja.getLojaVinculada().getId());
 
 		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
 			Produto prodFind;
@@ -94,7 +90,8 @@ public class NotaFiscalItemService {
 			}
 			if (prodFind == null) {
 				throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-						"Produto com código de barras '" + nota.getCodigo_barra() + "' não encontrado ou sem saldo suficiente no estoque.");
+						"Produto com código de barras '" + nota.getCodigo_barra()
+								+ "' não encontrado ou sem saldo suficiente no estoque.");
 			}
 
 			calculaTotalBrutoNota += (prodFind.getPrecoVenda() * nota.getQuantidade_Itens());
@@ -116,26 +113,6 @@ public class NotaFiscalItemService {
 
 	}
 
-	private ExcecaoImposto verificaSeExisteexcecaoDeImpostoNaLojaTransferida(NotaFiscal notaEntity) {
-		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
-				notaEntity.getLojaDestino().getId());
-		if (excecaoImposto == null) {
-			this.notaFiscalRepo.delete(notaEntity);
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-					"A loja destino '" + notaEntity.getLojaDestino().getRazaoSocial() + "' não possui exceção de imposto configurada para o CFOP " + notaEntity.getCfop() + ". Configure em Impostos na loja de destino antes de emitir a transferência.");
-		}
-		return excecaoImposto;
-	}
-
-	private ExcecaoImposto verificaExcecaoImposto(NotaFiscal notaEntity) {
-		ExcecaoImposto excecaoImposto = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
-				notaEntity.getLoja().getId());
-		if (excecaoImposto == null) {
-			this.notaFiscalRepo.delete(notaEntity);
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-					"Esta loja não possui exceção de imposto configurada para o CFOP " + notaEntity.getCfop() + ". Acesse Impostos e configure antes de emitir notas.");
-		}
-		return excecaoImposto;
-	}
+	
 
 }

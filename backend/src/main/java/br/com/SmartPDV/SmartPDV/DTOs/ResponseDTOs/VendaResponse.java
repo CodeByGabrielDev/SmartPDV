@@ -2,15 +2,8 @@ package br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs;
 
 import java.time.LocalDateTime;
 
-import br.com.SmartPDV.SmartPDV.Entities.Caixa;
-import br.com.SmartPDV.SmartPDV.Entities.Clientes;
-import br.com.SmartPDV.SmartPDV.Entities.Loja;
-import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,15 +15,31 @@ import lombok.Setter;
 @AllArgsConstructor
 public class VendaResponse {
 
+	@JsonProperty("id")
 	private Long id_banco;
 
 	private Long ticket;
+	
+	@JsonProperty("idCaixa")
 	private Long id_caixa;
+	
+	@JsonProperty("cpfCliente")
 	private String cpf_cliente;
+	
+	@JsonProperty("dataHora")
 	private LocalDateTime data_hora_venda;
+	
+	@JsonProperty("valorTotal")
 	private Double valor_total;
+	
+	@JsonProperty("idLoja")
 	private Long id_loja;
+	
 	private Double desconto;
+	
+	@JsonProperty("nomeVendedor")
 	private String nome_funcionario;
+	
+	@JsonProperty("numeroFiscal")
 	private Long numero_fiscal;
 }

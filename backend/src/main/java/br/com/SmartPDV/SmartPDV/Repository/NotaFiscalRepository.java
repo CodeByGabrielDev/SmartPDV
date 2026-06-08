@@ -19,7 +19,10 @@ public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, Long> {
             @Param("serieNfe") Integer serieNfe,
             Pageable pageable);
 
-    @Query("SELECT E FROM NotaFiscal E WHERE E.loja.id = :idLoja")
-    List<NotaFiscal> findIssuedInvoices(@Param("idLoja") Long idLoja);
+    @Query("SELECT DISTINCT E FROM NotaFiscal E LEFT JOIN FETCH E.itensFiscais WHERE E.loja.id = :idLoja")
+    List<NotaFiscal> findIssuedInvoicesWithItens(@Param("idLoja") Long idLoja);
+
+    @Query("SELECT DISTINCT E FROM NotaFiscal E LEFT JOIN FETCH E.numero WHERE E.loja.id = :idLoja")
+    List<NotaFiscal> findIssuedInvoicesWithImpostos(@Param("idLoja") Long idLoja);
 
 }

@@ -105,10 +105,6 @@ export default function Venda() {
       showAlert('Adicione pelo menos um item', 'error');
       return;
     }
-    if (!cpfCnpj.trim()) {
-      showAlert('Informe o CPF ou CNPJ do cliente', 'error');
-      return;
-    }
 
     setCarregando(true);
     try {
@@ -119,10 +115,12 @@ export default function Venda() {
           desconto: i.desconto || 0,
         })),
       };
-      // Remove pontuações do CPF/CNPJ antes de enviar (ex: 000.000.000-00 → 00000000000)
-      const cpfCnpjLimpo = cpfCnpj.replace(/[.\-\/]/g, '').trim();
+      // Remove pontuações do CPF/CNPJ antes de enviar. Se vazio, envia null (venda sem cliente)
+      const cpfCnpjLimpo = cpfCnpj.trim()
+        ? cpfCnpj.replace(/[.\-\/]/g, '').trim()
+        : null;
       const response = await vendaService.realizarVenda(vendaRequest, cpfCnpjLimpo);
-      const idVenda = response?.id_banco || response?.ticket || response?.idVenda;
+      const idVenda = response?.id || response?.id_banco || response?.idVenda;
       if (!idVenda) throw new Error('Resposta da venda sem ID. Contate o suporte.');
       navigate(`/dashboard/pagamento?idVenda=${idVenda}`);
     } catch (error) {
@@ -201,18 +199,20 @@ export default function Venda() {
           <div className="pdv-section">
             <div className="pdv-section-label">
               <span className="pdv-section-icon">👤</span>
-              Identificação do Cliente
+              Identificação do Cliente <span style={{ fontWeight: 400, fontSize: '0.75rem', opacity: 0.6 }}>(opcional)</span>
             </div>
             <input
               type="text"
               value={cpfCnpj}
               onChange={(e) => setCpfCnpj(e.target.value)}
-              placeholder="000.000.000-00 ou 00.000.000/0001-00"
+              placeholder="CPF ou CNPJ — deixe vazio para venda sem cliente"
               className={`pdv-cliente-input${cpfCnpj ? ' filled' : ''}`}
               maxLength={18}
             />
-            {cpfCnpj && (
+            {cpfCnpj ? (
               <p className="pdv-cliente-ok">✅ Cliente identificado</p>
+            ) : (
+              <p className="pdv-hint" style={{ marginTop: '0.35rem' }}>Venda sem vínculo de cliente</p>
             )}
           </div>
 
@@ -235,7 +235,7 @@ export default function Venda() {
           <button
             className="pdv-btn-finalizar"
             onClick={finalizarVenda}
-            disabled={carregando || !todosValidados || !cpfCnpj.trim()}
+            disabled={carregando || !todosValidados}
           >
             {carregando ? (
               <span className="pdv-btn-loading">⏳ Processando...</span>
