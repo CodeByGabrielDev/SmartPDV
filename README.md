@@ -1,119 +1,162 @@
-# 🛒 SmartPDV — Sistema de Ponto de Venda
+# 🛒 SmartPDV
 
-Sistema de **Ponto de Venda (PDV)** completo, desenvolvido com **Java + Spring Boot** no backend e **React** no frontend, simulando cenários reais de operação de PDV corporativo com módulo fiscal integrado.
-
----
-
-## 🧱 Tecnologias
-
-| Camada    | Tecnologia                              |
-|-----------|-----------------------------------------|
-| Backend   | Java 17, Spring Boot 3.x, Spring Security, JWT |
-| Banco     | Oracle Database, JPA / Hibernate, PL/SQL |
-| Build     | Maven, Lombok                           |
-| Frontend  | React 19, React Router 7, Vite          |
+Sistema de Ponto de Venda (PDV) completo com módulo fiscal, controle de estoque, gestão de caixa e dashboard em tempo real.
 
 ---
 
-## ✅ Funcionalidades
+## 🧱 Stack
 
-- Autenticação **stateless com JWT**
-- **Módulo Fiscal Completo** — NF-e, impostos (ICMS, PIS, COFINS, IPI, IBS, CBS), CFOP
-- **Controle de Estoque** entre lojas com transferência via nota fiscal
-- **Gestão de Caixa** — abertura, fechamento e auditoria
-- **Segurança por filial** — cada usuário opera apenas na sua loja vinculada
-- **Gestão de Clientes** e Produtos
-- **Frontend React** com tema claro/escuro
-
----
-
-## 🏗️ Arquitetura Backend
-
-```
-src/main/java/br/com/SmartPDV/SmartPDV/
-├── Config/          # Segurança, JWT, filtros
-├── Controller/      # Endpoints REST
-├── Service/         # Regras de negócio
-├── Entity/          # Modelos de domínio
-├── Repository/      # Acesso a dados
-├── DTOs/            # Request e Response DTOs
-├── Enum/            # Enumeradores (TipoImposto, PerfilVendedor...)
-├── Exceptions/      # GlobalExceptionHandler
-└── Utils/           # Validadores
-```
+| Camada | Tecnologia |
+|---|---|
+| Backend | Java 21 + Spring Boot 3 |
+| Frontend | React + Vite |
+| Banco de dados | MySQL |
+| ORM | Hibernate / Spring Data JPA |
+| Autenticação | JWT |
+| Integração externa | ViaCEP API |
 
 ---
 
-## 🔐 Segurança
+## 📦 Módulos
 
-Autenticação via JWT com Spring Security:
+### 🏪 PDV / Venda
+- Registro de venda com leitura de código de barras
+- Validação de estoque em tempo real antes de adicionar o item
+- Venda com ou sem vínculo de cliente (CPF/CNPJ opcional)
+- Desconto por item (%)
+- Cancelamento de venda com estorno automático de estoque
 
-1. Usuário faz login → servidor gera token JWT
-2. Token enviado no header: `Authorization: Bearer <token>`
-3. `JwtAuthenticationFilter` valida e popula o `SecurityContext`
-4. Cada usuário é vinculado a uma loja — operações são isoladas por filial
+### 💳 Pagamento
+- Seleção de forma de pagamento (PIX, débito, crédito, dinheiro, etc.)
+- Parcelamento em até 12x para cartão de crédito
+- Emissão automática de NF-e ao confirmar pagamento
+
+### 🧾 Nota Fiscal
+- Emissão automática vinculada à venda
+- Emissão avulsa (CFOP 5101, 5102, 6101, 6102)
+- Transferência entre lojas (CFOP 5152 / 6152) com registro de trânsito
+- Visualização detalhada: resumo, itens e grupos de imposto (ICMS, PIS, COFINS, IPI, IBS, CBS)
+- Status: PENDENTE, AUTORIZADA, CANCELADA, RECUSADA
+- Cálculo de imposto com redução de base de cálculo
+
+### 💵 Caixa
+- Abertura e fechamento de caixa por loja
+- Cronômetro de tempo de caixa aberto
+- Resumo de movimentação ao fechar
+- Sincronização automática com o backend (evita estado fantasma no frontend)
+
+### 📦 Estoque
+- Controle de saldo por produto e por loja
+- Validação de disponibilidade no momento da venda
+- Estorno de estoque em cancelamentos
+
+### 🚛 Entrada de Mercadoria
+- Recebimento de notas em trânsito
+- Alimentação automática do estoque ao confirmar entrada
+
+### 👥 Clientes
+- Cadastro com integração ViaCEP (preenchimento automático de endereço)
+- Edição de cadastro
+- Listagem por loja
+
+### 🏷️ Produtos
+- Cadastro por código de barras e SKU
+- Precificação (custo e preço de venda)
+- Inativação de produtos
+
+### 🏦 Impostos (Exceção de Imposto)
+- Configuração de alíquotas por CFOP e por loja
+- Suporte a redução de base de cálculo
+- Obrigatório para emissão de NF-e
+
+### 👤 Usuários e Perfis
+- Registro de funcionários vinculados à loja
+- Perfis: `FUNCIONARIO`, `GERENTE`, `ADMIN`, `MATRIZ`, `CONTABILIDADE`
+- Reset de senha com validação de senha atual
+- Controle de acesso por perfil em cada endpoint
+
+### 📊 Dashboard
+- Faturamento do dia em tempo real
+- Ticket médio e total de descontos
+- Gráfico de faturamento por hora (barras SVG)
+- Últimas 5 vendas do dia
+- Notas fiscais emitidas
+- Entradas de mercadoria pendentes
 
 ---
 
-## 🧾 Módulo Fiscal
+## 🗂️ Estrutura do Projeto
 
-Impostos suportados: **ICMS, PIS, COFINS, IPI, IBS, CBS**
+SmartPDV/ ├── backend/ # Spring Boot API REST │ └── src/main/java/ │ ├── Controller/ # Endpoints REST │ ├── Services/ # Regras de negócio │ ├── Repository/ # Queries JPA │ ├── Entities/ # Entidades JPA │ ├── DTOs/ # Request e Response DTOs │ ├── Enum/ # Enums do sistema │ ├── Config/ # JWT, CORS, Security │ └── Utils/ # Validadores └── frontend/ # React + Vite SPA └── src/ ├── pages/ # Páginas da aplicação ├── api/ # Services de chamada à API └── components/ # Componentes reutilizáveis
 
-Calcula automaticamente base de cálculo, alíquotas e totais por item da nota fiscal. Suporta exceções fiscais por filial e CFOP de transferência entre lojas (5152 / 6152).
-
----
-
-## 📦 Transferência de Estoque entre Lojas
-
-```
-MATRIZ → Emite NF (CFOP 5152) → FILIAL recebe → Entrada de Mercadoria → Estoque atualizado
-```
 
 ---
 
-## 📡 Endpoints principais
+## 🔐 Autenticação
 
-```
-POST   /api-smartpdv/v1/auth/login
-POST   /api-smartpdv/v1/auth/register
-POST   /api-smartpdv/v1/cashiers/open
-PUT    /api-smartpdv/v1/cashiers/{id}/close
-POST   /api-smartpdv/v1/invoice
-GET    /api-smartpdv/goods-receipt
-PUT    /api-smartpdv/goods-receipt/{id}
-```
+A API usa **JWT Bearer Token**. Todas as rotas (exceto login e registro) requerem o header:
+
+Authorization: Bearer <token>
+
 
 ---
 
-## 🚀 Como executar
+## 🚀 Como rodar localmente
+
+### Pré-requisitos
+- Java 21+
+- Node.js 18+
+- MySQL 8+
 
 ### Backend
 
-**Pré-requisitos:** Java 17+, Maven 3.8+, Oracle Database
-
-Configure `src/main/resources/application.properties`:
-
-```properties
-spring.datasource.url=jdbc:oracle:thin:@localhost:1521:ORCL
-spring.datasource.username=SEU_USUARIO
-spring.datasource.password=SUA_SENHA
-```
-
 ```bash
-./mvnw clean install
+cd backend
+
+# Configure o banco no application.properties
+# spring.datasource.url=jdbc:mysql://localhost:3306/smartpdv
+# spring.datasource.username=seu_usuario
+# spring.datasource.password=sua_senha
+
+# Rode o projeto
 ./mvnw spring-boot:run
-```
+A API sobe em http://localhost:8080
 
-### Frontend
-
-```bash
+Frontend
 cd frontend
 npm install
 npm run dev
-```
+O frontend sobe em http://localhost:5173
 
----
-
-## 👨‍💻 Autor
-
-**Gabriel Lima de Oliveira** — Desenvolvedor Java Backend
+📡 Principais Endpoints
+Método	Rota	Descrição
+POST	/api-smartpdv/auth/login	Login e geração de token JWT
+POST	/api-smartpdv/point-of-sale	Registrar venda
+DELETE	/api-smartpdv/point-of-sale/cancelar/{id}	Cancelar venda
+GET	/api-smartpdv/point-of-sale/sales-report	Relatório de vendas por período
+POST	/api-smartpdv/v1/cashiers/open	Abrir caixa
+PUT	/api-smartpdv/v1/cashiers/{id}/close	Fechar caixa
+GET	/api-smartpdv/v1/cashiers/status	Buscar caixa aberto
+POST	/api-smartpdv/v1/invoice	Emitir nota fiscal avulsa
+GET	/api-smartpdv/v1/invoice	Listar notas fiscais da loja
+POST	/api-smartpdv/v1/payment	Inserir pagamento
+GET	/api-smartpdv/stock/	Listar estoque da loja
+GET	/api-smartpdv/goods-receipt/	Listar notas em trânsito
+POST	/api-smartpdv/goods-receipt/{id}	Confirmar entrada de mercadoria
+🔒 Controle de Acesso por Perfil
+Ação	Perfis permitidos
+Registrar venda	FUNCIONARIO, GERENTE, ADMIN
+Cadastrar produto	GERENTE, ADMIN, MATRIZ
+Inativar produto	GERENTE, ADMIN, MATRIZ
+Criar exceção de imposto	CONTABILIDADE, ADMIN
+Emitir NF-e de transferência	MATRIZ, ADMIN
+Cancelar venda (estorno)	Todos autenticados
+🧠 Regras de Negócio Relevantes
+Não é possível realizar venda sem um caixa aberto na loja
+Todo pagamento gera automaticamente uma NF-e de venda (CFOP 5102)
+A NF-e só é emitida se a loja tiver uma exceção de imposto configurada para o CFOP correspondente
+Transferências entre lojas (5152/6152) criam um registro de trânsito que precisa ser confirmado pela loja destino para alimentar o estoque
+O estoque é debitado no momento da venda e estornado em caso de cancelamento
+Vendas podem ser realizadas sem vínculo de cliente (venda anônima)
+📄 Licença
+Desenvolvido por Gabriel Lima — SmartPDV © 2026
