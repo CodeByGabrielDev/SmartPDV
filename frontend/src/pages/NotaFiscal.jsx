@@ -29,6 +29,10 @@ export default function NotaFiscal() {
   const [modalAberto, setModalAberto]   = useState(false);
   const [etapa, setEtapa]               = useState(1); // 1 = dados, 2 = itens
 
+  // Modal de detalhes
+  const [notaDetalhes, setNotaDetalhes] = useState(null);
+  const [abaDetalhes, setAbaDetalhes]   = useState('resumo');
+
   // Formulário
   const [form, setForm]                 = useState(FORM_INICIAL);
   const [itemForm, setItemForm]         = useState(ITEM_INICIAL);
@@ -202,12 +206,16 @@ export default function NotaFiscal() {
               <div className="nf-cards-grid">
                 {notas.map((nota, idx) => {
                   const status = nota.status_Nota?.toLowerCase() || 'pendente';
+                  const cfopLabel = CFOPS_COMUNS.find(c => c.value === nota.cfop)?.label?.split('—')[1]?.trim() || `CFOP ${nota.cfop}`;
                   return (
-                    <div key={idx} className="nf-card">
+                    <div key={idx} className="nf-card" onClick={() => setNotaDetalhes(nota)}>
+                      {/* Stripe de cor por status */}
+                      <div className={`nf-card-stripe nf-stripe-${status}`} />
+
                       <div className="nf-card-top">
                         <div className="nf-card-num">
-                          <span className="nf-card-label">NF-e</span>
-                          <strong>#{nota.nf_numero}</strong>
+                          <span className="nf-card-nfe-label">NF-e</span>
+                          <strong className="nf-card-nfe-num">#{nota.nf_numero}</strong>
                           <span className="nf-card-serie">Série {nota.serieNf}</span>
                         </div>
                         <span className={`nf-status-badge nf-status-${status}`}>
@@ -217,8 +225,8 @@ export default function NotaFiscal() {
 
                       <div className="nf-card-body">
                         <div className="nf-card-row">
-                          <span className="nf-card-label">CFOP</span>
-                          <span className="nf-card-val nf-mono">{nota.cfop}</span>
+                          <span className="nf-card-label">Operação</span>
+                          <span className="nf-card-val nf-mono">{nota.cfop} — {cfopLabel}</span>
                         </div>
                         <div className="nf-card-row">
                           <span className="nf-card-label">Destinatário</span>
@@ -228,7 +236,7 @@ export default function NotaFiscal() {
                           <span className="nf-card-label">Emissão</span>
                           <span className="nf-card-val">
                             {nota.data_Emissao
-                              ? new Date(nota.data_Emissao).toLocaleDateString('pt-BR')
+                              ? new Date(nota.data_Emissao).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
                               : '—'}
                           </span>
                         </div>
@@ -241,12 +249,17 @@ export default function NotaFiscal() {
                         </div>
                         <div className="nf-card-valor-item">
                           <span className="nf-card-label">Impostos</span>
-                          <span>{fmt(nota.valor_Total_De_Imposto_A_Pagar)}</span>
+                          <span className="nf-imposto-val">{fmt(nota.valor_Total_De_Imposto_A_Pagar)}</span>
                         </div>
                         <div className="nf-card-valor-item nf-card-valor-destaque">
                           <span className="nf-card-label">Líquido</span>
                           <strong>{fmt(nota.valor_Liquido_Nota)}</strong>
                         </div>
+                      </div>
+
+                      <div className="nf-card-footer">
+                        <span className="nf-card-hint">Clique para ver detalhes</span>
+                        <span className="nf-card-arrow">→</span>
                       </div>
                     </div>
                   );
@@ -257,6 +270,199 @@ export default function NotaFiscal() {
         )}
 
       </div>
+
+      {/* ══════════════════════════════════════
+          MODAL DE DETALHES DA NOTA
+      ══════════════════════════════════════ */}
+      {notaDetalhes && createPortal(
+        <div className="nf-modal-overlay" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>
+          <div className="nf-modal nf-modal-detalhes" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="nf-det-header">
+              <div className="nf-det-header-left">
+                <div className="nf-det-doc-icon">🧾</div>
+                <div>
+                  <div className="nf-det-title-row">
+                    <h2 className="nf-det-title">NF-e <span className="nf-mono">#{notaDetalhes.nf_numero}</span></h2>
+                    <span className={`nf-status-badge nf-status-${notaDetalhes.status_Nota?.toLowerCase() || 'pendente'}`}>
+                      {notaDetalhes.status_Nota || 'PENDENTE'}
+                    </span>
+                  </div>
+                  <p className="nf-det-subtitle">
+                    Série {notaDetalhes.serieNf} &nbsp;·&nbsp;
+                    CFOP {notaDetalhes.cfop} &nbsp;·&nbsp;
+                    {notaDetalhes.data_Emissao
+                      ? new Date(notaDetalhes.data_Emissao).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                      : '—'}
+                  </p>
+                </div>
+              </div>
+              <button className="nf-modal-close" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>✕</button>
+            </div>
+
+            {/* Abas */}
+            <div className="nf-det-tabs">
+              <button className={`nf-det-tab ${abaDetalhes === 'resumo' ? 'active' : ''}`} onClick={() => setAbaDetalhes('resumo')}>
+                📋 Resumo
+              </button>
+              <button className={`nf-det-tab ${abaDetalhes === 'itens' ? 'active' : ''}`} onClick={() => setAbaDetalhes('itens')}>
+                📦 Itens {notaDetalhes.itens?.length > 0 && <span className="nf-det-tab-badge">{notaDetalhes.itens.length}</span>}
+              </button>
+              <button className={`nf-det-tab ${abaDetalhes === 'impostos' ? 'active' : ''}`} onClick={() => setAbaDetalhes('impostos')}>
+                📊 Impostos {notaDetalhes.impostos?.length > 0 && <span className="nf-det-tab-badge">{notaDetalhes.impostos.length}</span>}
+              </button>
+            </div>
+
+            <div className="nf-modal-body nf-det-body">
+
+              {/* ── ABA RESUMO ── */}
+              {abaDetalhes === 'resumo' && (
+                <>
+                  <div className="nf-det-metrics">
+                    <div className="nf-det-metric">
+                      <span className="nf-det-metric-icon">💵</span>
+                      <div>
+                        <span className="nf-det-metric-label">Valor Bruto</span>
+                        <strong className="nf-det-metric-val">{fmt(notaDetalhes.valor_Bruto_Nota)}</strong>
+                      </div>
+                    </div>
+                    <div className="nf-det-metric nf-det-metric-imposto">
+                      <span className="nf-det-metric-icon">📊</span>
+                      <div>
+                        <span className="nf-det-metric-label">Impostos</span>
+                        <strong className="nf-det-metric-val">{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong>
+                      </div>
+                    </div>
+                    <div className="nf-det-metric nf-det-metric-liquido">
+                      <span className="nf-det-metric-icon">✅</span>
+                      <div>
+                        <span className="nf-det-metric-label">Valor Líquido</span>
+                        <strong className="nf-det-metric-val nf-det-liquido-val">{fmt(notaDetalhes.valor_Liquido_Nota)}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="nf-det-info-grid">
+                    <div className="nf-det-info-card">
+                      <p className="nf-det-section-title">📋 Identificação</p>
+                      <div className="nf-det-info-rows">
+                        <div className="nf-det-info-row"><span>Número</span><strong className="nf-mono">#{notaDetalhes.nf_numero}</strong></div>
+                        <div className="nf-det-info-row"><span>Série</span><strong>{notaDetalhes.serieNf}</strong></div>
+                        <div className="nf-det-info-row"><span>CFOP</span><strong className="nf-mono">{notaDetalhes.cfop}</strong></div>
+                        {notaDetalhes.ticket_venda && <div className="nf-det-info-row"><span>Ticket Venda</span><strong className="nf-det-ticket">#{notaDetalhes.ticket_venda}</strong></div>}
+                        <div className="nf-det-info-row"><span>Emitente</span><strong>{notaDetalhes.loja || '—'}</strong></div>
+                      </div>
+                    </div>
+                    <div className="nf-det-info-card">
+                      <p className="nf-det-section-title">👤 Destinatário</p>
+                      <div className="nf-det-info-rows">
+                        <div className="nf-det-info-row"><span>CPF / CNPJ</span><strong className="nf-mono">{notaDetalhes.cpf_Cliente || '—'}</strong></div>
+                      </div>
+                      <p className="nf-det-section-title" style={{ marginTop: '1rem' }}>💰 Breakdown</p>
+                      <div className="nf-det-info-rows">
+                        <div className="nf-det-info-row"><span>Bruto</span><strong>{fmt(notaDetalhes.valor_Bruto_Nota)}</strong></div>
+                        <div className="nf-det-info-row nf-det-row-desconto"><span>Desconto</span><strong>− {fmt(notaDetalhes.desconto)}</strong></div>
+                        <div className="nf-det-info-row nf-det-row-imposto"><span>Impostos</span><strong>{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong></div>
+                        <div className="nf-det-info-row nf-det-row-liquido"><span>Líquido</span><strong>{fmt(notaDetalhes.valor_Liquido_Nota)}</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* ── ABA ITENS ── */}
+              {abaDetalhes === 'itens' && (
+                <div className="nf-det-itens">
+                  {!notaDetalhes.itens || notaDetalhes.itens.length === 0 ? (
+                    <div className="nf-det-empty"><span>📦</span><p>Nenhum item disponível</p></div>
+                  ) : (
+                    <div className="nf-det-itens-table">
+                      <div className="nf-det-itens-header">
+                        <span>#</span>
+                        <span>Produto</span>
+                        <span>Qtd</span>
+                        <span>Bruto</span>
+                        <span>Desc</span>
+                        <span>Líquido</span>
+                      </div>
+                      {notaDetalhes.itens.map((item, i) => (
+                        <div key={i} className="nf-det-itens-row">
+                          <span className="nf-det-item-num">{item.numeroItem}</span>
+                          <div className="nf-det-item-prod">
+                            <strong>{item.descricaoProduto}</strong>
+                            <span className="nf-mono">{item.codigoBarra}</span>
+                          </div>
+                          <span>{item.quantidade}x</span>
+                          <span>{fmt(item.valorBrutoItem)}</span>
+                          <span className="nf-det-row-desconto-val">{item.desconto > 0 ? `− ${fmt(item.desconto)}` : '—'}</span>
+                          <strong className="nf-det-item-liq">{fmt(item.valorLiquidoItem)}</strong>
+                        </div>
+                      ))}
+                      <div className="nf-det-itens-total">
+                        <span>Total</span>
+                        <strong>{fmt(notaDetalhes.valor_Liquido_Nota)}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── ABA IMPOSTOS ── */}
+              {abaDetalhes === 'impostos' && (
+                <div className="nf-det-impostos">
+                  {!notaDetalhes.impostos || notaDetalhes.impostos.length === 0 ? (
+                    <div className="nf-det-empty"><span>📊</span><p>Nenhum imposto registrado</p></div>
+                  ) : (
+                    <>
+                      <div className="nf-det-impostos-grid">
+                        {notaDetalhes.impostos.map((imp, i) => (
+                          <div key={i} className="nf-det-imposto-card">
+                            <div className="nf-det-imposto-tipo">{imp.tipoImposto}</div>
+                            <div className="nf-det-imposto-rows">
+                              <div className="nf-det-imposto-row">
+                                <span>Base de Cálculo</span>
+                                <strong>{fmt(imp.baseCalculo)}</strong>
+                              </div>
+                              {imp.reducaoBase > 0 && (
+                                <div className="nf-det-imposto-row">
+                                  <span>Redução Base</span>
+                                  <strong className="nf-det-row-desconto-val">{imp.reducaoBase}%</strong>
+                                </div>
+                              )}
+                              <div className="nf-det-imposto-row">
+                                <span>Alíquota</span>
+                                <strong>{imp.aliquota}%</strong>
+                              </div>
+                              <div className="nf-det-imposto-row nf-det-imposto-valor">
+                                <span>Valor</span>
+                                <strong>{fmt(imp.valorCalculado)}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="nf-det-impostos-total">
+                        <span>Total de Impostos</span>
+                        <strong>{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            <div className="nf-modal-footer">
+              <button className="nf-btn-cancel" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>
+                Fechar
+              </button>
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* ══════════════════════════════════════
           MODAL DE EMISSÃO

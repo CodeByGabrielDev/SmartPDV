@@ -22,11 +22,20 @@ public class CaixaService {
 
 	@Transactional
 	public CaixaAberturaResponse realizarAberturaCaixa() {
-
 		UsuariosLoja usuarioSession = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
 		return ValidaSalvaNoBancoRetornaDto(usuarioSession);
+	}
 
+	public CaixaAberturaResponse buscarCaixaAberto() {
+		UsuariosLoja usuarioSession = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+		Caixa caixaAberto = this.caixa.findCaixaAberto(usuarioSession.getLojaVinculada().getId());
+		if (caixaAberto == null) {
+			return null;
+		}
+		return new CaixaAberturaResponse(caixaAberto.getId(), caixaAberto.getLoja().getRazaoSocial(),
+				usuarioSession.getLogin(), caixaAberto.getDataAbertura());
 	}
 
 	@Transactional

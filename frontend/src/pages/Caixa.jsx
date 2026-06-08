@@ -46,6 +46,25 @@ export default function Caixa() {
   const [duracao, setDuracao]         = useState(null);
   const [tick, setTick]               = useState(0);
 
+  // Ao montar, valida com o backend se o caixa do localStorage ainda existe
+  useEffect(() => {
+    const validarCaixaNoBackend = async () => {
+      const caixaBackend = await caixaService.buscarCaixaAberto();
+      if (!caixaBackend) {
+        // Backend não tem caixa aberto — limpa o localStorage
+        localStorage.removeItem(STORAGE_KEY);
+        setCaixaAberto(null);
+        setCaixaId(null);
+      } else if (!caixaAberto) {
+        // Backend tem caixa aberto mas frontend não sabe — sincroniza
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(caixaBackend));
+        setCaixaAberto(caixaBackend);
+        setCaixaId(caixaBackend.id);
+      }
+    };
+    validarCaixaNoBackend();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Atualiza o cronômetro enquanto o caixa estiver aberto
   useEffect(() => {
     if (!caixaAberto) return;
