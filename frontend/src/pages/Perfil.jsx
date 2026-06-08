@@ -173,7 +173,57 @@ function AbaConta({ perfil, carregando }) {
 }
 
 // ── Aba: Loja ─────────────────────────────────────────────────────────────────
-function AbaLoja({ perfil, carregando }) {
+function AbaLoja() {
+  const [loja, setLoja]           = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [editando, setEditando]   = useState(false);
+  const [salvando, setSalvando]   = useState(false);
+  const [form, setForm]           = useState({ razaoSocial: '', cnpj: '', IE: '', endereco: '' });
+
+  useEffect(() => {
+    const buscar = async () => {
+      try {
+        const data = await funcionarioService.buscarLoja();
+        setLoja(data);
+        setForm({
+          razaoSocial: data.razaoSocial || '',
+          cnpj:        data.cnpj        || '',
+          IE:          data.IE          || '',
+          endereco:    data.endereco    || '',
+        });
+      } catch {
+        setLoja(null);
+      } finally {
+        setCarregando(false);
+      }
+    };
+    buscar();
+  }, []);
+
+  const salvar = async () => {
+    setSalvando(true);
+    try {
+      const atualizado = await funcionarioService.editarLoja(form);
+      setLoja(atualizado);
+      setEditando(false);
+      showAlert('Dados da loja atualizados com sucesso!', 'success');
+    } catch (err) {
+      showAlert(err.displayMessage || err.message || 'Erro ao salvar dados da loja.', 'error');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const cancelar = () => {
+    setForm({
+      razaoSocial: loja?.razaoSocial || '',
+      cnpj:        loja?.cnpj        || '',
+      IE:          loja?.IE          || '',
+      endereco:    loja?.endereco    || '',
+    });
+    setEditando(false);
+  };
+
   if (carregando) {
     return (
       <div className="cfg-section-body">
@@ -184,47 +234,79 @@ function AbaLoja({ perfil, carregando }) {
     );
   }
 
-  const loja = perfil?.loja;
-
   if (!loja) {
     return (
       <div className="cfg-section-body">
         <div className="cfg-empty-state">
           <span>🏪</span>
-          <p>Dados da loja indisponíveis.</p>
-          <p className="cfg-empty-sub">
-            O endpoint <code>GET /api-smartpdv/my-profile/me</code> precisa ser criado no backend para exibir estas informações.
-          </p>
+          <p>Não foi possível carregar os dados da loja.</p>
+          <p className="cfg-empty-sub">Verifique se o backend está rodando corretamente.</p>
         </div>
       </div>
     );
   }
-
-  const campos = [
-    { label: 'Razão Social',          valor: loja.razaoSocial },
-    { label: 'CNPJ',                   valor: loja.cnpj },
-    { label: 'Inscrição Estadual (IE)', valor: loja.ie },
-    { label: 'Endereço',               valor: loja.endereco },
-  ];
 
   return (
     <div className="cfg-section-body">
       <div className="cfg-card">
         <div className="cfg-card-header">
           <span className="cfg-card-icon">🏪</span>
-          <div>
+          <div style={{ flex: 1 }}>
             <h3 className="cfg-card-title">{loja.razaoSocial}</h3>
             <p className="cfg-card-desc">Dados da loja vinculada ao seu perfil</p>
           </div>
+          {!editando && (
+            <button className="cfg-btn-editar" onClick={() => setEditando(true)}>
+              ✏️ Editar
+            </button>
+          )}
         </div>
-        <div className="cfg-loja-grid">
-          {campos.map(({ label, valor }) => (
-            <div key={label} className="cfg-loja-item">
-              <span className="cfg-loja-label">{label}</span>
-              <span className="cfg-loja-valor">{valor || '—'}</span>
+
+        {!editando ? (
+          <div className="cfg-loja-grid">
+            {[
+              { label: 'Razão Social',           valor: loja.razaoSocial },
+              { label: 'CNPJ',                    valor: loja.cnpj },
+              { label: 'Inscrição Estadual (IE)', valor: loja.IE },
+              { label: 'Endereço',                valor: loja.endereco },
+            ].map(({ label, valor }) => (
+              <div key={label} className="cfg-loja-item">
+                <span className="cfg-loja-label">{label}</span>
+                <span className="cfg-loja-valor">{valor || '—'}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="cfg-form">
+            {[
+              { key: 'razaoSocial', label: 'Razão Social',           placeholder: 'Ex: Empresa LTDA' },
+              { key: 'cnpj',        label: 'CNPJ',                    placeholder: '00.000.000/0001-00' },
+              { key: 'IE',          label: 'Inscrição Estadual (IE)', placeholder: '000000000' },
+              { key: 'endereco',    label: 'Endereço',                placeholder: 'Rua X, 123 - Cidade' },
+            ].map(({ key, label, placeholder }) => (
+              <div key={key} className="cfg-field">
+                <label>{label}</label>
+                <div className="cfg-input-wrap">
+                  <input
+                    type="text"
+                    value={form[key]}
+                    onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    style={{ paddingRight: '1rem' }}
+                  />
+                </div>
+              </div>
+            ))}
+            <div className="cfg-form-actions">
+              <button className="cfg-btn-cancelar" onClick={cancelar} disabled={salvando}>
+                Cancelar
+              </button>
+              <button className="cfg-btn-salvar" onClick={salvar} disabled={salvando}>
+                {salvando ? '⏳ Salvando...' : '💾 Salvar Alterações'}
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -325,7 +407,7 @@ export default function Perfil() {
         {/* Conteúdo */}
         <div className="cfg-content">
           {aba === 'conta'     && <AbaConta     perfil={perfil} carregando={carregando} />}
-          {aba === 'loja'      && <AbaLoja      perfil={perfil} carregando={carregando} />}
+          {aba === 'loja'      && <AbaLoja      />}
           {aba === 'aparencia' && <AbaAparencia />}
         </div>
 
