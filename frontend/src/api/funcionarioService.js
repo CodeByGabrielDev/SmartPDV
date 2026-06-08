@@ -7,4 +7,9 @@ export const funcionarioService = {
     );
     return response.data;
   },
+
+  buscarPerfil: async () => {
+    const response = await api.get('/api-smartpdv/my-profile/me');
+    return response.data;
+  },
 };
