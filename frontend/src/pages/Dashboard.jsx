@@ -52,7 +52,7 @@ export default function Dashboard() {
             {sidebarOpen ? '◀' : '☰'}
           </button>
           <div className="logo-section">
-            <span className="logo-icon">🛒</span>
+            <img src="/Logo Smartpdv.png" alt="SmartPDV" className="logo-img" />
             <span>SmartPDV</span>
           </div>
         </div>

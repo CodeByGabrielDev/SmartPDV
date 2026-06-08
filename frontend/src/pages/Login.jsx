@@ -109,7 +109,10 @@ export default function Login() {
 
       {mode === 'login' && (
         <form className="login-form" onSubmit={handleLogin}>
-          <h1>SmartPDV - Login</h1>
+          <div className="login-brand">
+            <img src="/Logo Smartpdv.png" alt="SmartPDV" className="login-logo" />
+            <p className="login-tagline">Ponto de Venda Inteligente</p>
+          </div>
           <div className="form-group">
             <label>Login:</label>
             <input type="text" value={login} onChange={(e) => setLogin(e.target.value)} required />

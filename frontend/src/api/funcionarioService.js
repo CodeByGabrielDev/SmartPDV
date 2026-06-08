@@ -12,4 +12,14 @@ export const funcionarioService = {
     const response = await api.get('/api-smartpdv/my-profile/me');
     return response.data;
   },
+
+  buscarLoja: async () => {
+    const response = await api.get('/api-smartpdv/my-profile/');
+    return response.data;
+  },
+
+  editarLoja: async (lojaRequest) => {
+    const response = await api.put('/api-smartpdv/my-profile/my-shop/', lojaRequest);
+    return response.data;
+  },
 };
