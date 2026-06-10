@@ -2,37 +2,21 @@ import { useState, useEffect, useMemo } from 'react';
 import { estoqueService } from '../api/estoqueService';
 import { showAlert } from '../components/Alert';
 
-/* ─── helpers ─────────────────────────────────────────────── */
-const NIVEL = {
-  CRITICO:  { max: 5,   label: 'Crítico',  cls: 'est-nivel-critico'  },
-  BAIXO:    { max: 20,  label: 'Baixo',    cls: 'est-nivel-baixo'    },
-  NORMAL:   { max: 100, label: 'Normal',   cls: 'est-nivel-normal'   },
-  ALTO:     { max: Infinity, label: 'Alto', cls: 'est-nivel-alto'   },
-};
-
-function nivelEstoque(qtd) {
-  if (qtd <= NIVEL.CRITICO.max) return NIVEL.CRITICO;
-  if (qtd <= NIVEL.BAIXO.max)   return NIVEL.BAIXO;
-  if (qtd <= NIVEL.NORMAL.max)  return NIVEL.NORMAL;
-  return NIVEL.ALTO;
+function nivelInfo(qtd) {
+  if (qtd <= 5)  return { label: 'Crítico', color: 'text-error bg-error-container/30 border-error/30', bar: 'bg-error', badge: 'bg-error text-white' };
+  if (qtd <= 20) return { label: 'Baixo',   color: 'text-yellow-700 bg-yellow-50 border-yellow-300', bar: 'bg-yellow-500', badge: 'bg-yellow-500 text-white' };
+  if (qtd <= 100)return { label: 'Normal',  color: 'text-emerald-700 bg-emerald-50 border-emerald-300', bar: 'bg-emerald-500', badge: 'bg-emerald-500 text-white' };
+  return { label: 'Alto', color: 'text-primary bg-primary-container/20 border-primary/20', bar: 'bg-primary', badge: 'bg-primary text-on-primary' };
 }
 
-const FILTROS_NIVEL = ['Todos', 'Crítico', 'Baixo', 'Normal', 'Alto'];
-const ORDENACOES = [
-  { value: 'nome_asc',  label: 'Nome A→Z' },
-  { value: 'nome_desc', label: 'Nome Z→A' },
-  { value: 'qtd_asc',   label: 'Qtd ↑' },
-  { value: 'qtd_desc',  label: 'Qtd ↓' },
-];
+const FILTROS = ['Todos', 'Crítico', 'Baixo', 'Normal', 'Alto'];
 
-/* ─── componente ───────────────────────────────────────────── */
 export default function Estoque() {
-  const [itens, setItens]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [busca, setBusca]         = useState('');
-  const [filtroNivel, setFiltroNivel] = useState('Todos');
-  const [ordenacao, setOrdenacao] = useState('nome_asc');
-  const [visualizacao, setVisualizacao] = useState('tabela'); // 'tabela' | 'cards'
+  const [itens, setItens] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState('');
+  const [filtro, setFiltro] = useState('Todos');
+  const [visualizacao, setVisualizacao] = useState('cards');
 
   useEffect(() => { carregar(); }, []);
 
@@ -48,297 +32,203 @@ export default function Estoque() {
     }
   };
 
-  /* ── filtro + ordenação (memo para não recalcular a cada render) ── */
-  const itensFiltrados = useMemo(() => {
+  const filtrados = useMemo(() => {
     let lista = [...itens];
-
-    // busca por nome, código de barra ou ID
     if (busca.trim()) {
-      const b = busca.trim().toLowerCase();
-      lista = lista.filter(
-        (i) =>
-          i.nome_produto?.toLowerCase().includes(b) ||
-          i.codigo_barra?.toLowerCase().includes(b) ||
-          String(i.id).includes(b),
-      );
+      const b = busca.toLowerCase();
+      lista = lista.filter(i => i.nome_produto?.toLowerCase().includes(b) || i.codigo_barra?.toLowerCase().includes(b) || String(i.id).includes(b));
     }
-
-    // filtro por nível
-    if (filtroNivel !== 'Todos') {
-      lista = lista.filter(
-        (i) => nivelEstoque(i.quantidade_atual ?? 0).label === filtroNivel,
-      );
-    }
-
-    // ordenação
-    lista.sort((a, b) => {
-      switch (ordenacao) {
-        case 'nome_asc':  return (a.nome_produto ?? '').localeCompare(b.nome_produto ?? '');
-        case 'nome_desc': return (b.nome_produto ?? '').localeCompare(a.nome_produto ?? '');
-        case 'qtd_asc':   return (a.quantidade_atual ?? 0) - (b.quantidade_atual ?? 0);
-        case 'qtd_desc':  return (b.quantidade_atual ?? 0) - (a.quantidade_atual ?? 0);
-        default:          return 0;
-      }
-    });
-
+    if (filtro !== 'Todos') lista = lista.filter(i => nivelInfo(i.quantidade_atual ?? 0).label === filtro);
     return lista;
-  }, [itens, busca, filtroNivel, ordenacao]);
+  }, [itens, busca, filtro]);
 
-  /* ── contadores para os chips de nível ── */
   const contadores = useMemo(() => {
-    const map = { Todos: itens.length, Crítico: 0, Baixo: 0, Normal: 0, Alto: 0 };
-    itens.forEach((i) => {
-      map[nivelEstoque(i.quantidade_atual ?? 0).label]++;
-    });
-    return map;
+    const m = { Todos: itens.length, Crítico: 0, Baixo: 0, Normal: 0, Alto: 0 };
+    itens.forEach(i => { m[nivelInfo(i.quantidade_atual ?? 0).label]++; });
+    return m;
   }, [itens]);
 
-  /* ── resumo do topo ── */
-  const totalItens    = itens.length;
   const totalUnidades = itens.reduce((s, i) => s + (i.quantidade_atual ?? 0), 0);
-  const itensCriticos = contadores['Crítico'];
-  const itensBaixos   = contadores['Baixo'];
 
   return (
-    <div className="est-wrapper">
-
-      {/* ══ Cabeçalho ══════════════════════════════════════ */}
-      <div className="est-page-header">
-        <div>
-          <h1 className="est-page-title">
-            <span>📦</span> Estoque
-          </h1>
-          <p className="est-page-sub">Produtos disponíveis na sua loja</p>
-        </div>
-        <button className="est-btn-refresh" onClick={carregar} disabled={loading} title="Atualizar">
-          <span className={loading ? 'est-spin' : ''}>🔄</span>
-          {loading ? 'Carregando...' : 'Atualizar'}
-        </button>
-      </div>
-
-      {/* ══ Cards de resumo ════════════════════════════════ */}
-      <div className="est-summary-grid">
-        <div className="est-summary-card est-sum-blue">
-          <div className="est-sum-icon">🏷️</div>
-          <div>
-            <p className="est-sum-label">Produtos cadastrados</p>
-            <p className="est-sum-val">{totalItens}</p>
-          </div>
-        </div>
-        <div className="est-summary-card est-sum-green">
-          <div className="est-sum-icon">📊</div>
-          <div>
-            <p className="est-sum-label">Total de unidades</p>
-            <p className="est-sum-val">{totalUnidades.toLocaleString('pt-BR')}</p>
-          </div>
-        </div>
-        <div className="est-summary-card est-sum-orange">
-          <div className="est-sum-icon">⚠️</div>
-          <div>
-            <p className="est-sum-label">Estoque baixo</p>
-            <p className="est-sum-val">{itensBaixos}</p>
-          </div>
-        </div>
-        <div className="est-summary-card est-sum-red">
-          <div className="est-sum-icon">🚨</div>
-          <div>
-            <p className="est-sum-label">Estoque crítico</p>
-            <p className="est-sum-val">{itensCriticos}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ══ Painel de filtros ══════════════════════════════ */}
-      <div className="est-filters-panel">
-
-        {/* Busca */}
-        <div className="est-search-wrap">
-          <span className="est-search-icon">🔍</span>
-          <input
-            className="est-search"
-            type="text"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome, código de barras ou ID..."
-          />
-          {busca && (
-            <button className="est-clear-btn" onClick={() => setBusca('')} title="Limpar busca">
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* Controles secundários */}
-        <div className="est-controls-row">
-          {/* Chips de nível */}
-          <div className="est-nivel-chips">
-            {FILTROS_NIVEL.map((n) => (
-              <button
-                key={n}
-                className={`est-chip ${filtroNivel === n ? 'ativo' : ''} est-chip-${n.toLowerCase()}`}
-                onClick={() => setFiltroNivel(n)}
-              >
-                {n}
-                <span className="est-chip-count">{contadores[n] ?? 0}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Ordenação + visualização */}
-          <div className="est-right-controls">
-            <select
-              className="est-select"
-              value={ordenacao}
-              onChange={(e) => setOrdenacao(e.target.value)}
-            >
-              {ORDENACOES.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-
-            <div className="est-view-toggle">
-              <button
-                className={`est-view-btn ${visualizacao === 'tabela' ? 'ativo' : ''}`}
-                onClick={() => setVisualizacao('tabela')}
-                title="Visualização em tabela"
-              >☰</button>
-              <button
-                className={`est-view-btn ${visualizacao === 'cards' ? 'ativo' : ''}`}
-                onClick={() => setVisualizacao('cards')}
-                title="Visualização em cards"
-              >⊞</button>
+    <section className="p-xl space-y-xl max-w-7xl mx-auto w-full">
+      {/* Metric cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+        {[
+          { icon: 'inventory_2', label: 'Total de Produtos', value: itens.length, sub: 'MENSAL', iconCls: 'text-primary' },
+          { icon: 'warehouse',   label: 'Estoque Total',     value: totalUnidades.toLocaleString('pt-BR'), sub: 'UNIDADES', iconCls: 'text-secondary' },
+          { icon: 'warning',     label: 'Estoque Baixo',     value: contadores['Baixo'], sub: 'AVISO', iconCls: 'text-yellow-600', border: 'border-l-4 border-yellow-500' },
+          { icon: 'error',       label: 'Estoque Crítico',   value: contadores['Crítico'], sub: 'URGENTE', iconCls: 'text-error', border: 'border-l-4 border-error', pulse: true },
+        ].map(({ icon, label, value, sub, iconCls, border, pulse }) => (
+          <div key={label} className={`glass-card rounded-xl p-lg flex flex-col gap-xs hover:shadow-lg transition-shadow ${border || ''} ${pulse && contadores['Crítico'] > 0 ? 'animate-pulse' : ''}`}>
+            <div className="flex justify-between items-start">
+              <span className="p-sm bg-surface-container rounded-lg">
+                <span className={`material-symbols-outlined ${iconCls}`}>{icon}</span>
+              </span>
+              <span className="text-mono-label font-geist-mono text-on-surface-variant">{sub}</span>
             </div>
+            <span className="text-headline-lg font-semibold text-on-surface">{value}</span>
+            <span className="text-label-md font-semibold text-on-surface-variant">{label}</span>
           </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-lg justify-between items-start md:items-center">
+        <div className="flex flex-wrap gap-sm items-center">
+          <div className="relative w-full md:w-80 group">
+            <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+            <input
+              type="text"
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+              placeholder="Buscar por nome, SKU ou ID..."
+              className="w-full bg-white border border-outline-variant rounded-xl pl-12 pr-md py-sm text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            />
+          </div>
+          <div className="h-8 w-px bg-outline-variant mx-sm hidden md:block" />
+          {FILTROS.map(f => {
+            const active = filtro === f;
+            const colors = {
+              Crítico: active ? 'bg-error text-white' : 'bg-error/10 text-error border-error/20',
+              Baixo:   active ? 'bg-yellow-500 text-white' : 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+              Normal:  active ? 'bg-primary text-on-primary' : 'bg-primary-container/10 text-primary border-primary/20',
+              Alto:    active ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700 border-emerald-200',
+              Todos:   active ? 'bg-secondary text-on-secondary' : 'bg-secondary-container/50 text-secondary border-outline-variant',
+            };
+            return (
+              <button
+                key={f}
+                onClick={() => setFiltro(f)}
+                className={`px-md py-sm rounded-full text-label-md font-semibold border transition-colors ${colors[f]}`}
+              >
+                {f} <span className="ml-xs opacity-70">({contadores[f] ?? 0})</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-sm bg-surface-container-low p-1 rounded-xl border border-outline-variant">
+          <button
+            onClick={() => setVisualizacao('cards')}
+            className={`p-sm rounded-lg transition-all ${visualizacao === 'cards' ? 'bg-white shadow-sm text-primary' : 'text-on-surface-variant hover:bg-white'}`}
+            title="Ver como Grade"
+          >
+            <span className="material-symbols-outlined">grid_view</span>
+          </button>
+          <button
+            onClick={() => setVisualizacao('tabela')}
+            className={`p-sm rounded-lg transition-all ${visualizacao === 'tabela' ? 'bg-white shadow-sm text-primary' : 'text-on-surface-variant hover:bg-white'}`}
+            title="Ver como Tabela"
+          >
+            <span className="material-symbols-outlined">format_list_bulleted</span>
+          </button>
         </div>
       </div>
 
-      {/* ══ Resultado + contagem ═══════════════════════════ */}
-      {!loading && (
-        <div className="est-result-bar">
-          <span>
-            {itensFiltrados.length === itens.length
-              ? `${itens.length} produto${itens.length !== 1 ? 's' : ''}`
-              : `${itensFiltrados.length} de ${itens.length} produto${itens.length !== 1 ? 's' : ''}`}
-          </span>
-          {(busca || filtroNivel !== 'Todos') && (
-            <button
-              className="est-clear-filters"
-              onClick={() => { setBusca(''); setFiltroNivel('Todos'); }}
-            >
-              Limpar filtros
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* ══ Conteúdo ═══════════════════════════════════════ */}
+      {/* Content */}
       {loading ? (
-        <div className="est-loading">
-          <div className="loading-spinner" />
-          <p>Carregando estoque...</p>
+        <div className="flex items-center justify-center py-2xl">
+          <div className="flex flex-col items-center gap-md text-on-surface-variant">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-body-md">Carregando estoque...</p>
+          </div>
         </div>
-      ) : itensFiltrados.length === 0 ? (
-        <div className="est-empty">
-          <span className="est-empty-icon">📭</span>
-          <p className="est-empty-title">
-            {busca || filtroNivel !== 'Todos'
-              ? 'Nenhum produto encontrado'
-              : 'Estoque vazio'}
-          </p>
-          <p className="est-empty-sub">
-            {busca || filtroNivel !== 'Todos'
-              ? 'Tente ajustar os filtros de busca'
-              : 'Nenhum item registrado no estoque ainda'}
-          </p>
+      ) : filtrados.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-2xl text-on-surface-variant">
+          <span className="material-symbols-outlined text-7xl opacity-20 mb-md">inventory_2</span>
+          <p className="text-headline-md font-semibold opacity-50">Nenhum produto encontrado</p>
+          <p className="text-body-sm opacity-30 mt-xs">Tente ajustar os filtros</p>
         </div>
-      ) : visualizacao === 'tabela' ? (
-        /* ── Tabela ── */
-        <div className="est-table-wrap">
-          <table className="est-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Produto</th>
-                <th>Código de Barras</th>
-                <th>Loja</th>
-                <th>Quantidade</th>
-                <th>Nível</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itensFiltrados.map((item) => {
-                const nivel = nivelEstoque(item.quantidade_atual ?? 0);
-                return (
-                  <tr key={item.id} className="est-tr">
-                    <td className="est-td-id">{item.id}</td>
-                    <td>
-                      <span className="est-nome">{item.nome_produto}</span>
-                    </td>
-                    <td>
-                      <span className="est-barcode">{item.codigo_barra ?? '—'}</span>
-                    </td>
-                    <td>
-                      <span className="est-loja">{item.nome_loja}</span>
-                    </td>
-                    <td>
-                      <div className="est-qtd-cell">
-                        <span className="est-qtd-num">{item.quantidade_atual ?? 0}</span>
-                        <div className="est-qtd-bar-bg">
-                          <div
-                            className={`est-qtd-bar-fill ${nivel.cls}`}
-                            style={{ width: `${Math.min((item.quantidade_atual ?? 0) / 100 * 100, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`est-nivel-badge ${nivel.cls}`}>
-                        {nivel.label}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        /* ── Cards ── */
-        <div className="est-cards-grid">
-          {itensFiltrados.map((item) => {
-            const nivel = nivelEstoque(item.quantidade_atual ?? 0);
-            const pct   = Math.min((item.quantidade_atual ?? 0) / 100 * 100, 100);
+      ) : visualizacao === 'cards' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+          {filtrados.map(item => {
+            const nivel = nivelInfo(item.quantidade_atual ?? 0);
+            const pct = Math.min((item.quantidade_atual ?? 0) / 100 * 100, 100);
             return (
-              <div key={item.id} className={`est-item-card ${nivel.cls}-card`}>
-                <div className="est-item-card-top">
-                  <span className="est-item-id">#{item.id}</span>
-                  <span className={`est-nivel-badge ${nivel.cls}`}>{nivel.label}</span>
-                </div>
-                <p className="est-item-nome">{item.nome_produto}</p>
-                <p className="est-item-loja">🏪 {item.nome_loja}</p>
-                {item.codigo_barra && (
-                  <p className="est-item-barcode">
-                    <span className="est-barcode-icon">▌▌▌</span>
-                    {item.codigo_barra}
-                  </p>
-                )}
-                <div className="est-item-footer">
-                  <div className="est-item-qtd-wrap">
-                    <span className="est-item-qtd-num">{item.quantidade_atual ?? 0}</span>
-                    <span className="est-item-qtd-label">unidades</span>
+              <div key={item.id} className="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="relative h-48 bg-surface-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-7xl text-outline opacity-20">inventory_2</span>
+                  <div className="absolute top-md right-md">
+                    <span className={`text-[10px] font-bold px-sm py-xs rounded-full uppercase tracking-widest shadow-lg ${nivel.badge}`}>
+                      {nivel.label}
+                    </span>
                   </div>
-                  <div className="est-item-bar-bg">
-                    <div
-                      className={`est-item-bar-fill ${nivel.cls}`}
-                      style={{ width: `${pct}%` }}
-                    />
+                </div>
+                <div className="p-md space-y-md">
+                  <div>
+                    <h3 className="text-label-md font-semibold text-on-surface truncate">{item.nome_produto}</h3>
+                    <p className="text-[12px] text-on-surface-variant font-geist-mono">{item.codigo_barra || `ID: ${item.id}`}</p>
+                  </div>
+                  <div className="space-y-xs">
+                    <div className="flex justify-between items-end">
+                      <span className="text-body-sm text-on-surface-variant">
+                        Qtd: <strong className={nivel.color.split(' ')[0]}>{item.quantidade_atual ?? 0}</strong>
+                      </span>
+                      <span className={`text-[12px] font-geist-mono ${nivel.color.split(' ')[0]}`}>{Math.round(pct)}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                      <div className={`stock-progress-bar h-full ${nivel.bar}`} style={{ width: `${Math.max(pct, 2)}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-xs">
+                    <span className="text-body-sm text-on-surface-variant">🏪 {item.nome_loja}</span>
+                    <button className="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
+                      <span className="material-symbols-outlined">visibility</span>
+                    </button>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
+      ) : (
+        <div className="glass-card rounded-2xl overflow-hidden border border-outline-variant shadow-sm">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-container-low border-b border-outline-variant">
+                  {['#', 'Produto', 'Código de Barras', 'Loja', 'Quantidade', 'Nível'].map(h => (
+                    <th key={h} className="px-md py-lg text-[14px] font-bold text-on-surface-variant tracking-wider uppercase">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/30">
+                {filtrados.map(item => {
+                  const nivel = nivelInfo(item.quantidade_atual ?? 0);
+                  const pct = Math.min((item.quantidade_atual ?? 0) / 100 * 100, 100);
+                  return (
+                    <tr key={item.id} className="hover:bg-primary/5 transition-colors">
+                      <td className="px-md py-md text-mono-label font-geist-mono text-on-surface-variant">#{item.id}</td>
+                      <td className="px-md py-md text-label-md font-semibold text-on-surface">{item.nome_produto}</td>
+                      <td className="px-md py-md font-geist-mono text-mono-label text-on-surface-variant">{item.codigo_barra || '—'}</td>
+                      <td className="px-md py-md text-body-sm text-on-surface-variant">{item.nome_loja}</td>
+                      <td className="px-md py-md">
+                        <div className="flex items-center gap-sm">
+                          <span className={`font-semibold ${nivel.color.split(' ')[0]}`}>{item.quantidade_atual ?? 0}</span>
+                          <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden min-w-[60px]">
+                            <div className={`stock-progress-bar h-full ${nivel.bar}`} style={{ width: `${Math.max(pct, 2)}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-md py-md">
+                        <span className={`px-sm py-xs rounded-full text-[11px] font-bold ${nivel.badge}`}>{nivel.label}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
-    </div>
+
+      {/* FAB */}
+      <button className="fixed bottom-lg right-lg w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+        <span className="material-symbols-outlined">add</span>
+        <span className="absolute right-16 bg-on-surface text-white px-md py-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap text-label-md font-semibold">
+          Novo Produto
+        </span>
+      </button>
+    </section>
   );
 }

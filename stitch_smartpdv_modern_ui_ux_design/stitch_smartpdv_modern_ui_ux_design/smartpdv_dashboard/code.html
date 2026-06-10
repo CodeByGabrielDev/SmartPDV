@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartPDV - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "on-primary-fixed": "#0f0069",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed": "#07006c",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#4f46e5",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#e2dfff",
+                        "inverse-surface": "#213145",
+                        "on-primary-container": "#dad7ff",
+                        "on-secondary-container": "#5c647a",
+                        "tertiary-container": "#4b4dd8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "on-error": "#ffffff",
+                        "outline": "#777587",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "outline-variant": "#c7c4d8",
+                        "background": "#f8f9ff",
+                        "on-surface": "#0b1c30",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "secondary": "#565e74",
+                        "secondary-container": "#dae2fd",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#c3c0ff",
+                        "secondary-fixed": "#dae2fd",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "tertiary": "#3130c0",
+                        "tertiary-fixed": "#e1e0ff",
+                        "surface-container": "#e5eeff",
+                        "surface": "#f8f9ff",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#4d44e3",
+                        "on-surface-variant": "#464555",
+                        "on-tertiary-container": "#d9d8ff",
+                        "primary": "#3525cd",
+                        "on-secondary-fixed": "#131b2e",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "base": "4px",
+                        "sm": "8px",
+                        "2xl": "48px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "20px",
+                        "margin-desktop": "32px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Geist"],
+                        "headline-lg-mobile": ["Geist"],
+                        "headline-xl": ["Geist"],
+                        "mono-label": ["Geist Mono"],
+                        "body-sm": ["Geist"],
+                        "label-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "headline-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "mono-label": ["13px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Geist', sans-serif; }
+        .technical-glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        .bento-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(79, 70, 229, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 bottom-0 flex flex-col border-r border-outline-variant bg-surface w-64 z-50">
+<div class="px-md py-xl flex flex-col items-center gap-xs">
+<span class="text-headline-md font-headline-md font-bold text-primary">SmartPDV</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Venda & Gestão</span>
+</div>
+<nav class="flex-1 px-sm overflow-y-auto custom-scrollbar flex flex-col gap-xs py-md">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-sm bg-primary-container text-on-primary-container rounded-lg px-md py-sm transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-md text-label-md">PDV/Venda</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Caixa</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Clientes</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Produtos</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-md text-label-md">Nota Fiscal</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Meios Pgto.</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="input">input</span>
+<span class="font-label-md text-label-md">Entrada Merc.</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="warehouse">warehouse</span>
+<span class="font-label-md text-label-md">Estoque</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-md text-label-md">Impostos</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Configurações</span>
+</a>
+</nav>
+<div class="p-md border-t border-outline-variant">
+<button class="flex items-center gap-sm text-on-surface-variant hover:text-error w-full px-md py-sm transition-colors rounded-lg">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</button>
+</div>
+</aside>
+<!-- Top Header -->
+<header class="fixed top-0 right-0 z-40 flex justify-between items-center h-16 px-xl bg-surface border-b border-outline-variant w-[calc(100%-16rem)]">
+<h1 class="font-headline-md text-headline-md font-black text-primary">Dashboard Home</h1>
+<div class="flex items-center gap-lg">
+<button class="p-base hover:bg-surface-variant rounded-full transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+<span class="relative flex h-2 w-2 -mt-4 -ml-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
+</span>
+</button>
+<div class="flex items-center gap-sm border-l border-outline-variant pl-lg">
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface">Admin Loja 01</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gerente Geral</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold overflow-hidden border border-outline-variant">
+<img alt="User profile photo" data-alt="A professional headshot of a retail manager in a well-lit modern corporate environment. The image uses a clean, high-key lighting setup with soft shadows and a shallow depth of field. The style is sharp and corporate, emphasizing trust and competence within a modern retail software ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCs0mq-nfwUL0zQKrc0QX_uciyjOXhlPHkJednD3dTL5lveflSaQDdmXKINSSkKDO6xYAGYcNfWTMnPeQR15jUOVN9i2nNIcjXx1oAC-a-_i-TNT4k98romHHmeyK7PisobrL1avyRJKYWkMQLo48bpNMmbhXaDCqfbtaUO6VssgCb-RIl6RicLBkZXRibQnYIz7pPKvnPH82WXjaZBR-pYK6rrSrhIp_k_YyKKzqDj9X5qkxAGZNSuYJesTYVMP8Ad6QRuhY-LDH-"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-xl bg-background min-h-[calc(100vh-4rem)]">
+<!-- Metrics Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-xl">
+<!-- Faturamento Hoje -->
+<div class="bento-card p-xl bg-surface rounded-xl border border-outline-variant cursor-pointer">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-primary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<span class="font-label-md text-label-md text-emerald-600 bg-emerald-50 px-sm py-xs rounded-full">+12%</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Faturamento Hoje</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">R$ 14.280,50</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-sm">158 vendas concluídas</p>
+</div>
+<!-- Ticket Médio -->
+<div class="bento-card p-xl bg-surface rounded-xl border border-outline-variant cursor-pointer">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-tertiary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" data-icon="receipt">receipt</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Meta: R$ 85,00</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Ticket Médio</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">R$ 90,38</h2>
+<div class="flex items-center gap-xs mt-sm">
+<span class="material-symbols-outlined text-body-sm text-error" data-icon="arrow_downward" style="font-size: 14px;">arrow_downward</span>
+<p class="font-body-sm text-body-sm text-error">R$ 420,00 descontos totais</p>
+</div>
+</div>
+<!-- Notas Fiscais -->
+<div class="bento-card p-xl bg-surface rounded-xl border border-outline-variant cursor-pointer">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-secondary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="description">description</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">100% Sinc.</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Notas Fiscais</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">142</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-sm">NFC-e emitidas hoje</p>
+</div>
+<!-- Entradas Pendentes -->
+<div class="bento-card p-xl bg-error-container/30 border-2 border-error rounded-xl cursor-pointer group">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-error/10 rounded-lg">
+<span class="material-symbols-outlined text-error" data-icon="inventory_2" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+</div>
+<div class="animate-pulse flex items-center gap-xs">
+<div class="h-2 w-2 rounded-full bg-error"></div>
+<span class="font-label-md text-label-md text-error font-bold">Alerta</span>
+</div>
+</div>
+<p class="font-label-md text-label-md text-on-error-container uppercase tracking-wider mb-xs">Entradas Pendentes</p>
+<h2 class="font-headline-lg text-headline-lg text-on-error-container">03 Notas</h2>
+<p class="font-body-sm text-body-sm text-on-error-container mt-sm group-hover:underline">Aguardando conferência de estoque</p>
+</div>
+</div>
+<!-- Charts & Table Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-stretch">
+<!-- Hourly Sales Chart -->
+<div class="lg:col-span-2 bg-surface p-xl rounded-xl border border-outline-variant flex flex-col">
+<div class="flex justify-between items-center mb-xl">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Faturamento por Hora</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Desempenho operacional do dia corrente</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-sm bg-surface-variant text-on-surface rounded-lg font-label-md text-label-md hover:bg-outline-variant transition-colors">Exportar</button>
+<select class="px-md py-sm bg-surface border-outline-variant text-on-surface rounded-lg font-label-md text-label-md focus:ring-primary">
+<option>Hoje</option>
+<option>Ontem</option>
+</select>
+</div>
+</div>
+<div class="flex-1 flex items-end justify-between gap-sm pt-xl h-64 relative">
+<!-- Fake Bars for visualization -->
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container/20 rounded-t-lg relative group h-[40%] hover:bg-primary-container transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 1.2k</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">08h</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container/20 rounded-t-lg relative group h-[55%] hover:bg-primary-container transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 1.8k</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">10h</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container rounded-t-lg relative group h-[85%] hover:bg-primary transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 3.1k</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">12h</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container/20 rounded-t-lg relative group h-[70%] hover:bg-primary-container transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 2.4k</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">14h</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container/20 rounded-t-lg relative group h-[60%] hover:bg-primary-container transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 2.0k</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">16h</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container/20 rounded-t-lg relative group h-[95%] hover:bg-primary-container transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 3.5k</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">18h</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-sm">
+<div class="w-full bg-primary-container/10 rounded-t-lg relative group h-[30%] hover:bg-primary-container transition-all">
+<div class="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-sm py-xs rounded">R$ 800</div>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">20h</span>
+</div>
+</div>
+</div>
+<!-- Recent Sales Table -->
+<div class="bg-surface p-xl rounded-xl border border-outline-variant">
+<div class="flex justify-between items-center mb-xl">
+<h3 class="font-headline-md text-headline-md text-on-surface">Últimas Vendas</h3>
+<a class="font-label-md text-label-md text-primary hover:underline" href="#">Ver todas</a>
+</div>
+<div class="flex flex-col">
+<div class="grid grid-cols-4 pb-sm border-b border-outline-variant mb-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase text-[10px] tracking-widest">Ticket</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase text-[10px] tracking-widest">Vendedor</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase text-[10px] tracking-widest">Hora</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase text-[10px] tracking-widest text-right">Valor</span>
+</div>
+<!-- Sales Rows -->
+<div class="flex flex-col gap-xs">
+<div class="grid grid-cols-4 py-sm items-center hover:bg-surface-container-low transition-colors rounded px-xs cursor-pointer">
+<span class="font-mono-label text-mono-label text-on-surface">#4589</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Carlos S.</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">14:22</span>
+<span class="font-label-md text-label-md text-on-surface text-right">R$ 158,00</span>
+</div>
+<div class="grid grid-cols-4 py-sm items-center hover:bg-surface-container-low transition-colors rounded px-xs cursor-pointer">
+<span class="font-mono-label text-mono-label text-on-surface">#4588</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Ana M.</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">14:15</span>
+<span class="font-label-md text-label-md text-on-surface text-right">R$ 42,90</span>
+</div>
+<div class="grid grid-cols-4 py-sm items-center hover:bg-surface-container-low transition-colors rounded px-xs cursor-pointer">
+<span class="font-mono-label text-mono-label text-on-surface">#4587</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Carlos S.</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">14:02</span>
+<span class="font-label-md text-label-md text-on-surface text-right">R$ 890,55</span>
+</div>
+<div class="grid grid-cols-4 py-sm items-center hover:bg-surface-container-low transition-colors rounded px-xs cursor-pointer">
+<span class="font-mono-label text-mono-label text-on-surface">#4586</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Loja PDV</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">13:58</span>
+<span class="font-label-md text-label-md text-on-surface text-right">R$ 12,00</span>
+</div>
+<div class="grid grid-cols-4 py-sm items-center hover:bg-surface-container-low transition-colors rounded px-xs cursor-pointer">
+<span class="font-mono-label text-mono-label text-on-surface">#4585</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Ana M.</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">13:45</span>
+<span class="font-label-md text-label-md text-on-surface text-right">R$ 215,30</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Warning Banner -->
+<div class="mt-xl">
+<div class="bg-on-tertiary-fixed-variant p-lg rounded-xl flex flex-col md:flex-row justify-between items-center gap-md border border-outline">
+<div class="flex items-center gap-md">
+<div class="bg-tertiary-container text-on-tertiary-container h-12 w-12 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="priority_high">priority_high</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-white">Pendências de Transmissão</h4>
+<p class="font-body-sm text-body-sm text-white/80">Existem 12 Notas Fiscais pendentes de envio para o SEFAZ. Risco de multa após 24h.</p>
+</div>
+</div>
+<div class="flex gap-md">
+<button class="px-xl py-md bg-white text-on-tertiary-fixed-variant font-label-md text-label-md rounded-lg shadow-sm hover:bg-white/90 transition-all active:scale-95">Sincronizar Agora</button>
+<button class="px-xl py-md border border-white/30 text-white font-label-md text-label-md rounded-lg hover:bg-white/10 transition-all">Ver Detalhes</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="ml-64 w-[calc(100%-16rem)] py-md px-xl flex justify-between items-center bg-background border-t border-outline-variant">
+<span class="font-label-md text-label-md text-secondary">v1.0.0 © SmartPDV - Todos os direitos reservados</span>
+<div class="flex gap-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" href="#">Suporte</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" href="#">Documentação</a>
+</div>
+</footer>
+<!-- Scripts for dynamic interaction -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Smooth transitions for bento cards
+            const cards = document.querySelectorAll('.bento-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    card.style.transform = 'scale(0.98)';
+                    setTimeout(() => card.style.transform = '', 100);
+                });
+            });
+
+            // Hover interactions for the chart
+            const bars = document.querySelectorAll('.flex-1.flex-col .w-full');
+            bars.forEach(bar => {
+                bar.addEventListener('mouseenter', () => {
+                    bar.style.filter = 'brightness(1.1)';
+                });
+                bar.addEventListener('mouseleave', () => {
+                    bar.style.filter = '';
+                });
+            });
+        });
+    </script>
+</body></html>

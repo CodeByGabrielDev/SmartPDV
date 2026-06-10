@@ -2,538 +2,302 @@ import { useState, useEffect } from 'react';
 import { clienteService } from '../api/clienteService';
 import { showAlert } from '../components/Alert';
 
-const FORM_INICIAL = {
-  nome_cliente: '',
-  cpf_cnpj: '',
-  email: '',
-  telefone: '',
-  cep: '',
-  tipo: 'PESSOA_FISICA',
-};
+const FORM_INICIAL = { nome_cliente: '', cpf_cnpj: '', email: '', telefone: '', cep: '', tipo: 'PESSOA_FISICA' };
 
-const FILTRO_INICIAL = { busca: '', tipo: '' };
+function fmtCpfCnpj(v) {
+  if (!v) return '—';
+  const d = v.replace(/\D/g, '');
+  if (d.length === 11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  if (d.length === 14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  return v;
+}
+function fmtTel(v) {
+  if (!v) return '—';
+  const d = v.replace(/\D/g, '');
+  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  return v;
+}
+
+const inputCls = 'w-full h-11 px-md bg-surface-container-low border border-outline-variant rounded-lg text-body-md focus:border-primary input-focus-ring transition-all outline-none';
 
 export default function Cliente() {
-  const [clientes, setClientes]           = useState([]);
-  const [form, setForm]                   = useState(FORM_INICIAL);
-  const [filtro, setFiltro]               = useState(FILTRO_INICIAL);
-  const [loading, setLoading]             = useState(true);
-  const [salvando, setSalvando]           = useState(false);
-  const [atualizando, setAtualizando]     = useState(false);
-  const [mostrarForm, setMostrarForm]     = useState(false);
-  const [clienteDetalhe, setClienteDetalhe] = useState(null); // modal de detalhes/edição
-  const [modoEdicao, setModoEdicao]       = useState(false);
-  const [formEdicao, setFormEdicao]       = useState(FORM_INICIAL);
+  const [clientes, setClientes] = useState([]);
+  const [form, setForm] = useState(FORM_INICIAL);
+  const [busca, setBusca] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const [clienteModal, setClienteModal] = useState(null);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [formEdicao, setFormEdicao] = useState(FORM_INICIAL);
+  const [atualizando, setAtualizando] = useState(false);
 
   useEffect(() => { carregar(); }, []);
 
   const carregar = async () => {
     setLoading(true);
-    try {
-      const data = await clienteService.listarClientes();
-      setClientes(data || []);
-    } catch (err) {
-      showAlert(err.displayMessage || 'Erro ao carregar clientes', 'error');
-    } finally {
-      setLoading(false);
-    }
+    try { setClientes((await clienteService.listarClientes()) || []); }
+    catch (err) { showAlert(err.displayMessage || 'Erro ao carregar clientes', 'error'); }
+    finally { setLoading(false); }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEdicaoChange = (e) => {
-    const { name, value } = e.target;
-    setFormEdicao((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFiltroChange = (e) => {
-    const { name, value } = e.target;
-    setFiltro((prev) => ({ ...prev, [name]: value }));
-  };
-
-  /* ── Cadastrar ── */
   const handleCadastrar = async (e) => {
-    e.preventDefault();
-    setSalvando(true);
+    e.preventDefault(); setSalvando(true);
     try {
-      await clienteService.cadastrarCliente({
-        nome_cliente: form.nome_cliente,
-        cpf_cnpj:     form.cpf_cnpj,
-        email:        form.email,
-        telefone:     form.telefone,
-        cep:          form.cep,
-        tipo:         form.tipo,
-      });
-      showAlert(`"${form.nome_cliente}" cadastrado com sucesso!`, 'success');
-      setForm(FORM_INICIAL);
-      setMostrarForm(false);
-      carregar();
-    } catch (err) {
-      showAlert(err.displayMessage || 'Erro ao cadastrar cliente', 'error');
-    } finally {
-      setSalvando(false);
-    }
+      await clienteService.cadastrarCliente(form);
+      showAlert(`"${form.nome_cliente}" cadastrado!`, 'success');
+      setForm(FORM_INICIAL); setMostrarForm(false); carregar();
+    } catch (err) { showAlert(err.displayMessage || 'Erro ao cadastrar', 'error'); }
+    finally { setSalvando(false); }
   };
 
-  /* ── Atualizar ── */
   const handleAtualizar = async (e) => {
-    e.preventDefault();
-    setAtualizando(true);
+    e.preventDefault(); setAtualizando(true);
     try {
-      await clienteService.atualizarCliente(clienteDetalhe.id, {
-        nome_cliente: formEdicao.nome_cliente,
-        cpf_cnpj:     formEdicao.cpf_cnpj,
-        email:        formEdicao.email,
-        telefone:     formEdicao.telefone,
-        cep:          formEdicao.cep,
-        tipo:         formEdicao.tipo,
-      });
-      showAlert('Cliente atualizado com sucesso!', 'success');
-      setClienteDetalhe(null);
-      setModoEdicao(false);
-      carregar();
-    } catch (err) {
-      showAlert(err.displayMessage || 'Erro ao atualizar cliente', 'error');
-    } finally {
-      setAtualizando(false);
-    }
+      await clienteService.atualizarCliente(clienteModal.id, formEdicao);
+      showAlert('Cliente atualizado!', 'success');
+      setClienteModal(null); setModoEdicao(false); carregar();
+    } catch (err) { showAlert(err.displayMessage || 'Erro ao atualizar', 'error'); }
+    finally { setAtualizando(false); }
   };
 
-  const abrirEdicao = (c) => {
-    setFormEdicao({
-      nome_cliente: c.nome_cliente  ?? '',
-      cpf_cnpj:     c.cpf_cnpj     ?? '',
-      email:        c.email         ?? '',
-      telefone:     c.telefone      ?? '',
-      cep:          c.cep           ?? '',
-      tipo:         c.tipo          ?? 'PESSOA_FISICA',
-    });
-    setModoEdicao(true);
-  };
-
-  const fecharModal = () => {
-    setClienteDetalhe(null);
-    setModoEdicao(false);
-    setFormEdicao(FORM_INICIAL);
-  };
-
-  const limparFiltros = () => setFiltro(FILTRO_INICIAL);
-
-  const clientesFiltrados = clientes.filter((c) => {
-    const termo = filtro.busca.toLowerCase();
-    const matchBusca =
-      !termo ||
-      c.nome_cliente?.toLowerCase().includes(termo) ||
-      c.cpf_cnpj?.toLowerCase().includes(termo) ||
-      c.email?.toLowerCase().includes(termo) ||
-      c.telefone?.toLowerCase().includes(termo);
-    const matchTipo = !filtro.tipo || c.tipo === filtro.tipo;
-    return matchBusca && matchTipo;
+  const filtrados = clientes.filter(c => {
+    const t = busca.toLowerCase();
+    const ok = !t || c.nome_cliente?.toLowerCase().includes(t) || c.cpf_cnpj?.includes(t) || c.email?.toLowerCase().includes(t);
+    return ok && (!filtroTipo || c.tipo === filtroTipo);
   });
 
-  /* ── formatações ── */
-  const formatarCpfCnpj = (valor) => {
-    if (!valor) return '—';
-    const v = valor.replace(/\D/g, '');
-    if (v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-    return valor;
-  };
-
-  const formatarTelefone = (valor) => {
-    if (!valor) return '—';
-    const v = valor.replace(/\D/g, '');
-    if (v.length === 11) return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    if (v.length === 10) return v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    return valor;
-  };
-
-  const tipoLabel     = (tipo) => tipo === 'PESSOA_JURIDICA' ? 'Pessoa Jurídica' : 'Pessoa Física';
-  const tipoBadgeClass = (tipo) => tipo === 'PESSOA_JURIDICA' ? 'cli-badge-pj' : 'cli-badge-pf';
+  const getInitials = n => n ? n.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() : 'CL';
 
   return (
     <>
-      <div className="cli-container">
-
-        {/* ══ Cabeçalho ═══════════════════════════════════════ */}
-        <div className="cli-header">
-          <div>
-            <h1 className="cli-title">👥 Clientes</h1>
-            <p className="cli-subtitle">Clientes cadastrados nesta loja</p>
+      <div className="p-xl space-y-xl max-w-7xl mx-auto w-full">
+        {/* Top bar: search + new */}
+        <div className="grid grid-cols-12 gap-gutter">
+          <div className="col-span-8 glass-card p-lg rounded-xl border border-outline-variant flex gap-md items-center">
+            <div className="relative flex-1 group">
+              <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+              <input
+                type="text"
+                value={busca}
+                onChange={e => setBusca(e.target.value)}
+                placeholder="Pesquisar por Nome, CPF ou CNPJ..."
+                className="w-full pl-12 pr-md py-sm bg-surface-container-low border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md"
+              />
+            </div>
+            <select
+              value={filtroTipo}
+              onChange={e => setFiltroTipo(e.target.value)}
+              className="px-md py-sm bg-surface-container-highest text-on-surface-variant rounded-lg text-label-md font-semibold border border-outline-variant"
+            >
+              <option value="">Todos os tipos</option>
+              <option value="PESSOA_FISICA">Pessoa Física</option>
+              <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
+            </select>
           </div>
-          <button
-            className="cli-btn-novo"
-            onClick={() => { setMostrarForm((v) => !v); setForm(FORM_INICIAL); }}
-          >
-            {mostrarForm ? '✕ Cancelar' : '+ Novo Cliente'}
-          </button>
+          <div className="col-span-4 glass-card p-lg rounded-xl border border-outline-variant flex items-center justify-end">
+            <button
+              onClick={() => { setMostrarForm(v => !v); setForm(FORM_INICIAL); }}
+              className="flex items-center gap-sm bg-primary text-on-primary px-xl py-md rounded-xl text-label-md font-bold shadow-lg hover:bg-tertiary transition-all active:scale-95"
+            >
+              <span className="material-symbols-outlined">{mostrarForm ? 'close' : 'person_add'}</span>
+              {mostrarForm ? 'Cancelar' : 'NOVO CLIENTE'}
+            </button>
+          </div>
         </div>
 
-        {/* ══ Formulário de cadastro ══════════════════════════ */}
+        {/* Registration form */}
         {mostrarForm && (
-          <div className="cli-form-card">
-            <h2 className="cli-section-title">Cadastrar Novo Cliente</h2>
-            <form onSubmit={handleCadastrar} className="cli-form">
-              <div className="cli-form-grid">
-
-                <div className="cli-field cli-field-wide">
-                  <label>Nome completo <span className="cli-required">*</span></label>
-                  <input
-                    name="nome_cliente"
-                    value={form.nome_cliente}
-                    onChange={handleChange}
-                    placeholder="Ex: João da Silva"
-                    required
-                    disabled={salvando}
-                  />
-                </div>
-
-                <div className="cli-field">
-                  <label>CPF / CNPJ <span className="cli-required">*</span></label>
-                  <input
-                    name="cpf_cnpj"
-                    value={form.cpf_cnpj}
-                    onChange={handleChange}
-                    placeholder="000.000.000-00"
-                    required
-                    disabled={salvando}
-                    style={{ fontFamily: 'monospace' }}
-                  />
-                </div>
-
-                <div className="cli-field">
-                  <label>E-mail</label>
-                  <input
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="email@exemplo.com"
-                    disabled={salvando}
-                  />
-                </div>
-
-                <div className="cli-field">
-                  <label>Telefone</label>
-                  <input
-                    name="telefone"
-                    value={form.telefone}
-                    onChange={handleChange}
-                    placeholder="(00) 00000-0000"
-                    disabled={salvando}
-                  />
-                </div>
-
-                <div className="cli-field">
-                  <label>CEP <span className="cli-required">*</span></label>
-                  <input
-                    name="cep"
-                    value={form.cep}
-                    onChange={handleChange}
-                    placeholder="00000-000"
-                    required
-                    disabled={salvando}
-                    style={{ fontFamily: 'monospace' }}
-                  />
-                </div>
-
-                <div className="cli-field">
-                  <label>Tipo</label>
-                  <select name="tipo" value={form.tipo} onChange={handleChange} disabled={salvando}>
-                    <option value="PESSOA_FISICA">Pessoa Física</option>
-                    <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
-                  </select>
-                </div>
-
+          <div className="bg-surface border border-outline-variant rounded-xl p-xl shadow-sm">
+            <h2 className="text-headline-md font-semibold text-on-surface mb-lg">Novo Cliente</h2>
+            <form onSubmit={handleCadastrar} className="grid grid-cols-1 md:grid-cols-2 gap-md">
+              <div className="space-y-xs md:col-span-2">
+                <label className="text-label-md font-semibold text-on-surface-variant ml-xs">Nome Completo *</label>
+                <input type="text" value={form.nome_cliente} onChange={e => setForm(f => ({...f, nome_cliente: e.target.value}))} className={inputCls} required />
               </div>
-
-              <div className="cli-form-actions">
-                <button type="submit" className="cli-btn-salvar" disabled={salvando}>
-                  {salvando
-                    ? <><span className="cli-spinner" /> Salvando...</>
-                    : '✓ Cadastrar Cliente'}
+              <div className="space-y-xs">
+                <label className="text-label-md font-semibold text-on-surface-variant ml-xs">CPF / CNPJ *</label>
+                <input type="text" value={form.cpf_cnpj} onChange={e => setForm(f => ({...f, cpf_cnpj: e.target.value}))} className={inputCls + ' font-geist-mono'} placeholder="000.000.000-00" required />
+              </div>
+              <div className="space-y-xs">
+                <label className="text-label-md font-semibold text-on-surface-variant ml-xs">E-mail</label>
+                <input type="email" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} className={inputCls} />
+              </div>
+              <div className="space-y-xs">
+                <label className="text-label-md font-semibold text-on-surface-variant ml-xs">Telefone</label>
+                <input type="text" value={form.telefone} onChange={e => setForm(f => ({...f, telefone: e.target.value}))} className={inputCls} placeholder="(00) 00000-0000" />
+              </div>
+              <div className="space-y-xs">
+                <label className="text-label-md font-semibold text-on-surface-variant ml-xs">CEP *</label>
+                <input type="text" value={form.cep} onChange={e => setForm(f => ({...f, cep: e.target.value}))} className={inputCls + ' font-geist-mono'} placeholder="00000-000" required />
+              </div>
+              <div className="space-y-xs">
+                <label className="text-label-md font-semibold text-on-surface-variant ml-xs">Tipo</label>
+                <select value={form.tipo} onChange={e => setForm(f => ({...f, tipo: e.target.value}))} className={inputCls + ' appearance-none'}>
+                  <option value="PESSOA_FISICA">Pessoa Física</option>
+                  <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
+                </select>
+              </div>
+              <div className="md:col-span-2 pt-sm">
+                <button type="submit" disabled={salvando} className="h-12 px-xl bg-primary text-on-primary text-label-md font-bold rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50">
+                  {salvando ? 'Salvando...' : '✓ Cadastrar Cliente'}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* ══ Filtros ═════════════════════════════════════════ */}
-        <div className="cli-filtros-card">
-          <div className="cli-filtros-row">
-            <div className="cli-filtro-busca-wrap">
-              <span className="cli-filtro-icon">🔍</span>
-              <input
-                type="text"
-                name="busca"
-                value={filtro.busca}
-                onChange={handleFiltroChange}
-                placeholder="Buscar por nome, CPF/CNPJ, e-mail ou telefone..."
-                className="cli-filtro-busca"
-              />
-              {filtro.busca && (
-                <button className="cli-filtro-clear" onClick={() => setFiltro((f) => ({ ...f, busca: '' }))}>✕</button>
-              )}
-            </div>
-
-            <select name="tipo" value={filtro.tipo} onChange={handleFiltroChange} className="cli-filtro-select">
-              <option value="">Todos os tipos</option>
-              <option value="PESSOA_FISICA">Pessoa Física</option>
-              <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
-            </select>
-
-            {(filtro.busca || filtro.tipo) && (
-              <button className="cli-btn-limpar" onClick={limparFiltros}>Limpar filtros</button>
-            )}
-          </div>
-
-          <div className="cli-filtros-info">
-            <span className="cli-count">
-              {clientesFiltrados.length} de {clientes.length} cliente{clientes.length !== 1 ? 's' : ''}
-            </span>
-            {(filtro.busca || filtro.tipo) && <span className="cli-filtro-ativo">• filtro ativo</span>}
-          </div>
-        </div>
-
-        {/* ══ Lista ═══════════════════════════════════════════ */}
-        <div className="cli-list-card">
-          {loading ? (
-            <div className="cli-loading">
-              <div className="loading-spinner" />
-              <p>Carregando clientes...</p>
-            </div>
-          ) : clientesFiltrados.length === 0 ? (
-            <div className="cli-empty">
-              <span>👥</span>
-              <p>{filtro.busca || filtro.tipo ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}</p>
-              {!filtro.busca && !filtro.tipo && (
-                <p className="cli-empty-sub">Clique em "+ Novo Cliente" para começar</p>
-              )}
-            </div>
-          ) : (
-            <div className="cli-table-wrapper">
-              <table className="cli-table">
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>CPF / CNPJ</th>
-                    <th>E-mail</th>
-                    <th>Telefone</th>
-                    <th>Tipo</th>
-                    <th>Localidade</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clientesFiltrados.map((c, idx) => (
-                    <tr key={c.cpf_cnpj ?? idx}>
-                      <td><span className="cli-nome">{c.nome_cliente}</span></td>
-                      <td><span className="cli-mono">{formatarCpfCnpj(c.cpf_cnpj)}</span></td>
-                      <td><span className="cli-email">{c.email || '—'}</span></td>
-                      <td><span className="cli-mono">{formatarTelefone(c.telefone)}</span></td>
-                      <td>
-                        <span className={`cli-badge ${tipoBadgeClass(c.tipo)}`}>
-                          {tipoLabel(c.tipo)}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="cli-localidade">
-                          {c.localidade && c.uf ? `${c.localidade} / ${c.uf}` : '—'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="cli-acoes">
-                          <button
-                            className="cli-btn-detalhe"
-                            onClick={() => { setClienteDetalhe(c); setModoEdicao(false); }}
-                            title="Ver detalhes"
-                          >
-                            👁 Ver
-                          </button>
-                          <button
-                            className="cli-btn-editar"
-                            onClick={() => { setClienteDetalhe(c); abrirEdicao(c); }}
-                            title="Editar cliente"
-                          >
-                            ✏️ Editar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+        {/* Table */}
+        <div className="glass-card border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-container-low border-b border-outline-variant">
+                  {['Cliente', 'Tipo', 'Documento', 'Contato', 'Localidade', 'Ações'].map(h => (
+                    <th key={h} className="px-md py-lg text-[14px] font-bold text-on-surface-variant tracking-wider uppercase">{h}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/30">
+                {loading ? (
+                  <tr><td colSpan={6} className="px-md py-2xl text-center text-on-surface-variant">
+                    <div className="flex items-center justify-center gap-md">
+                      <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                      Carregando...
+                    </div>
+                  </td></tr>
+                ) : filtrados.length === 0 ? (
+                  <tr><td colSpan={6} className="px-md py-2xl text-center">
+                    <div className="flex flex-col items-center gap-md text-on-surface-variant">
+                      <span className="material-symbols-outlined text-6xl opacity-20">groups</span>
+                      <p className="text-body-md">{busca || filtroTipo ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}</p>
+                    </div>
+                  </td></tr>
+                ) : filtrados.map((c, i) => (
+                  <tr key={c.cpf_cnpj ?? i} className="hover:bg-primary/5 transition-colors group">
+                    <td className="px-md py-md">
+                      <div className="flex items-center gap-md">
+                        <div className="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center font-bold text-sm">
+                          {getInitials(c.nome_cliente)}
+                        </div>
+                        <div>
+                          <p className="text-label-md font-semibold text-on-surface">{c.nome_cliente}</p>
+                          <p className="text-xs text-on-surface-variant">#{c.id || i + 1}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-md py-md text-center">
+                      <span className={`px-sm py-1 rounded-full text-[11px] font-bold border ${c.tipo === 'PESSOA_JURIDICA' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
+                        {c.tipo === 'PESSOA_JURIDICA' ? 'PJ' : 'PF'}
+                      </span>
+                    </td>
+                    <td className="px-md py-md font-geist-mono text-mono-label">{fmtCpfCnpj(c.cpf_cnpj)}</td>
+                    <td className="px-md py-md">
+                      <div className="flex flex-col">
+                        <span className="text-body-sm font-medium">{c.email || '—'}</span>
+                        <span className="text-xs text-on-surface-variant">{fmtTel(c.telefone)}</span>
+                      </div>
+                    </td>
+                    <td className="px-md py-md">
+                      <div className="flex items-center gap-xs text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[18px]">location_on</span>
+                        <span className="text-body-sm">{c.localidade && c.uf ? `${c.localidade} / ${c.uf}` : '—'}</span>
+                      </div>
+                    </td>
+                    <td className="px-md py-md text-right">
+                      <div className="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => { setClienteModal(c); setModoEdicao(false); }} className="p-sm text-secondary hover:text-primary hover:bg-primary-container/10 rounded-lg transition-all" title="Detalhes">
+                          <span className="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button onClick={() => { setClienteModal(c); setFormEdicao({ nome_cliente: c.nome_cliente ?? '', cpf_cnpj: c.cpf_cnpj ?? '', email: c.email ?? '', telefone: c.telefone ?? '', cep: c.cep ?? '', tipo: c.tipo ?? 'PESSOA_FISICA' }); setModoEdicao(true); }} className="p-sm text-secondary hover:text-primary hover:bg-primary-container/10 rounded-lg transition-all" title="Editar">
+                          <span className="material-symbols-outlined">edit</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-lg py-md border-t border-outline-variant bg-surface-container-low flex justify-between items-center">
+            <p className="text-body-sm text-on-surface-variant">
+              Mostrando <span className="font-bold">{filtrados.length}</span> de <span className="font-bold">{clientes.length}</span> clientes
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* ══ Modal detalhes / edição ══════════════════════════ */}
-      {clienteDetalhe && (
-        <div className="cli-modal-overlay" onClick={fecharModal}>
-          <div className="cli-modal" onClick={(e) => e.stopPropagation()}>
-
-            {/* Header do modal */}
-            <div className="cli-modal-header">
-              <div className="cli-modal-avatar">
-                {clienteDetalhe.nome_cliente?.charAt(0).toUpperCase()}
+      {/* Modal detalhes/edição */}
+      {clienteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setClienteModal(null); setModoEdicao(false); }}>
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-lg mx-md overflow-hidden border border-outline-variant" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center gap-md p-lg border-b border-outline-variant">
+              <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">
+                {getInitials(clienteModal.nome_cliente)}
               </div>
-              <div className="cli-modal-header-info">
-                <h2 className="cli-modal-nome">{clienteDetalhe.nome_cliente}</h2>
-                <span className={`cli-badge ${tipoBadgeClass(clienteDetalhe.tipo)}`}>
-                  {tipoLabel(clienteDetalhe.tipo)}
+              <div className="flex-1">
+                <h2 className="text-headline-md font-semibold text-on-surface">{clienteModal.nome_cliente}</h2>
+                <span className={`px-sm py-xs rounded-full text-[11px] font-bold ${clienteModal.tipo === 'PESSOA_JURIDICA' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {clienteModal.tipo === 'PESSOA_JURIDICA' ? 'Pessoa Jurídica' : 'Pessoa Física'}
                 </span>
               </div>
-              <div className="cli-modal-header-actions">
-                {!modoEdicao && (
-                  <button
-                    className="cli-modal-btn-editar"
-                    onClick={() => abrirEdicao(clienteDetalhe)}
-                    title="Editar"
-                  >
-                    ✏️ Editar
-                  </button>
-                )}
-                <button className="cli-modal-close" onClick={fecharModal} title="Fechar">✕</button>
-              </div>
+              <button onClick={() => { setClienteModal(null); setModoEdicao(false); }} className="p-sm hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
 
-            {/* Corpo: detalhes ou formulário de edição */}
-            {!modoEdicao ? (
-              /* ── Visualização ── */
-              <div className="cli-modal-body">
-                <div className="cli-modal-grid">
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">CPF / CNPJ</span>
-                    <span className="cli-modal-value cli-mono">{formatarCpfCnpj(clienteDetalhe.cpf_cnpj)}</span>
-                  </div>
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">E-mail</span>
-                    <span className="cli-modal-value">{clienteDetalhe.email || '—'}</span>
-                  </div>
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">Telefone</span>
-                    <span className="cli-modal-value cli-mono">{formatarTelefone(clienteDetalhe.telefone)}</span>
-                  </div>
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">CEP</span>
-                    <span className="cli-modal-value cli-mono">{clienteDetalhe.cep || '—'}</span>
-                  </div>
-                  <div className="cli-modal-item cli-modal-item-wide">
-                    <span className="cli-modal-label">Logradouro</span>
-                    <span className="cli-modal-value">{clienteDetalhe.logradouro || '—'}</span>
-                  </div>
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">Bairro</span>
-                    <span className="cli-modal-value">{clienteDetalhe.bairro || '—'}</span>
-                  </div>
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">Cidade / UF</span>
-                    <span className="cli-modal-value">
-                      {clienteDetalhe.localidade && clienteDetalhe.uf
-                        ? `${clienteDetalhe.localidade} — ${clienteDetalhe.uf}` : '—'}
-                    </span>
-                  </div>
-                  <div className="cli-modal-item">
-                    <span className="cli-modal-label">Estado</span>
-                    <span className="cli-modal-value">{clienteDetalhe.estado || '—'}</span>
-                  </div>
+            {/* Body */}
+            <div className="p-lg">
+              {!modoEdicao ? (
+                <div className="grid grid-cols-2 gap-md">
+                  {[
+                    { label: 'CPF / CNPJ', value: fmtCpfCnpj(clienteModal.cpf_cnpj), mono: true },
+                    { label: 'E-mail', value: clienteModal.email || '—' },
+                    { label: 'Telefone', value: fmtTel(clienteModal.telefone), mono: true },
+                    { label: 'CEP', value: clienteModal.cep || '—', mono: true },
+                    { label: 'Cidade/UF', value: clienteModal.localidade ? `${clienteModal.localidade} / ${clienteModal.uf}` : '—' },
+                  ].map(({ label, value, mono }) => (
+                    <div key={label} className="p-sm bg-surface-container-low rounded-lg border border-outline-variant/30">
+                      <span className="text-[12px] font-bold text-on-surface-variant block mb-xs">{label}</span>
+                      <span className={`text-body-md font-semibold ${mono ? 'font-geist-mono' : ''}`}>{value}</span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ) : (
-              /* ── Edição ── */
-              <div className="cli-modal-body">
-                <form onSubmit={handleAtualizar} className="cli-form">
-                  <div className="cli-form-grid">
-
-                    <div className="cli-field cli-field-wide">
-                      <label>Nome completo</label>
-                      <input
-                        name="nome_cliente"
-                        value={formEdicao.nome_cliente}
-                        onChange={handleEdicaoChange}
-                        disabled={atualizando}
-                      />
+              ) : (
+                <form onSubmit={handleAtualizar} className="grid grid-cols-2 gap-md">
+                  {[
+                    { key: 'nome_cliente', label: 'Nome', type: 'text', col2: true },
+                    { key: 'cpf_cnpj', label: 'CPF/CNPJ', type: 'text', mono: true },
+                    { key: 'email', label: 'E-mail', type: 'email' },
+                    { key: 'telefone', label: 'Telefone', type: 'text' },
+                    { key: 'cep', label: 'CEP', type: 'text', mono: true },
+                  ].map(({ key, label, type, col2, mono }) => (
+                    <div key={key} className={`space-y-xs ${col2 ? 'col-span-2' : ''}`}>
+                      <label className="text-label-md font-semibold text-on-surface-variant ml-xs">{label}</label>
+                      <input type={type} value={formEdicao[key] || ''} onChange={e => setFormEdicao(f => ({...f, [key]: e.target.value}))} className={inputCls + (mono ? ' font-geist-mono' : '')} />
                     </div>
-
-                    <div className="cli-field">
-                      <label>CPF / CNPJ</label>
-                      <input
-                        name="cpf_cnpj"
-                        value={formEdicao.cpf_cnpj}
-                        onChange={handleEdicaoChange}
-                        disabled={atualizando}
-                        style={{ fontFamily: 'monospace' }}
-                      />
-                    </div>
-
-                    <div className="cli-field">
-                      <label>E-mail</label>
-                      <input
-                        name="email"
-                        type="email"
-                        value={formEdicao.email}
-                        onChange={handleEdicaoChange}
-                        disabled={atualizando}
-                      />
-                    </div>
-
-                    <div className="cli-field">
-                      <label>Telefone</label>
-                      <input
-                        name="telefone"
-                        value={formEdicao.telefone}
-                        onChange={handleEdicaoChange}
-                        disabled={atualizando}
-                      />
-                    </div>
-
-                    <div className="cli-field">
-                      <label>CEP</label>
-                      <input
-                        name="cep"
-                        value={formEdicao.cep}
-                        onChange={handleEdicaoChange}
-                        disabled={atualizando}
-                        style={{ fontFamily: 'monospace' }}
-                      />
-                    </div>
-
-                    <div className="cli-field">
-                      <label>Tipo</label>
-                      <select name="tipo" value={formEdicao.tipo} onChange={handleEdicaoChange} disabled={atualizando}>
-                        <option value="PESSOA_FISICA">Pessoa Física</option>
-                        <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
-                      </select>
-                    </div>
-
-                  </div>
-
-                  <div className="cli-modal-edit-actions">
-                    <button
-                      type="button"
-                      className="cli-modal-btn-cancelar"
-                      onClick={() => setModoEdicao(false)}
-                      disabled={atualizando}
-                    >
-                      Cancelar
-                    </button>
-                    <button type="submit" className="cli-btn-salvar" disabled={atualizando}>
-                      {atualizando
-                        ? <><span className="cli-spinner" /> Salvando...</>
-                        : '✓ Salvar alterações'}
+                  ))}
+                  <div className="col-span-2 flex justify-end gap-md pt-sm">
+                    <button type="button" onClick={() => setModoEdicao(false)} className="px-lg py-sm border border-outline-variant rounded-lg text-label-md font-semibold hover:bg-surface-container transition-all">Cancelar</button>
+                    <button type="submit" disabled={atualizando} className="px-xl py-sm bg-primary text-on-primary text-label-md font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50">
+                      {atualizando ? 'Salvando...' : 'Salvar'}
                     </button>
                   </div>
                 </form>
-              </div>
-            )}
+              )}
+            </div>
 
             {!modoEdicao && (
-              <div className="cli-modal-footer">
-                <button className="cli-modal-btn-fechar" onClick={fecharModal}>Fechar</button>
+              <div className="p-lg border-t border-outline-variant flex justify-between">
+                <button onClick={() => { setFormEdicao({ nome_cliente: clienteModal.nome_cliente ?? '', cpf_cnpj: clienteModal.cpf_cnpj ?? '', email: clienteModal.email ?? '', telefone: clienteModal.telefone ?? '', cep: clienteModal.cep ?? '', tipo: clienteModal.tipo ?? 'PESSOA_FISICA' }); setModoEdicao(true); }} className="flex items-center gap-xs px-lg py-sm bg-surface-container border border-outline-variant rounded-lg text-label-md font-semibold hover:bg-surface-container-high transition-all">
+                  <span className="material-symbols-outlined text-sm">edit</span> Editar
+                </button>
+                <button onClick={() => { setClienteModal(null); setModoEdicao(false); }} className="px-lg py-sm border border-outline-variant rounded-lg text-label-md font-semibold hover:bg-surface-container transition-all">
+                  Fechar
+                </button>
               </div>
             )}
           </div>

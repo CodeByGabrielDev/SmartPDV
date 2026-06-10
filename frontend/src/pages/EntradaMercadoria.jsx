@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { entradaMercadoriaService } from '../api/entradaMercadoriaService';
 import { showAlert } from '../components/Alert';
 
+const fmtDT = dt => { if (!dt) return '—'; try { return new Date(dt).toLocaleString('pt-BR'); } catch { return dt; } };
+
 export default function EntradaMercadoria() {
   const [notas, setNotas] = useState([]);
   const [obs, setObs] = useState('');
@@ -9,31 +11,13 @@ export default function EntradaMercadoria() {
   const [loading, setLoading] = useState(true);
   const [confirmando, setConfirmando] = useState(false);
 
-  useEffect(() => {
-    carregarNotas();
-  }, []);
+  useEffect(() => { carregar(); }, []);
 
-  const carregarNotas = async () => {
+  const carregar = async () => {
     setLoading(true);
-    try {
-      const notasTransito = await entradaMercadoriaService.listarNotasTransito();
-      setNotas(notasTransito);
-    } catch (error) {
-      const msg = error.displayMessage || error.message || 'Erro ao carregar notas';
-      showAlert(msg, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const abrirConfirmacao = (nota) => {
-    setNotaSelecionada(nota);
-    setObs('');
-  };
-
-  const cancelarConfirmacao = () => {
-    setNotaSelecionada(null);
-    setObs('');
+    try { setNotas((await entradaMercadoriaService.listarNotasTransito()) || []); }
+    catch (err) { showAlert(err.displayMessage || err.message || 'Erro ao carregar notas', 'error'); }
+    finally { setLoading(false); }
   };
 
   const realizarEntrada = async () => {
@@ -41,142 +25,140 @@ export default function EntradaMercadoria() {
     setConfirmando(true);
     try {
       await entradaMercadoriaService.entradaDeMercadoria(notaSelecionada.id, obs);
-      showAlert('Entrada de mercadoria realizada com sucesso!', 'success');
-      setNotaSelecionada(null);
-      setObs('');
-      carregarNotas();
-    } catch (error) {
-      const msg = error.displayMessage || error.message || 'Erro ao realizar entrada';
-      showAlert(msg, 'error');
-    } finally {
-      setConfirmando(false);
-    }
-  };
-
-  const formatarData = (dataStr) => {
-    if (!dataStr) return '—';
-    const data = new Date(dataStr);
-    return data.toLocaleString('pt-BR');
+      showAlert('Entrada de mercadoria realizada!', 'success');
+      setNotaSelecionada(null); setObs(''); carregar();
+    } catch (err) { showAlert(err.displayMessage || err.message || 'Erro ao realizar entrada', 'error'); }
+    finally { setConfirmando(false); }
   };
 
   return (
-    <div className="page-container">
-      <h1>📦 Entrada de Mercadoria</h1>
-      <p style={{ color: 'var(--text-secondary, #666)', marginBottom: '1.5rem' }}>
-        Notas fiscais de transferência pendentes de recebimento para sua loja.
-      </p>
+    <>
+      <div className="p-xl space-y-xl max-w-7xl mx-auto w-full">
+        {/* Empty state */}
+        {!loading && notas.length === 0 && (
+          <div className="bg-surface border border-outline-variant rounded-2xl p-2xl flex flex-col items-center text-center gap-lg">
+            <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center">
+              <span className="material-symbols-outlined text-4xl text-on-surface-variant opacity-40">inventory_2</span>
+            </div>
+            <div>
+              <h2 className="text-headline-md font-semibold text-on-surface">Nenhuma nota pendente</h2>
+              <p className="text-body-md text-on-surface-variant mt-xs">Não há notas fiscais de transferência aguardando recebimento.</p>
+            </div>
+          </div>
+        )}
 
-      {loading ? (
-        <p>Carregando notas em trânsito...</p>
-      ) : notas.length === 0 ? (
-        <div className="empty-state" style={{
-          textAlign: 'center',
-          padding: '3rem',
-          border: '2px dashed var(--border-color, #ddd)',
-          borderRadius: '8px',
-          color: 'var(--text-secondary, #888)'
-        }}>
-          <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</p>
-          <p>Nenhuma nota fiscal pendente de entrada para sua loja.</p>
-        </div>
-      ) : (
-        <table className="notas-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th>Nº Nota</th>
-              <th>Loja Origem</th>
-              <th>Loja Destino</th>
-              <th>Data de Envio</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {notas.map((nota) => (
-              <tr key={nota.id}>
-                <td><strong>#{nota.numero_Nota}</strong></td>
-                <td>{nota.loja_Origem_Nome}</td>
-                <td>{nota.loja_Destino_Nome}</td>
-                <td>{formatarData(nota.data_Envio)}</td>
-                <td>
-                  <button
-                    className="btn-primary"
-                    onClick={() => abrirConfirmacao(nota)}
-                  >
-                    Confirmar Entrada
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-2xl">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
 
-      {/* Modal de confirmação */}
+        {/* Notes table */}
+        {!loading && notas.length > 0 && (
+          <div className="glass-card border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-xl py-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+              <div className="flex items-center gap-sm">
+                <h2 className="text-headline-md font-semibold text-on-surface">Notas em Trânsito</h2>
+                <span className="px-sm py-xs rounded-full bg-amber-100 text-amber-700 text-label-md font-bold border border-amber-200">
+                  {notas.length} pendente{notas.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <button onClick={carregar} className="p-sm hover:bg-surface-variant rounded-lg transition-colors text-on-surface-variant">
+                <span className="material-symbols-outlined">refresh</span>
+              </button>
+            </div>
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container-low border-b border-outline-variant">
+                    {['Nº Nota', 'Loja Origem', 'Loja Destino', 'Data de Envio', 'Ação'].map(h => (
+                      <th key={h} className="px-md py-lg text-[14px] font-bold text-on-surface-variant tracking-wider uppercase">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/30">
+                  {notas.map(nota => (
+                    <tr key={nota.id} className="hover:bg-primary/5 transition-colors">
+                      <td className="px-md py-md">
+                        <span className="font-geist-mono text-label-md font-semibold text-on-surface">#{nota.numero_Nota}</span>
+                      </td>
+                      <td className="px-md py-md text-body-sm text-on-surface">{nota.loja_Origem_Nome}</td>
+                      <td className="px-md py-md text-body-sm text-on-surface">{nota.loja_Destino_Nome}</td>
+                      <td className="px-md py-md text-body-sm text-on-surface-variant">{fmtDT(nota.data_Envio)}</td>
+                      <td className="px-md py-md">
+                        <button
+                          onClick={() => { setNotaSelecionada(nota); setObs(''); }}
+                          className="flex items-center gap-xs px-md py-sm bg-primary text-on-primary rounded-lg text-label-md font-bold hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">check_circle</span>
+                          Confirmar Entrada
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Confirmation modal */}
       {notaSelecionada && (
-        <div style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--card-bg, #fff)',
-            borderRadius: '12px',
-            padding: '2rem',
-            width: '100%',
-            maxWidth: '480px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-          }}>
-            <h2 style={{ marginBottom: '1rem' }}>Confirmar Entrada de Mercadoria</h2>
-
-            <div style={{
-              background: 'var(--bg-secondary, #f5f5f5)',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1.5rem'
-            }}>
-              <p><strong>Nota Fiscal:</strong> #{notaSelecionada.numero_Nota}</p>
-              <p><strong>Origem:</strong> {notaSelecionada.loja_Origem_Nome}</p>
-              <p><strong>Destino:</strong> {notaSelecionada.loja_Destino_Nome}</p>
-              <p><strong>Data de Envio:</strong> {formatarData(notaSelecionada.data_Envio)}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-md" onClick={() => !confirmando && setNotaSelecionada(null)}>
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md border border-outline-variant overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-md p-lg border-b border-outline-variant">
+              <div className="w-10 h-10 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center">
+                <span className="material-symbols-outlined">inventory_2</span>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-headline-md font-semibold">Confirmar Entrada</h2>
+                <p className="text-body-sm text-on-surface-variant">Nota Fiscal #{notaSelecionada.numero_Nota}</p>
+              </div>
+              <button onClick={() => !confirmando && setNotaSelecionada(null)} className="p-sm hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label>Observação (opcional):</label>
-              <input
-                type="text"
-                value={obs}
-                onChange={(e) => setObs(e.target.value)}
-                placeholder="Ex: Mercadoria recebida sem avarias"
-                style={{ width: '100%' }}
-              />
+            <div className="p-lg space-y-md">
+              <div className="grid grid-cols-2 gap-md">
+                {[
+                  ['Origem', notaSelecionada.loja_Origem_Nome],
+                  ['Destino', notaSelecionada.loja_Destino_Nome],
+                  ['Data de Envio', fmtDT(notaSelecionada.data_Envio)],
+                ].map(([l, v]) => (
+                  <div key={l} className="p-sm bg-surface-container-low rounded-lg border border-outline-variant/30">
+                    <span className="text-[12px] font-bold text-on-surface-variant block mb-xs">{l}</span>
+                    <span className="text-body-sm font-semibold">{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-xs">
+                <label className="text-label-md font-semibold text-on-surface-variant">Observação (opcional)</label>
+                <input
+                  type="text"
+                  value={obs}
+                  onChange={e => setObs(e.target.value)}
+                  placeholder="Ex: Mercadoria recebida sem avarias"
+                  className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg text-body-md focus:border-primary input-focus-ring transition-all outline-none"
+                />
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button
-                onClick={cancelarConfirmacao}
-                disabled={confirmando}
-                style={{
-                  padding: '0.6rem 1.2rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-color, #ccc)',
-                  background: 'transparent',
-                  cursor: 'pointer'
-                }}
-              >
+            <div className="p-lg border-t border-outline-variant flex gap-md">
+              <button onClick={() => setNotaSelecionada(null)} disabled={confirmando} className="flex-1 py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all">
                 Cancelar
               </button>
-              <button
-                className="btn-primary"
-                onClick={realizarEntrada}
-                disabled={confirmando}
-              >
-                {confirmando ? 'Confirmando...' : '✅ Confirmar Entrada'}
+              <button onClick={realizarEntrada} disabled={confirmando} className="flex-1 py-sm bg-primary text-on-primary rounded-xl text-label-md font-bold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-sm">
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                {confirmando ? 'Confirmando...' : 'Confirmar Entrada'}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

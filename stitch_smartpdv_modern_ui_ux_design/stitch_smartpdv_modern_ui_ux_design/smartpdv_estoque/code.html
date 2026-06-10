@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartPDV - Gestão de Estoque</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .stock-progress-bar {
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #f8f9ff;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "on-tertiary-fixed-variant": "#2f2ebe",
+                "on-primary-fixed": "#0f0069",
+                "on-error-container": "#93000a",
+                "on-secondary-fixed-variant": "#3f465c",
+                "surface-container-highest": "#d3e4fe",
+                "on-tertiary-fixed": "#07006c",
+                "on-tertiary": "#ffffff",
+                "primary-container": "#4f46e5",
+                "on-secondary": "#ffffff",
+                "primary-fixed": "#e2dfff",
+                "inverse-surface": "#213145",
+                "on-primary-container": "#dad7ff",
+                "on-secondary-container": "#5c647a",
+                "tertiary-container": "#4b4dd8",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-high": "#dce9ff",
+                "on-error": "#ffffff",
+                "outline": "#777587",
+                "on-primary-fixed-variant": "#3323cc",
+                "outline-variant": "#c7c4d8",
+                "background": "#f8f9ff",
+                "on-surface": "#0b1c30",
+                "surface-bright": "#f8f9ff",
+                "surface-dim": "#cbdbf5",
+                "primary-fixed-dim": "#c3c0ff",
+                "tertiary-fixed-dim": "#c0c1ff",
+                "secondary": "#565e74",
+                "secondary-container": "#dae2fd",
+                "error": "#ba1a1a",
+                "inverse-primary": "#c3c0ff",
+                "secondary-fixed": "#dae2fd",
+                "secondary-fixed-dim": "#bec6e0",
+                "tertiary": "#3130c0",
+                "tertiary-fixed": "#e1e0ff",
+                "surface-container": "#e5eeff",
+                "surface": "#f8f9ff",
+                "error-container": "#ffdad6",
+                "surface-tint": "#4d44e3",
+                "on-surface-variant": "#464555",
+                "on-tertiary-container": "#d9d8ff",
+                "primary": "#3525cd",
+                "on-secondary-fixed": "#131b2e",
+                "inverse-on-surface": "#eaf1ff",
+                "on-primary": "#ffffff",
+                "surface-variant": "#d3e4fe",
+                "surface-container-low": "#eff4ff",
+                "on-background": "#0b1c30"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+              },
+              "spacing": {
+                "lg": "24px",
+                "xs": "4px",
+                "base": "4px",
+                "sm": "8px",
+                "2xl": "48px",
+                "margin-mobile": "16px",
+                "md": "16px",
+                "gutter": "20px",
+                "margin-desktop": "32px",
+                "xl": "32px"
+              },
+              "fontFamily": {
+                "headline-lg": ["Geist"],
+                "headline-md": ["Geist"],
+                "body-md": ["Geist"],
+                "label-md": ["Geist"],
+                "mono-label": ["Geist Mono"]
+              },
+              "fontSize": {
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                "mono-label": ["13px", {"lineHeight": "16px", "fontWeight": "500"}]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="flex min-h-screen overflow-x-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 bottom-0 flex flex-col border-r border-outline-variant dark:border-outline bg-surface dark:bg-surface-container-low w-64 z-50 transition-all duration-300">
+<div class="p-md">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">SmartPDV</h1>
+<p class="text-body-sm text-on-surface-variant">Venda &amp; Gestão</p>
+</div>
+<nav class="flex-1 px-sm space-y-xs">
+<!-- Nav item for Dashboard -->
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Nav item for PDV/Venda -->
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-md text-label-md">PDV/Venda</span>
+</a>
+<!-- Active Nav item: Estoque -->
+<a class="flex items-center gap-sm bg-primary-container text-on-primary-container rounded-lg px-md py-sm scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="warehouse">warehouse</span>
+<span class="font-label-md text-label-md">Estoque</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Produtos</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-md text-label-md">Impostos</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface hover:bg-secondary-container/50 px-md py-sm rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Configurações</span>
+</a>
+</nav>
+<div class="mt-auto p-md border-t border-outline-variant">
+<button class="flex items-center gap-sm text-on-surface-variant hover:text-error transition-colors px-md py-sm w-full cursor-pointer">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-w-0">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 z-40 flex justify-between items-center h-16 px-md w-[calc(100%-16rem)] bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-md text-headline-md font-black text-primary">Gestão de Estoque</h2>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+<div class="flex items-center gap-sm pl-sm border-l border-outline-variant">
+<img alt="Avatar do usuário" class="w-8 h-8 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXypBfdQ77VavjzEHGObT3mTU9kzMgmvxf6AzWuG9avXgzkSY05VlIG7To6aTOnGhQPUwWv60CbAnsLKnTApoq_IxJEqXHVMyJesNuo_hh63715gL7cvnDDaGPZ544K7uIOTeF7ft6AGeIfAkKGfCobp2uI9-WOLDaF4_lWmS9Qzd7QXXUsHuRSGhp7nkEa9dW4zWS5p0LCQHn9BFq43sJAhxn1FBgqlpV0OaFGqjPuu1sJbuNl_GdS1ONQBNHSi-m34biRyG0TZyg"/>
+<span class="font-label-md text-label-md text-on-surface hidden md:inline">Admin User</span>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<section class="mt-16 p-xl space-y-xl max-w-7xl mx-auto w-full">
+<!-- Metric Cards (Bento style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="glass-card rounded-xl p-lg flex flex-col gap-xs hover:shadow-lg transition-shadow">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
+</span>
+<span class="text-on-surface-variant font-mono-label">MENSAL</span>
+</div>
+<span class="font-headline-lg text-headline-lg text-on-surface">1.240</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Total de Produtos</span>
+</div>
+<div class="glass-card rounded-xl p-lg flex flex-col gap-xs hover:shadow-lg transition-shadow">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="warehouse">warehouse</span>
+</span>
+<span class="text-on-surface-variant font-mono-label">UNIDADES</span>
+</div>
+<span class="font-headline-lg text-headline-lg text-on-surface">8.452</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Estoque Total</span>
+</div>
+<div class="glass-card rounded-xl p-lg flex flex-col gap-xs border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-yellow-50 text-yellow-700 rounded-lg">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+</span>
+<span class="text-yellow-600 font-mono-label">AVISO</span>
+</div>
+<span class="font-headline-lg text-headline-lg text-yellow-700">42</span>
+<span class="font-label-md text-label-md text-yellow-600">Estoque Baixo</span>
+</div>
+<div class="glass-card rounded-xl p-lg flex flex-col gap-xs border-l-4 border-error hover:shadow-lg transition-shadow animate-pulse">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-error-container text-error rounded-lg">
+<span class="material-symbols-outlined" data-icon="error">error</span>
+</span>
+<span class="text-error font-mono-label">URGENTE</span>
+</div>
+<span class="font-headline-lg text-headline-lg text-error">12</span>
+<span class="font-label-md text-label-md text-error">Estoque Crítico</span>
+</div>
+</div>
+<!-- Filters & Actions -->
+<div class="flex flex-col md:flex-row gap-lg justify-between items-start md:items-center">
+<div class="flex flex-wrap gap-sm items-center">
+<div class="relative w-full md:w-80 group">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="w-full bg-white border border-outline-variant rounded-xl pl-12 pr-md py-sm font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Buscar produto por nome ou SKU..." type="text"/>
+</div>
+<div class="h-8 w-px bg-outline-variant mx-sm hidden md:block"></div>
+<button class="px-md py-sm rounded-full bg-error/10 text-error font-label-md border border-error/20 hover:bg-error/20 transition-colors">Crítico</button>
+<button class="px-md py-sm rounded-full bg-yellow-500/10 text-yellow-700 font-label-md border border-yellow-500/20 hover:bg-yellow-500/20 transition-colors">Baixo</button>
+<button class="px-md py-sm rounded-full bg-primary-container/10 text-primary font-label-md border border-primary/20 hover:bg-primary/20 transition-colors">Normal</button>
+<button class="px-md py-sm rounded-full bg-secondary-container/50 text-secondary font-label-md border border-outline-variant hover:bg-secondary-container transition-colors">Todos</button>
+</div>
+<div class="flex items-center gap-sm bg-surface-container-low p-1 rounded-xl border border-outline-variant">
+<button class="p-sm rounded-lg bg-white shadow-sm text-primary" title="Ver como Grade">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+<button class="p-sm rounded-lg text-on-surface-variant hover:bg-white transition-all" title="Ver como Tabela">
+<span class="material-symbols-outlined" data-icon="format_list_bulleted">format_list_bulleted</span>
+</button>
+</div>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Product Card: Critical -->
+<div class="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A professional studio product photography of a vibrant red performance running shoe. The lighting is high-end and dramatic, featuring soft key lights and subtle rim lighting to highlight the fabric texture. The background is a clean, minimalist off-white gradient that matches a modern light-mode retail UI. The overall mood is premium, athletic, and energetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCS-VKkiRumjFT_j0jHiVyImiiyRIwf_rL9cDBZwEpX54H-6yOB1x6j_idBxGKHP89WdLkTQDs8KlKQV4aIEajc8CU3S_XxQ-HGMMvDLOtvfpA9YutDw0Gen7UWTh5rS4RBHfFcPqZ9mJeQB2jQDBAEvYkhuOWu700t4li0hf4r726nMyT3qxXjnaUdgS3W8_KQ4OgpQV2zLN4N211CWhPPHojj1CWBeqBsgTFG_xIA3BWi4L1wcX8ulUSaViN3E_p_vIMAy4MuIXGu"/>
+<div class="absolute top-md right-md">
+<span class="bg-error text-white text-[10px] font-bold px-sm py-xs rounded-full uppercase tracking-widest shadow-lg">Estoque Crítico</span>
+</div>
+</div>
+<div class="p-md space-y-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Tênis Performance Ultra Red</h3>
+<p class="text-[12px] text-on-surface-variant font-mono-label">SKU: SHO-ULT-001</p>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-end">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quantidade: <strong class="text-error">2/50</strong></span>
+<span class="font-mono-label text-[12px] text-error">4%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="stock-progress-bar h-full bg-error" style="width: 4%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-xs">
+<span class="font-headline-md text-headline-md text-primary">R$ 459,90</span>
+<button class="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card: Low -->
+<div class="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A minimalist high-tech minimalist white watch against a clean, light gray background. The photograph uses soft, diffused natural light that emphasizes the smooth curves and premium materials of the product. The style is ultra-modern and corporate, aligning perfectly with a high-end management dashboard aesthetic. The mood is sophisticated and reliable." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJNCaF2rOvMWFRt4nfG9Bb-ih3LkVgPy9XLnIuq89A4exKbID5Qlfp3Gha1WTMs0k1A2PHLD0ZvVIIBDQYEXBNj92WNRrn05qL9YbXzAA6_9Db3NOERPGXnWwfDbS1Q1Cyw9Dz_48S_I3QVu9oAoMqxSrWCRVgVKzZx_wsp38rrRNkPfyaSgoqgz7-2mexb0GLAZqQrAXIDDFdhFs9fO9pCSn0BWkQJ7yl4vLJ7exp4fGPv85sOVo4NgXVLQDM-cLG5WiFPP36fas6"/>
+<div class="absolute top-md right-md">
+<span class="bg-yellow-500 text-white text-[10px] font-bold px-sm py-xs rounded-full uppercase tracking-widest shadow-lg">Estoque Baixo</span>
+</div>
+</div>
+<div class="p-md space-y-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Smartwatch Minimalist v2</h3>
+<p class="text-[12px] text-on-surface-variant font-mono-label">SKU: WAT-MIN-042</p>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-end">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quantidade: <strong class="text-yellow-600">12/60</strong></span>
+<span class="font-mono-label text-[12px] text-yellow-600">20%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="stock-progress-bar h-full bg-yellow-500" style="width: 20%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-xs">
+<span class="font-headline-md text-headline-md text-primary">R$ 890,00</span>
+<button class="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card: Normal -->
+<div class="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Professional commercial photography of sleek black noise-cancelling headphones resting on a minimalist desk. The scene is illuminated by cool-toned studio lighting that creates sharp, elegant reflections on the metallic surfaces. The color palette is dominated by deep blacks and cool slates, suggesting professional grade equipment for a modern tech workplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIAdLeOaMhz8MaLcfv3b2oUJNIZldRdncSEfKLX1j3OYh8xNIVgeoe1aFFOy2AWYolYzNXXmUnZpgplkGjN-VbAeaq0nUwcGLQUFN5Qsb2RQfO2dTpuZ6osXEtzqYQ2XjHtjlHtt4ZTGzV1MX2AFMGmxJxfNs1EnRFBsl-rfmUTssNr8wjCI0QO7P4BfKzMgtSBr8QN2DLKAa3JZWb-pjScmyTwawWTtRcY1jLaAYdxXTThTZcmasnDvSGg4tkk52L4pkLt-oith6P"/>
+</div>
+<div class="p-md space-y-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Headphone Noise Cancelling PRO</h3>
+<p class="text-[12px] text-on-surface-variant font-mono-label">SKU: AUD-PRO-900</p>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-end">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quantidade: <strong class="text-emerald-600">85/100</strong></span>
+<span class="font-mono-label text-[12px] text-emerald-600">85%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="stock-progress-bar h-full bg-emerald-500" style="width: 85%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-xs">
+<span class="font-headline-md text-headline-md text-primary">R$ 1.249,00</span>
+<button class="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card: High -->
+<div class="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Close up detail of a vintage-style polaroid camera with a pastel color scheme. The lighting is warm and golden, creating a nostalgic yet clean aesthetic typical of modern lifestyle branding. The image is captured with a shallow depth of field, making the camera pop against a soft, creamy background. The style is artistic and high-clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_-uP97vxmsKGq1K0oKG3o0eXjYUXgp_PRWtKUsIYckUVV45_RxRWve8x4Yx1cOmbUD2aS5QcYF7s8HULkKUMRoE9iq18-WhtzclPIXiF-L8yWa3GDs0XFYw4strcDEs4BdzScwpDYZOh17DssufFag-82JRRGs2LqufybE8Gkf067H8shcoeC_VqThyPcHz9_6LsAfG_m-hu0MwRgy7h2gmzsjNc6o_kg0VjJgaT8nk72fmHBCeTRaF1AJFAJ5kTudlKI0xhexUDB"/>
+</div>
+<div class="p-md space-y-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Câmera Retro Instantânea</h3>
+<p class="text-[12px] text-on-surface-variant font-mono-label">SKU: CAM-RET-055</p>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-end">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quantidade: <strong class="text-emerald-600">120/120</strong></span>
+<span class="font-mono-label text-[12px] text-emerald-600">100%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="stock-progress-bar h-full bg-emerald-500" style="width: 100%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-xs">
+<span class="font-headline-md text-headline-md text-primary">R$ 320,00</span>
+<button class="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Repeat some cards to fill the grid -->
+<!-- Card 5 -->
+<div class="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A modern, high-quality audio speaker featuring a mesh texture and brushed aluminum accents. The lighting is crisp and highlights the premium materials. The overall aesthetic is minimalist and high-tech, fitting for a modern business software presentation. Set against a soft blue-tinted light mode background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAimrtCyD82KcMxlsMZDu_8kgsckfPmRSuo_YGXfJU9TNSMCl1-saFAPU65eaJ1eCpseZcHJzvltUtKf-bsfbFWKAgp-Mjw8OZUS5ZSsf5r3sLJFzBpOmf5fHkZBaCEfz79nk535LDkT8FBBoa4LGcNAq3Be0QAZ0bb8bZKsVTiBsIvOLMrAxWhx8rbYEh52XrPVmPOaLHmBzjlnKYzVgOAiETxwW6gMQPGht34cQovGQD8wd3WQhj0CPigDx50aWbK-H0iaP78QRCh"/>
+<div class="absolute top-md right-md">
+<span class="bg-error text-white text-[10px] font-bold px-sm py-xs rounded-full uppercase tracking-widest shadow-lg">Estoque Crítico</span>
+</div>
+</div>
+<div class="p-md space-y-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Speaker Wireless Premium X</h3>
+<p class="text-[12px] text-on-surface-variant font-mono-label">SKU: AUD-SPK-777</p>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-end">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quantidade: <strong class="text-error">1/40</strong></span>
+<span class="font-mono-label text-[12px] text-error">2.5%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="stock-progress-bar h-full bg-error" style="width: 2.5%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-xs">
+<span class="font-headline-md text-headline-md text-primary">R$ 2.199,00</span>
+<button class="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer (Shared Component) -->
+<footer class="w-full py-md px-xl flex justify-between items-center bg-background border-t border-outline-variant mt-auto">
+<span class="font-label-md text-label-md text-secondary">v1.0.0 © SmartPDV - Todos os direitos reservados</span>
+<div class="flex gap-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Suporte</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Documentação</a>
+</div>
+</footer>
+</main>
+<!-- FAB (Contextual for Inventory) -->
+<button class="fixed bottom-lg right-lg w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="absolute right-16 bg-on-surface text-white px-md py-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap text-label-md">Novo Produto</span>
+</button>
+<script>
+        // Simple Micro-interaction: Active state for filters
+        const filterButtons = document.querySelectorAll('.flex.flex-wrap.gap-sm button');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    if (b.classList.contains('bg-primary-container')) {
+                        b.className = b.className.replace('bg-primary-container/10 text-primary', 'bg-secondary-container/50 text-secondary border-outline-variant');
+                    }
+                });
+                // Note: Simplified logic for demo
+                btn.classList.add('ring-2', 'ring-primary/20');
+                setTimeout(() => btn.classList.remove('ring-2'), 400);
+            });
+        });
+
+        // Initialize progress bars with animation
+        window.addEventListener('load', () => {
+            const bars = document.querySelectorAll('.stock-progress-bar');
+            bars.forEach(bar => {
+                const targetWidth = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = targetWidth;
+                }, 300);
+            });
+        });
+    </script>
+</body></html>

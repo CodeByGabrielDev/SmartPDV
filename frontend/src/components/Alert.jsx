@@ -1,104 +1,46 @@
-import { useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 
-export function Alert({ message, type = 'error', onClose, duration = 5000 }) {
-  useEffect(() => {
-    if (duration > 0) {
-      const timer = setTimeout(onClose, duration);
-      return () => clearTimeout(timer);
-    }
-  }, [duration, onClose]);
-
-  const icons = {
-    error: '⚠️',
-    success: '✅',
-    warning: '⚡',
-    info: 'ℹ️'
+function AlertComponent({ message, type, onClose }) {
+  const colors = {
+    success: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    error:   'bg-error-container text-on-error-container border-error',
+    info:    'bg-surface-container text-on-surface border-outline-variant',
+    warning: 'bg-amber-100 text-amber-800 border-amber-300',
   };
-
-  const typeLabels = {
-    error: 'Erro',
-    success: 'Sucesso',
-    warning: 'Atenção',
-    info: 'Info'
+  const icons = {
+    success: 'check_circle',
+    error:   'error',
+    info:    'info',
+    warning: 'warning',
   };
 
   return (
-    <div className={`alert alert-${type}`}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ fontSize: '24px' }}>{icons[type]}</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: type === 'error' ? '600' : '500', fontSize: '14px' }}>
-            {typeLabels[type]}
-          </div>
-          <div style={{ fontSize: '14px', marginTop: '4px', color: 'var(--text-light)' }}>
-            {message}
-          </div>
-        </div>
-        <button 
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '20px',
-            cursor: 'pointer',
-            color: 'var(--text-light)',
-            padding: '4px'
-          }}
-        >
-          ×
-        </button>
-      </div>
+    <div
+      className={`fixed top-4 right-4 z-[9999] flex items-center gap-sm px-lg py-md rounded-xl border shadow-lg max-w-sm ${colors[type] || colors.info}`}
+      style={{ animation: 'slideIn 0.3s ease-out' }}
+    >
+      <span className="material-symbols-outlined">{icons[type] || icons.info}</span>
+      <p className="text-label-md flex-1">{message}</p>
+      <button
+        onClick={onClose}
+        className="ml-sm hover:opacity-70 transition-opacity"
+      >
+        <span className="material-symbols-outlined text-sm">close</span>
+      </button>
     </div>
   );
 }
 
-export function showAlert(message, type = 'error', duration = 5000) {
-  const container = document.getElementById('alert-container') || createAlertContainer();
-  const alertId = Date.now();
-  const alertDiv = document.createElement('div');
-  alertDiv.id = `alert-${alertId}`;
-  alertDiv.className = `alert alert-${type}`;
-  alertDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--card-bg);
-    border-left: 4px solid var(--${type});
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 16px 20px;
-    max-width: 400px;
-    z-index: 9999;
-    animation: slideIn 0.3s ease;
-    font-family: system-ui, -apple-system, sans-serif;
-    color: var(--text);
-  `;
-  
-  const icon = type === 'error' ? '⚠️' : type === 'success' ? '✅' : type === 'warning' ? '⚡' : 'ℹ️';
-  const title = type === 'error' ? 'Erro' : type === 'success' ? 'Sucesso' : type === 'warning' ? 'Atenção' : 'Info';
-  
-  alertDiv.innerHTML = `
-    <style>@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }</style>
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <span style="font-size: 24px;">${icon}</span>
-      <div style="flex: 1;">
-        <div style="font-weight: ${type === 'error' ? '600' : '500'}; font-size: 14px;">${title}</div>
-        <div style="color: var(--text-light); font-size: 14px; margin-top: 4px;">${message}</div>
-      </div>
-      <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-light); padding: 4px;">×</button>
-    </div>
-  `;
-  
-  container.appendChild(alertDiv);
-
-  if (duration > 0) {
-    setTimeout(() => alertDiv.remove(), duration);
-  }
-}
-
-function createAlertContainer() {
+export function showAlert(message, type = 'info') {
   const container = document.createElement('div');
-  container.id = 'alert-container';
   document.body.appendChild(container);
-  return container;
+  const root = createRoot(container);
+
+  const close = () => {
+    root.unmount();
+    document.body.removeChild(container);
+  };
+
+  root.render(<AlertComponent message={message} type={type} onClose={close} />);
+  setTimeout(close, 4000);
 }

@@ -5,7 +5,6 @@ import { lojaService } from '../api/lojaService';
 import { showAlert } from '../components/Alert';
 
 const CFOPS_TRANSFERENCIA = [5152, 6152];
-
 const CFOPS_COMUNS = [
   { value: 5101, label: '5101 — Venda de produção do estabelecimento' },
   { value: 5102, label: '5102 — Venda de mercadoria adquirida' },
@@ -14,87 +13,66 @@ const CFOPS_COMUNS = [
   { value: 6102, label: '6102 — Venda de mercadoria (interestadual)' },
   { value: 6152, label: '6152 — Transferência de mercadoria (interestadual)' },
 ];
-
-const FORM_INICIAL = {
-  cfop: 5102,
-  serieNfe: 1,
-  cpfCliente: '',
-  idLoja: null,
-};
-
+const FORM_INICIAL = { cfop: 5102, serieNfe: 1, cpfCliente: '', idLoja: null };
 const ITEM_INICIAL = { codigo_barra: '', quantidade_Itens: 1, desconto: 0 };
 
+function statusBadge(status) {
+  const s = status?.toLowerCase() || 'pendente';
+  const map = {
+    autorizada:  'bg-emerald-100 text-emerald-700 border-emerald-200',
+    pendente:    'bg-amber-100 text-amber-700 border-amber-200',
+    cancelada:   'bg-red-100 text-red-700 border-red-200',
+    rejeitada:   'bg-red-100 text-red-700 border-red-200',
+  };
+  return map[s] || 'bg-surface-container text-on-surface-variant border-outline-variant';
+}
+
+const inputCls = 'w-full px-md py-sm bg-surface border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all';
+
 export default function NotaFiscal() {
-  const [aba, setAba]                   = useState('historico');
-  const [modalAberto, setModalAberto]   = useState(false);
-  const [etapa, setEtapa]               = useState(1); // 1 = dados, 2 = itens
-
-  // Modal de detalhes
+  const [aba, setAba] = useState('historico');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [etapa, setEtapa] = useState(1);
   const [notaDetalhes, setNotaDetalhes] = useState(null);
-  const [abaDetalhes, setAbaDetalhes]   = useState('resumo');
-
-  // Formulário
-  const [form, setForm]                 = useState(FORM_INICIAL);
-  const [itemForm, setItemForm]         = useState(ITEM_INICIAL);
-  const [itens, setItens]               = useState([]);
-  const [emitindo, setEmitindo]         = useState(false);
-
-  // Lojas
-  const [lojas, setLojas]               = useState([]);
+  const [abaDetalhes, setAbaDetalhes] = useState('resumo');
+  const [form, setForm] = useState(FORM_INICIAL);
+  const [itemForm, setItemForm] = useState(ITEM_INICIAL);
+  const [itens, setItens] = useState([]);
+  const [emitindo, setEmitindo] = useState(false);
+  const [lojas, setLojas] = useState([]);
   const [lojaSelecionada, setLojaSelecionada] = useState(null);
-  const [buscaLoja, setBuscaLoja]       = useState('');
+  const [buscaLoja, setBuscaLoja] = useState('');
   const [carregandoLojas, setCarregandoLojas] = useState(false);
-
-  // Histórico
-  const [notas, setNotas]               = useState([]);
+  const [notas, setNotas] = useState([]);
   const [carregandoNotas, setCarregandoNotas] = useState(false);
+  const [buscaHistorico, setBuscaHistorico] = useState('');
 
   const ehTransferencia = CFOPS_TRANSFERENCIA.includes(Number(form.cfop));
 
-  useEffect(() => {
-    if (aba === 'historico') carregarNotas();
-  }, [aba]);
-
+  useEffect(() => { if (aba === 'historico') carregarNotas(); }, [aba]);
   useEffect(() => {
     if (ehTransferencia && lojas.length === 0) carregarLojas();
-    // Limpa campos ao trocar tipo
     setLojaSelecionada(null);
-    setForm((f) => ({ ...f, cpfCliente: '', idLoja: null }));
+    setForm(f => ({ ...f, cpfCliente: '', idLoja: null }));
   }, [form.cfop]);
 
   const carregarNotas = async () => {
     setCarregandoNotas(true);
-    try {
-      const data = await notaFiscalService.listarNotas();
-      setNotas(data || []);
-    } catch (err) {
-      showAlert(err.displayMessage || 'Erro ao carregar notas', 'error');
-    } finally {
-      setCarregandoNotas(false);
-    }
+    try { setNotas((await notaFiscalService.listarNotas()) || []); }
+    catch (err) { showAlert(err.displayMessage || 'Erro ao carregar notas', 'error'); }
+    finally { setCarregandoNotas(false); }
   };
 
   const carregarLojas = async () => {
     setCarregandoLojas(true);
-    try {
-      const data = await lojaService.listarLojasAtivas();
-      console.log('[DEBUG] Lojas recebidas da API:', JSON.stringify(data?.[0]));
-      setLojas(data || []);
-    } catch (err) {
-      showAlert(err.displayMessage || 'Erro ao buscar lojas', 'error');
-    } finally {
-      setCarregandoLojas(false);
-    }
-  };
-
-  const selecionarLoja = (loja) => {
-    setLojaSelecionada(loja);
-    setBuscaLoja('');
+    try { setLojas((await lojaService.listarLojasAtivas()) || []); }
+    catch (err) { showAlert(err.displayMessage || 'Erro ao buscar lojas', 'error'); }
+    finally { setCarregandoLojas(false); }
   };
 
   const adicionarItem = () => {
     if (!itemForm.codigo_barra.trim()) return;
-    setItens((prev) => [...prev, {
+    setItens(prev => [...prev, {
       codigo_barra: itemForm.codigo_barra.trim(),
       quantidade_Itens: parseInt(itemForm.quantidade_Itens) || 1,
       desconto: parseFloat(itemForm.desconto) || 0,
@@ -102,164 +80,154 @@ export default function NotaFiscal() {
     setItemForm(ITEM_INICIAL);
   };
 
-  const removerItem = (idx) => setItens((prev) => prev.filter((_, i) => i !== idx));
+  const removerItem = idx => setItens(prev => prev.filter((_, i) => i !== idx));
 
-  const podeProsseguir = ehTransferencia
-    ? lojaSelecionada !== null
-    : !!form.cpfCliente.trim();
+  const podeProsseguir = ehTransferencia ? lojaSelecionada !== null : !!form.cpfCliente.trim();
 
   const emitirNota = async () => {
-    if (itens.length === 0) {
-      showAlert('Adicione pelo menos um item', 'error');
-      return;
-    }
+    if (itens.length === 0) { showAlert('Adicione pelo menos um item', 'error'); return; }
     setEmitindo(true);
     try {
       const payload = {
         cfop: Number(form.cfop),
         serieNfe: Number(form.serieNfe),
         codigo_barra: itens,
-        ...(ehTransferencia
-          ? { id_Loja: lojaSelecionada.id }
-          : { cpf_cliente: form.cpfCliente }),
+        ...(ehTransferencia ? { id_Loja: lojaSelecionada.id } : { cpf_cliente: form.cpfCliente }),
       };
-      console.log('[DEBUG] Payload enviado:', JSON.stringify(payload));
-      console.log('[DEBUG] lojaSelecionada:', JSON.stringify(lojaSelecionada));
       const response = await notaFiscalService.emitirNotaAvulsa(payload);
       showAlert(`NF-e nº ${response.nf_numero} emitida com sucesso!`, 'success');
       fecharModal();
       if (aba === 'historico') carregarNotas();
-    } catch (err) {
-      showAlert(err.displayMessage || 'Erro ao emitir nota', 'error');
-    } finally {
-      setEmitindo(false);
-    }
+    } catch (err) { showAlert(err.displayMessage || 'Erro ao emitir nota', 'error'); }
+    finally { setEmitindo(false); }
   };
 
-  const abrirModal = () => {
-    setForm(FORM_INICIAL);
-    setItens([]);
-    setItemForm(ITEM_INICIAL);
-    setLojaSelecionada(null);
-    setEtapa(1);
-    setModalAberto(true);
-  };
+  const abrirModal = () => { setForm(FORM_INICIAL); setItens([]); setItemForm(ITEM_INICIAL); setLojaSelecionada(null); setEtapa(1); setModalAberto(true); };
+  const fecharModal = () => { setModalAberto(false); setEtapa(1); };
 
-  const fecharModal = () => {
-    setModalAberto(false);
-    setEtapa(1);
-  };
+  const fmt = v => v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
 
-  const fmt = (v) =>
-    v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
-
-  const lojasFiltradas = lojas.filter((l) =>
+  const lojasFiltradas = lojas.filter(l =>
     l.razaoSocial?.toLowerCase().includes(buscaLoja.toLowerCase()) ||
-    (l.cnpj || l.cpfCnpj || '')?.includes(buscaLoja)
+    (l.cnpj || l.cpfCnpj || '').includes(buscaLoja)
   );
+
+  const notasFiltradas = notas.filter(n => {
+    const t = buscaHistorico.toLowerCase();
+    return !t || String(n.nf_numero).includes(t) || n.cpf_Cliente?.includes(t) || n.loja?.toLowerCase().includes(t);
+  });
 
   return (
     <>
-      <div className="nf-container">
-
-        {/* ── Cabeçalho ── */}
-        <div className="nf-header">
-          <div>
-            <h1 className="nf-title">🧾 Módulo Fiscal</h1>
-            <p className="nf-subtitle">Emissão e histórico de notas fiscais</p>
+      <div className="p-xl space-y-xl max-w-7xl mx-auto w-full">
+        {/* Tabs */}
+        <div className="flex items-center gap-xl border-b border-outline-variant">
+          {[
+            { id: 'historico', icon: 'history', label: 'Histórico' },
+            { id: 'emissao',   icon: 'add_circle', label: 'Emissão' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => { setAba(t.id); if (t.id === 'emissao') abrirModal(); }}
+              className={`relative pb-md text-label-md font-semibold flex items-center gap-xs transition-colors ${aba === t.id ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+            >
+              <span className="material-symbols-outlined text-[20px]">{t.icon}</span>
+              {t.label}
+              {aba === t.id && <div className="absolute bottom-0 left-0 h-[2px] w-full bg-primary rounded-t" />}
+            </button>
+          ))}
+          <div className="ml-auto pb-md">
+            <button onClick={abrirModal} className="flex items-center gap-sm px-md py-sm bg-primary text-on-primary rounded-xl text-label-md font-bold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all">
+              <span className="material-symbols-outlined">download</span>
+              Emitir Nota Fiscal
+            </button>
           </div>
-          <button className="nf-btn-emitir" onClick={abrirModal}>
-            + Emitir Nota Fiscal
-          </button>
         </div>
 
-        {/* ── Abas ── */}
-        <div className="nf-tabs">
-          <button
-            className={`nf-tab ${aba === 'historico' ? 'active' : ''}`}
-            onClick={() => setAba('historico')}
-          >
-            📋 Histórico
-          </button>
-          <button
-            className={`nf-tab ${aba === 'emitir' ? 'active' : ''}`}
-            onClick={() => { setAba('emitir'); abrirModal(); }}
-          >
-            📝 Nova Emissão
-          </button>
-        </div>
-
-        {/* ── Histórico ── */}
+        {/* Histórico */}
         {aba === 'historico' && (
-          <div className="nf-historico">
-            {carregandoNotas ? (
-              <div className="nf-loading">
-                <div className="loading-spinner" />
-                <p>Carregando notas...</p>
+          <div className="space-y-lg">
+            <div className="flex justify-between items-center">
+              <div className="relative w-full max-w-md">
+                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">search</span>
+                <input
+                  type="text"
+                  value={buscaHistorico}
+                  onChange={e => setBuscaHistorico(e.target.value)}
+                  placeholder="Buscar por número, CPF ou cliente..."
+                  className="w-full pl-xl pr-md py-sm bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md"
+                />
               </div>
-            ) : notas.length === 0 ? (
-              <div className="nf-empty">
-                <span>🧾</span>
-                <p>Nenhuma nota fiscal emitida</p>
+              <div className="flex items-center gap-sm">
+                <button className="flex items-center gap-sm px-md py-sm bg-surface border border-outline-variant rounded-xl text-on-surface text-label-md font-semibold hover:bg-surface-container transition-all">
+                  <span className="material-symbols-outlined">filter_list</span>
+                  Filtros
+                </button>
+                <button className="flex items-center gap-sm px-md py-sm bg-primary text-on-primary rounded-xl text-label-md font-semibold shadow-sm hover:opacity-90 transition-all">
+                  <span className="material-symbols-outlined">download</span>
+                  Exportar XML
+                </button>
+              </div>
+            </div>
+
+            {carregandoNotas ? (
+              <div className="flex items-center justify-center py-2xl">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : notasFiltradas.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-2xl text-on-surface-variant">
+                <span className="material-symbols-outlined text-7xl opacity-20 mb-md">description</span>
+                <p className="text-body-md">Nenhuma nota fiscal emitida</p>
               </div>
             ) : (
-              <div className="nf-cards-grid">
-                {notas.map((nota, idx) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+                {notasFiltradas.map((nota, idx) => {
                   const status = nota.status_Nota?.toLowerCase() || 'pendente';
                   const cfopLabel = CFOPS_COMUNS.find(c => c.value === nota.cfop)?.label?.split('—')[1]?.trim() || `CFOP ${nota.cfop}`;
                   return (
-                    <div key={idx} className="nf-card" onClick={() => setNotaDetalhes(nota)}>
-                      {/* Stripe de cor por status */}
-                      <div className={`nf-card-stripe nf-stripe-${status}`} />
-
-                      <div className="nf-card-top">
-                        <div className="nf-card-num">
-                          <span className="nf-card-nfe-label">NF-e</span>
-                          <strong className="nf-card-nfe-num">#{nota.nf_numero}</strong>
-                          <span className="nf-card-serie">Série {nota.serieNf}</span>
+                    <div
+                      key={idx}
+                      onClick={() => setNotaDetalhes(nota)}
+                      className="bg-surface p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all cursor-pointer"
+                    >
+                      <div className="flex justify-between items-start mb-md">
+                        <div>
+                          <p className="text-body-sm text-on-surface-variant font-geist-mono text-mono-label">NF-e #{nota.nf_numero}</p>
+                          <h3 className="text-label-md font-semibold text-on-surface mt-xs">{nota.cpf_Cliente || nota.loja || 'Consumidor Final'}</h3>
                         </div>
-                        <span className={`nf-status-badge nf-status-${status}`}>
+                        <span className={`px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge(nota.status_Nota)}`}>
                           {nota.status_Nota || 'PENDENTE'}
                         </span>
                       </div>
-
-                      <div className="nf-card-body">
-                        <div className="nf-card-row">
-                          <span className="nf-card-label">Operação</span>
-                          <span className="nf-card-val nf-mono">{nota.cfop} — {cfopLabel}</span>
+                      <div className="grid grid-cols-2 gap-sm text-body-sm mb-md">
+                        <div className="flex flex-col">
+                          <span className="text-on-surface-variant text-[12px]">Série</span>
+                          <span className="font-bold">{nota.serieNf || '—'}</span>
                         </div>
-                        <div className="nf-card-row">
-                          <span className="nf-card-label">Destinatário</span>
-                          <span className="nf-card-val">{nota.cpf_Cliente || nota.loja || '—'}</span>
+                        <div className="flex flex-col">
+                          <span className="text-on-surface-variant text-[12px]">CFOP</span>
+                          <span className="font-bold font-geist-mono">{nota.cfop}</span>
                         </div>
-                        <div className="nf-card-row">
-                          <span className="nf-card-label">Emissão</span>
-                          <span className="nf-card-val">
-                            {nota.data_Emissao
-                              ? new Date(nota.data_Emissao).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
-                              : '—'}
+                        <div className="col-span-2 flex flex-col">
+                          <span className="text-on-surface-variant text-[12px]">Emissão</span>
+                          <span className="font-bold">
+                            {nota.data_Emissao ? new Date(nota.data_Emissao).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}
                           </span>
                         </div>
                       </div>
-
-                      <div className="nf-card-valores">
-                        <div className="nf-card-valor-item">
-                          <span className="nf-card-label">Bruto</span>
-                          <span>{fmt(nota.valor_Bruto_Nota)}</span>
+                      <div className="pt-md border-t border-outline-variant flex justify-between items-center">
+                        <div>
+                          <span className="text-on-surface-variant text-[12px]">Total Bruto</span>
+                          <p className="text-primary font-bold">{fmt(nota.valor_Bruto_Nota)}</p>
                         </div>
-                        <div className="nf-card-valor-item">
-                          <span className="nf-card-label">Impostos</span>
-                          <span className="nf-imposto-val">{fmt(nota.valor_Total_De_Imposto_A_Pagar)}</span>
+                        <div className="flex gap-xs">
+                          <button className="p-sm rounded-lg bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all" onClick={e => e.stopPropagation()}>
+                            <span className="material-symbols-outlined text-[20px]">visibility</span>
+                          </button>
+                          <button className="p-sm rounded-lg bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all" onClick={e => e.stopPropagation()}>
+                            <span className="material-symbols-outlined text-[20px]">print</span>
+                          </button>
                         </div>
-                        <div className="nf-card-valor-item nf-card-valor-destaque">
-                          <span className="nf-card-label">Líquido</span>
-                          <strong>{fmt(nota.valor_Liquido_Nota)}</strong>
-                        </div>
-                      </div>
-
-                      <div className="nf-card-footer">
-                        <span className="nf-card-hint">Clique para ver detalhes</span>
-                        <span className="nf-card-arrow">→</span>
                       </div>
                     </div>
                   );
@@ -268,465 +236,401 @@ export default function NotaFiscal() {
             )}
           </div>
         )}
-
       </div>
 
-      {/* ══════════════════════════════════════
-          MODAL DE DETALHES DA NOTA
-      ══════════════════════════════════════ */}
+      {/* ── MODAL DETALHES ── */}
       {notaDetalhes && createPortal(
-        <div className="nf-modal-overlay" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>
-          <div className="nf-modal nf-modal-detalhes" onClick={(e) => e.stopPropagation()}>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-md" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-outline-variant overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="nf-det-header">
-              <div className="nf-det-header-left">
-                <div className="nf-det-doc-icon">🧾</div>
-                <div>
-                  <div className="nf-det-title-row">
-                    <h2 className="nf-det-title">NF-e <span className="nf-mono">#{notaDetalhes.nf_numero}</span></h2>
-                    <span className={`nf-status-badge nf-status-${notaDetalhes.status_Nota?.toLowerCase() || 'pendente'}`}>
-                      {notaDetalhes.status_Nota || 'PENDENTE'}
-                    </span>
-                  </div>
-                  <p className="nf-det-subtitle">
-                    Série {notaDetalhes.serieNf} &nbsp;·&nbsp;
-                    CFOP {notaDetalhes.cfop} &nbsp;·&nbsp;
-                    {notaDetalhes.data_Emissao
-                      ? new Date(notaDetalhes.data_Emissao).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
-                      : '—'}
-                  </p>
-                </div>
+            <div className="flex items-center gap-md p-lg border-b border-outline-variant flex-shrink-0">
+              <div className="w-12 h-12 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center">
+                <span className="material-symbols-outlined text-xl">description</span>
               </div>
-              <button className="nf-modal-close" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>✕</button>
+              <div className="flex-1">
+                <div className="flex items-center gap-sm">
+                  <h2 className="text-headline-md font-semibold text-on-surface">NF-e <span className="font-geist-mono">#{notaDetalhes.nf_numero}</span></h2>
+                  <span className={`px-sm py-xs rounded-full text-[10px] font-bold uppercase border ${statusBadge(notaDetalhes.status_Nota)}`}>
+                    {notaDetalhes.status_Nota || 'PENDENTE'}
+                  </span>
+                </div>
+                <p className="text-body-sm text-on-surface-variant">
+                  Série {notaDetalhes.serieNf} · CFOP {notaDetalhes.cfop} ·{' '}
+                  {notaDetalhes.data_Emissao ? new Date(notaDetalhes.data_Emissao).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'}
+                </p>
+              </div>
+              <button onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }} className="p-sm hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
 
-            {/* Abas */}
-            <div className="nf-det-tabs">
-              <button className={`nf-det-tab ${abaDetalhes === 'resumo' ? 'active' : ''}`} onClick={() => setAbaDetalhes('resumo')}>
-                📋 Resumo
-              </button>
-              <button className={`nf-det-tab ${abaDetalhes === 'itens' ? 'active' : ''}`} onClick={() => setAbaDetalhes('itens')}>
-                📦 Itens {notaDetalhes.itens?.length > 0 && <span className="nf-det-tab-badge">{notaDetalhes.itens.length}</span>}
-              </button>
-              <button className={`nf-det-tab ${abaDetalhes === 'impostos' ? 'active' : ''}`} onClick={() => setAbaDetalhes('impostos')}>
-                📊 Impostos {notaDetalhes.impostos?.length > 0 && <span className="nf-det-tab-badge">{notaDetalhes.impostos.length}</span>}
-              </button>
+            {/* Tabs */}
+            <div className="flex items-center gap-xl px-lg border-b border-outline-variant flex-shrink-0">
+              {[
+                { id: 'resumo', label: 'Resumo' },
+                { id: 'itens', label: `Itens${notaDetalhes.itens?.length ? ` (${notaDetalhes.itens.length})` : ''}` },
+                { id: 'impostos', label: `Impostos${notaDetalhes.impostos?.length ? ` (${notaDetalhes.impostos.length})` : ''}` },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setAbaDetalhes(t.id)}
+                  className={`relative py-md text-label-md font-semibold transition-colors ${abaDetalhes === t.id ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+                >
+                  {t.label}
+                  {abaDetalhes === t.id && <div className="absolute bottom-0 left-0 h-[2px] w-full bg-primary rounded-t" />}
+                </button>
+              ))}
             </div>
 
-            <div className="nf-modal-body nf-det-body">
-
-              {/* ── ABA RESUMO ── */}
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-lg custom-scrollbar">
               {abaDetalhes === 'resumo' && (
-                <>
-                  <div className="nf-det-metrics">
-                    <div className="nf-det-metric">
-                      <span className="nf-det-metric-icon">💵</span>
-                      <div>
-                        <span className="nf-det-metric-label">Valor Bruto</span>
-                        <strong className="nf-det-metric-val">{fmt(notaDetalhes.valor_Bruto_Nota)}</strong>
+                <div className="space-y-lg">
+                  {/* Metrics */}
+                  <div className="grid grid-cols-3 gap-md">
+                    {[
+                      { label: 'Valor Bruto', value: fmt(notaDetalhes.valor_Bruto_Nota), cls: 'text-on-surface' },
+                      { label: 'Impostos', value: fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar), cls: 'text-error' },
+                      { label: 'Valor Líquido', value: fmt(notaDetalhes.valor_Liquido_Nota), cls: 'text-primary' },
+                    ].map(({ label, value, cls }) => (
+                      <div key={label} className="p-md bg-surface-container-low rounded-xl border border-outline-variant text-center">
+                        <span className="text-[12px] font-bold text-on-surface-variant block mb-xs">{label}</span>
+                        <strong className={`text-headline-md font-semibold ${cls}`}>{value}</strong>
                       </div>
-                    </div>
-                    <div className="nf-det-metric nf-det-metric-imposto">
-                      <span className="nf-det-metric-icon">📊</span>
-                      <div>
-                        <span className="nf-det-metric-label">Impostos</span>
-                        <strong className="nf-det-metric-val">{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong>
-                      </div>
-                    </div>
-                    <div className="nf-det-metric nf-det-metric-liquido">
-                      <span className="nf-det-metric-icon">✅</span>
-                      <div>
-                        <span className="nf-det-metric-label">Valor Líquido</span>
-                        <strong className="nf-det-metric-val nf-det-liquido-val">{fmt(notaDetalhes.valor_Liquido_Nota)}</strong>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-
-                  <div className="nf-det-info-grid">
-                    <div className="nf-det-info-card">
-                      <p className="nf-det-section-title">📋 Identificação</p>
-                      <div className="nf-det-info-rows">
-                        <div className="nf-det-info-row"><span>Número</span><strong className="nf-mono">#{notaDetalhes.nf_numero}</strong></div>
-                        <div className="nf-det-info-row"><span>Série</span><strong>{notaDetalhes.serieNf}</strong></div>
-                        <div className="nf-det-info-row"><span>CFOP</span><strong className="nf-mono">{notaDetalhes.cfop}</strong></div>
-                        {notaDetalhes.ticket_venda && <div className="nf-det-info-row"><span>Ticket Venda</span><strong className="nf-det-ticket">#{notaDetalhes.ticket_venda}</strong></div>}
-                        <div className="nf-det-info-row"><span>Emitente</span><strong>{notaDetalhes.loja || '—'}</strong></div>
-                      </div>
-                    </div>
-                    <div className="nf-det-info-card">
-                      <p className="nf-det-section-title">👤 Destinatário</p>
-                      <div className="nf-det-info-rows">
-                        <div className="nf-det-info-row"><span>CPF / CNPJ</span><strong className="nf-mono">{notaDetalhes.cpf_Cliente || '—'}</strong></div>
-                      </div>
-                      <p className="nf-det-section-title" style={{ marginTop: '1rem' }}>💰 Breakdown</p>
-                      <div className="nf-det-info-rows">
-                        <div className="nf-det-info-row"><span>Bruto</span><strong>{fmt(notaDetalhes.valor_Bruto_Nota)}</strong></div>
-                        <div className="nf-det-info-row nf-det-row-desconto"><span>Desconto</span><strong>− {fmt(notaDetalhes.desconto)}</strong></div>
-                        <div className="nf-det-info-row nf-det-row-imposto"><span>Impostos</span><strong>{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong></div>
-                        <div className="nf-det-info-row nf-det-row-liquido"><span>Líquido</span><strong>{fmt(notaDetalhes.valor_Liquido_Nota)}</strong></div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* ── ABA ITENS ── */}
-              {abaDetalhes === 'itens' && (
-                <div className="nf-det-itens">
-                  {!notaDetalhes.itens || notaDetalhes.itens.length === 0 ? (
-                    <div className="nf-det-empty"><span>📦</span><p>Nenhum item disponível</p></div>
-                  ) : (
-                    <div className="nf-det-itens-table">
-                      <div className="nf-det-itens-header">
-                        <span>#</span>
-                        <span>Produto</span>
-                        <span>Qtd</span>
-                        <span>Bruto</span>
-                        <span>Desc</span>
-                        <span>Líquido</span>
-                      </div>
-                      {notaDetalhes.itens.map((item, i) => (
-                        <div key={i} className="nf-det-itens-row">
-                          <span className="nf-det-item-num">{item.numeroItem}</span>
-                          <div className="nf-det-item-prod">
-                            <strong>{item.descricaoProduto}</strong>
-                            <span className="nf-mono">{item.codigoBarra}</span>
-                          </div>
-                          <span>{item.quantidade}x</span>
-                          <span>{fmt(item.valorBrutoItem)}</span>
-                          <span className="nf-det-row-desconto-val">{item.desconto > 0 ? `− ${fmt(item.desconto)}` : '—'}</span>
-                          <strong className="nf-det-item-liq">{fmt(item.valorLiquidoItem)}</strong>
+                  {/* Info grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                    <div className="space-y-sm">
+                      <p className="text-label-md font-bold text-primary uppercase tracking-wider">Identificação</p>
+                      {[
+                        ['Número', `#${notaDetalhes.nf_numero}`, true],
+                        ['Série', notaDetalhes.serieNf],
+                        ['CFOP', notaDetalhes.cfop, true],
+                        ['Ticket Venda', notaDetalhes.ticket_venda ? `#${notaDetalhes.ticket_venda}` : null],
+                        ['Emitente', notaDetalhes.loja],
+                      ].filter(([, v]) => v != null).map(([l, v, mono]) => (
+                        <div key={l} className="flex justify-between items-center py-xs border-b border-outline-variant/30">
+                          <span className="text-body-sm text-on-surface-variant">{l}</span>
+                          <strong className={`text-body-sm ${mono ? 'font-geist-mono' : ''}`}>{v}</strong>
                         </div>
                       ))}
-                      <div className="nf-det-itens-total">
-                        <span>Total</span>
-                        <strong>{fmt(notaDetalhes.valor_Liquido_Nota)}</strong>
-                      </div>
+                    </div>
+                    <div className="space-y-sm">
+                      <p className="text-label-md font-bold text-primary uppercase tracking-wider">Financeiro</p>
+                      {[
+                        ['Bruto', fmt(notaDetalhes.valor_Bruto_Nota)],
+                        ['Desconto', `− ${fmt(notaDetalhes.desconto)}`],
+                        ['Impostos', fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)],
+                        ['Líquido', fmt(notaDetalhes.valor_Liquido_Nota)],
+                      ].map(([l, v]) => (
+                        <div key={l} className="flex justify-between items-center py-xs border-b border-outline-variant/30">
+                          <span className="text-body-sm text-on-surface-variant">{l}</span>
+                          <strong className="text-body-sm">{v}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {abaDetalhes === 'itens' && (
+                <div>
+                  {!notaDetalhes.itens?.length ? (
+                    <div className="flex flex-col items-center py-xl text-on-surface-variant"><span className="material-symbols-outlined text-5xl opacity-20 mb-sm">inventory_2</span><p>Nenhum item disponível</p></div>
+                  ) : (
+                    <div className="overflow-hidden rounded-xl border border-outline-variant">
+                      <table className="w-full text-left">
+                        <thead className="bg-surface-container-low border-b border-outline-variant">
+                          <tr>
+                            {['#', 'Produto', 'Qtd', 'Bruto', 'Desc', 'Líquido'].map(h => (
+                              <th key={h} className="px-md py-sm text-label-md font-bold text-on-surface-variant">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-outline-variant/30">
+                          {notaDetalhes.itens.map((item, i) => (
+                            <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
+                              <td className="px-md py-md text-mono-label font-geist-mono">{item.numeroItem}</td>
+                              <td className="px-md py-md">
+                                <strong className="text-body-sm block">{item.descricaoProduto}</strong>
+                                <span className="text-[12px] text-on-surface-variant font-geist-mono">{item.codigoBarra}</span>
+                              </td>
+                              <td className="px-md py-md text-body-sm">{item.quantidade}x</td>
+                              <td className="px-md py-md text-body-sm">{fmt(item.valorBrutoItem)}</td>
+                              <td className="px-md py-md text-body-sm text-error">{item.desconto > 0 ? `− ${fmt(item.desconto)}` : '—'}</td>
+                              <td className="px-md py-md font-bold text-body-sm">{fmt(item.valorLiquidoItem)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-surface-container-low border-t border-outline-variant">
+                          <tr>
+                            <td colSpan={5} className="px-md py-sm text-label-md font-bold text-on-surface-variant text-right">Total</td>
+                            <td className="px-md py-sm font-bold text-primary">{fmt(notaDetalhes.valor_Liquido_Nota)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* ── ABA IMPOSTOS ── */}
               {abaDetalhes === 'impostos' && (
-                <div className="nf-det-impostos">
-                  {!notaDetalhes.impostos || notaDetalhes.impostos.length === 0 ? (
-                    <div className="nf-det-empty"><span>📊</span><p>Nenhum imposto registrado</p></div>
+                <div>
+                  {!notaDetalhes.impostos?.length ? (
+                    <div className="flex flex-col items-center py-xl text-on-surface-variant"><span className="material-symbols-outlined text-5xl opacity-20 mb-sm">receipt_long</span><p>Nenhum imposto registrado</p></div>
                   ) : (
-                    <>
-                      <div className="nf-det-impostos-grid">
+                    <div className="space-y-md">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
                         {notaDetalhes.impostos.map((imp, i) => (
-                          <div key={i} className="nf-det-imposto-card">
-                            <div className="nf-det-imposto-tipo">{imp.tipoImposto}</div>
-                            <div className="nf-det-imposto-rows">
-                              <div className="nf-det-imposto-row">
-                                <span>Base de Cálculo</span>
-                                <strong>{fmt(imp.baseCalculo)}</strong>
+                          <div key={i} className="p-lg bg-surface-container-low rounded-xl border border-outline-variant">
+                            <p className="text-label-md font-bold text-primary mb-md">{imp.tipoImposto}</p>
+                            {[
+                              ['Base de Cálculo', fmt(imp.baseCalculo)],
+                              imp.reducaoBase > 0 && ['Redução Base', `${imp.reducaoBase}%`],
+                              ['Alíquota', `${imp.aliquota}%`],
+                              ['Valor', fmt(imp.valorCalculado)],
+                            ].filter(Boolean).map(([l, v]) => (
+                              <div key={l} className="flex justify-between items-center py-xs border-b border-outline-variant/30">
+                                <span className="text-body-sm text-on-surface-variant">{l}</span>
+                                <strong className="text-body-sm">{v}</strong>
                               </div>
-                              {imp.reducaoBase > 0 && (
-                                <div className="nf-det-imposto-row">
-                                  <span>Redução Base</span>
-                                  <strong className="nf-det-row-desconto-val">{imp.reducaoBase}%</strong>
-                                </div>
-                              )}
-                              <div className="nf-det-imposto-row">
-                                <span>Alíquota</span>
-                                <strong>{imp.aliquota}%</strong>
-                              </div>
-                              <div className="nf-det-imposto-row nf-det-imposto-valor">
-                                <span>Valor</span>
-                                <strong>{fmt(imp.valorCalculado)}</strong>
-                              </div>
-                            </div>
+                            ))}
                           </div>
                         ))}
                       </div>
-                      <div className="nf-det-impostos-total">
-                        <span>Total de Impostos</span>
-                        <strong>{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong>
+                      <div className="flex justify-between items-center p-md bg-primary-container/10 rounded-xl border border-primary/20">
+                        <span className="text-label-md font-bold text-on-surface">Total de Impostos</span>
+                        <strong className="text-headline-md font-semibold text-primary">{fmt(notaDetalhes.valor_Total_De_Imposto_A_Pagar)}</strong>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               )}
-
             </div>
 
-            <div className="nf-modal-footer">
-              <button className="nf-btn-cancel" onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}>
+            {/* Footer */}
+            <div className="p-lg border-t border-outline-variant flex justify-end flex-shrink-0">
+              <button onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }} className="px-xl py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all">
                 Fechar
               </button>
             </div>
-
           </div>
         </div>,
         document.body
       )}
 
-      {/* ══════════════════════════════════════
-          MODAL DE EMISSÃO
-      ══════════════════════════════════════ */}
+      {/* ── MODAL EMISSÃO ── */}
       {modalAberto && createPortal(
-        <div className="nf-modal-overlay" onClick={fecharModal}>
-          <div className="nf-modal" onClick={(e) => e.stopPropagation()}>
-
-            {/* Cabeçalho do modal */}
-            <div className="nf-modal-header">
-              <div className="nf-modal-header-info">
-                <span className="nf-modal-icon">🧾</span>
-                <div>
-                  <h2 className="nf-modal-title">Emissão de Nota Fiscal</h2>
-                  <p className="nf-modal-subtitle">
-                    {etapa === 1 ? 'Etapa 1 de 2 — Dados da nota' : 'Etapa 2 de 2 — Itens'}
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-md" onClick={fecharModal}>
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col border border-outline-variant overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center gap-md p-lg border-b border-outline-variant flex-shrink-0">
+              <div className="w-10 h-10 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center">
+                <span className="material-symbols-outlined">description</span>
               </div>
-              <button className="nf-modal-close" onClick={fecharModal}>✕</button>
+              <div className="flex-1">
+                <h2 className="text-headline-md font-semibold">Emissão de Nota Fiscal</h2>
+                <p className="text-body-sm text-on-surface-variant">
+                  {etapa === 1 ? 'Etapa 1 de 2 — Dados da nota' : 'Etapa 2 de 2 — Itens'}
+                </p>
+              </div>
+              <button onClick={fecharModal} className="p-sm hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
 
             {/* Stepper */}
-            <div className="nf-stepper">
-              <div className={`nf-step ${etapa >= 1 ? 'active' : ''}`}>
-                <div className="nf-step-circle">1</div>
-                <span>Dados</span>
-              </div>
-              <div className="nf-step-line" />
-              <div className={`nf-step ${etapa >= 2 ? 'active' : ''}`}>
-                <div className="nf-step-circle">2</div>
-                <span>Itens</span>
-              </div>
+            <div className="flex items-center gap-md px-lg py-md flex-shrink-0">
+              {[{ n: 1, label: 'Dados Fiscais' }, { n: 2, label: 'Itens da Nota' }].map(({ n, label }, i) => (
+                <div key={n} className="flex items-center gap-sm flex-1">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm flex-shrink-0 ${etapa >= n ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface'}`}>{n}</div>
+                  <span className={`text-label-md font-semibold ${etapa >= n ? 'text-primary' : 'text-on-surface-variant opacity-40'}`}>{label}</span>
+                  {i === 0 && <div className="flex-1 h-px bg-outline-variant ml-sm" />}
+                </div>
+              ))}
             </div>
 
-            {/* ── Etapa 1: Dados da NF ── */}
-            {etapa === 1 && (
-              <div className="nf-modal-body">
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-lg custom-scrollbar space-y-lg">
+              {etapa === 1 && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                    <div className="space-y-sm">
+                      <label className="text-label-md font-semibold">CFOP Operação</label>
+                      <select value={form.cfop} onChange={e => setForm(f => ({...f, cfop: Number(e.target.value)}))} className={inputCls + ' appearance-none'}>
+                        {CFOPS_COMUNS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                      {ehTransferencia && (
+                        <p className="text-body-sm text-tertiary">⇄ CFOP de transferência — selecione a loja de destino abaixo</p>
+                      )}
+                    </div>
+                    <div className="space-y-sm">
+                      <label className="text-label-md font-semibold">Série</label>
+                      <input type="number" min="1" value={form.serieNfe} onChange={e => setForm(f => ({...f, serieNfe: e.target.value}))} className={inputCls} />
+                    </div>
+                  </div>
 
-                {/* CFOP */}
-                <div className="nf-field">
-                  <label className="nf-label">CFOP</label>
-                  <select
-                    className="nf-select"
-                    value={form.cfop}
-                    onChange={(e) => setForm((f) => ({ ...f, cfop: Number(e.target.value) }))}
-                  >
-                    {CFOPS_COMUNS.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                  </select>
-                  {ehTransferencia && (
-                    <p className="nf-field-hint nf-hint-transfer">
-                      ⇄ CFOP de transferência — selecione a loja de destino abaixo
-                    </p>
-                  )}
-                </div>
-
-                {/* Série */}
-                <div className="nf-field">
-                  <label className="nf-label">Série NF-e</label>
-                  <input
-                    className="nf-input"
-                    type="number"
-                    min="1"
-                    value={form.serieNfe}
-                    onChange={(e) => setForm((f) => ({ ...f, serieNfe: e.target.value }))}
-                  />
-                </div>
-
-                {/* ── Transferência: busca de loja ── */}
-                {ehTransferencia && (
-                  <div className="nf-section">
-                    <p className="nf-section-title">Loja de Destino</p>
-
-                    {lojaSelecionada ? (
-                      <div className="nf-loja-selecionada">
-                        <div className="nf-loja-info">
-                          <strong>{lojaSelecionada.razaoSocial}</strong>
-                          <span className="nf-mono">{lojaSelecionada.cnpj || lojaSelecionada.cpfCnpj}</span>
+                  {ehTransferencia ? (
+                    <div className="space-y-md">
+                      <label className="text-label-md font-semibold">Loja de Destino</label>
+                      {lojaSelecionada ? (
+                        <div className="flex items-center justify-between p-md bg-primary-container/10 rounded-xl border border-primary/20">
+                          <div>
+                            <strong className="text-label-md">{lojaSelecionada.razaoSocial}</strong>
+                            <p className="text-body-sm font-geist-mono text-on-surface-variant">{lojaSelecionada.cnpj || lojaSelecionada.cpfCnpj}</p>
+                          </div>
+                          <button onClick={() => setLojaSelecionada(null)} className="px-md py-xs border border-outline-variant rounded-lg text-label-md font-semibold hover:bg-surface-container transition-all">Trocar</button>
                         </div>
-                        <button
-                          className="nf-btn-trocar"
-                          onClick={() => setLojaSelecionada(null)}
-                        >
-                          Trocar
+                      ) : (
+                        <div className="space-y-sm">
+                          <div className="relative">
+                            <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">search</span>
+                            <input value={buscaLoja} onChange={e => setBuscaLoja(e.target.value)} placeholder="Buscar por razão social ou CNPJ..." className={`${inputCls} pl-12`} />
+                          </div>
+                          <div className="max-h-48 overflow-y-auto rounded-xl border border-outline-variant divide-y divide-outline-variant/30 custom-scrollbar">
+                            {carregandoLojas ? (
+                              <div className="p-md flex items-center gap-sm text-on-surface-variant"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" /><span className="text-body-sm">Carregando...</span></div>
+                            ) : lojasFiltradas.length === 0 ? (
+                              <p className="p-md text-body-sm text-on-surface-variant">Nenhuma loja encontrada</p>
+                            ) : lojasFiltradas.map((loja, idx) => (
+                              <div key={idx} onClick={() => setLojaSelecionada(loja)} className="p-md hover:bg-surface-container-low cursor-pointer transition-colors">
+                                <strong className="text-label-md block">{loja.razaoSocial}</strong>
+                                <span className="text-body-sm font-geist-mono text-on-surface-variant">{loja.cnpj || loja.cpfCnpj}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-sm">
+                      <label className="text-label-md font-semibold">Destinatário</label>
+                      <div className="relative">
+                        <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">person_search</span>
+                        <input
+                          type="text"
+                          placeholder="CPF ou CNPJ do cliente..."
+                          value={form.cpfCliente}
+                          onChange={e => setForm(f => ({...f, cpfCliente: e.target.value}))}
+                          className={`${inputCls} pl-12 font-geist-mono`}
+                        />
+                      </div>
+                      <p className="text-body-sm text-on-surface-variant italic">Selecione "Consumidor Final" para vendas rápidas.</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {etapa === 2 && (
+                <>
+                  {/* Summary bar */}
+                  <div className="flex gap-md p-md bg-surface-container-low rounded-xl border border-outline-variant">
+                    {[
+                      { label: 'CFOP', value: form.cfop },
+                      { label: 'Série', value: form.serieNfe },
+                      { label: ehTransferencia ? 'Loja Destino' : 'Destinatário', value: ehTransferencia ? lojaSelecionada?.razaoSocial : form.cpfCliente },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex-1">
+                        <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block">{label}</span>
+                        <strong className="text-label-md font-geist-mono">{value}</strong>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add item */}
+                  <div className="space-y-sm">
+                    <label className="text-label-md font-semibold">Adicionar Item</label>
+                    <div className="flex flex-col md:flex-row gap-md">
+                      <div className="flex-1 relative">
+                        <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">barcode_scanner</span>
+                        <input
+                          type="text"
+                          value={itemForm.codigo_barra}
+                          onChange={e => setItemForm(f => ({...f, codigo_barra: e.target.value}))}
+                          onKeyDown={e => e.key === 'Enter' && adicionarItem()}
+                          placeholder="Digite ou escaneie o código..."
+                          className={`${inputCls} pl-12 font-geist-mono`}
+                          autoFocus
+                        />
+                      </div>
+                      <div className="w-24 space-y-sm">
+                        <label className="text-label-md font-semibold text-[11px]">Qtd.</label>
+                        <input type="number" min="1" value={itemForm.quantidade_Itens} onChange={e => setItemForm(f => ({...f, quantidade_Itens: e.target.value}))} className={inputCls} />
+                      </div>
+                      <div className="w-32 space-y-sm">
+                        <label className="text-label-md font-semibold text-[11px]">Desc. (R$)</label>
+                        <input type="number" min="0" step="0.01" value={itemForm.desconto} onChange={e => setItemForm(f => ({...f, desconto: e.target.value}))} className={inputCls} placeholder="0,00" />
+                      </div>
+                      <div className="flex items-end">
+                        <button onClick={adicionarItem} className="h-[42px] px-md bg-secondary-container text-on-secondary-container rounded-lg text-label-md font-semibold hover:bg-secondary-fixed transition-all">
+                          Incluir
                         </button>
                       </div>
-                    ) : (
-                      <>
-                        <div className="nf-busca-wrap">
-                          <span className="nf-busca-icon">🔍</span>
-                          <input
-                            className="nf-busca-input"
-                            placeholder="Buscar por razão social ou CNPJ..."
-                            value={buscaLoja}
-                            onChange={(e) => setBuscaLoja(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="nf-lojas-lista">
-                          {carregandoLojas ? (
-                            <div className="nf-lojas-loading">
-                              <div className="loading-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
-                              <span>Carregando lojas...</span>
-                            </div>
-                          ) : lojasFiltradas.length === 0 ? (
-                            <p className="nf-lojas-empty">Nenhuma loja encontrada</p>
-                          ) : (
-                            lojasFiltradas.map((loja, idx) => (
-                              <div
-                                key={idx}
-                                className="nf-loja-item"
-                                onClick={() => selecionarLoja(loja)}
-                              >
-                                <strong>{loja.razaoSocial}</strong>
-                                <span className="nf-mono">{loja.cnpj || loja.cpfCnpj}</span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* ── Venda normal: CPF/CNPJ do cliente ── */}
-                {!ehTransferencia && (
-                  <div className="nf-section">
-                    <p className="nf-section-title">Destinatário</p>
-                    <div className="nf-field">
-                      <label className="nf-label">CPF / CNPJ do Cliente</label>
-                      <input
-                        className="nf-input nf-mono"
-                        type="text"
-                        placeholder="000.000.000-00 ou 00.000.000/0001-00"
-                        value={form.cpfCliente}
-                        onChange={(e) => setForm((f) => ({ ...f, cpfCliente: e.target.value }))}
-                      />
-                      <p className="nf-field-hint">Informe o CPF ou CNPJ do destinatário da nota</p>
                     </div>
                   </div>
-                )}
 
-                <div className="nf-modal-footer">
-                  <button className="nf-btn-cancel" onClick={fecharModal}>Cancelar</button>
-                  <button
-                    className="nf-btn-next"
-                    onClick={() => setEtapa(2)}
-                    disabled={!podeProsseguir}
-                  >
-                    Próximo — Itens →
+                  {/* Items list */}
+                  {itens.length > 0 ? (
+                    <div className="overflow-hidden rounded-xl border border-outline-variant">
+                      <table className="w-full text-left">
+                        <thead className="bg-surface-container-low border-b border-outline-variant">
+                          <tr>
+                            {['Produto', 'Un.', 'Desconto', ''].map(h => (
+                              <th key={h} className="px-md py-sm text-label-md font-bold text-on-surface-variant">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-outline-variant">
+                          {itens.map((item, idx) => (
+                            <tr key={idx} className="hover:bg-surface-container-lowest transition-colors">
+                              <td className="px-md py-md font-geist-mono text-mono-label">{item.codigo_barra}</td>
+                              <td className="px-md py-md text-body-sm">{item.quantidade_Itens}</td>
+                              <td className="px-md py-md text-body-sm">{item.desconto > 0 ? `R$ ${Number(item.desconto).toFixed(2)}` : '—'}</td>
+                              <td className="px-md py-md text-center">
+                                <button onClick={() => removerItem(idx)} className="text-error hover:scale-110 transition-transform">
+                                  <span className="material-symbols-outlined text-[20px]">delete</span>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center py-xl text-on-surface-variant border-2 border-dashed border-outline-variant rounded-xl">
+                      <span className="material-symbols-outlined text-5xl opacity-20 mb-sm">inventory_2</span>
+                      <p className="text-body-sm">Nenhum item adicionado</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-lg border-t border-outline-variant flex justify-between flex-shrink-0">
+              {etapa === 1 ? (
+                <>
+                  <button onClick={fecharModal} className="px-lg py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all">Cancelar</button>
+                  <button onClick={() => setEtapa(2)} disabled={!podeProsseguir} className="px-xl py-sm bg-primary text-on-primary rounded-xl text-label-md font-bold hover:opacity-90 transition-all disabled:opacity-50">
+                    Próximo: Adicionar Itens
                   </button>
-                </div>
-              </div>
-            )}
-
-            {/* ── Etapa 2: Itens ── */}
-            {etapa === 2 && (
-              <div className="nf-modal-body">
-
-                {/* Resumo da etapa 1 */}
-                <div className="nf-resumo-etapa1">
-                  <div className="nf-resumo-item">
-                    <span className="nf-card-label">CFOP</span>
-                    <span className="nf-mono">{form.cfop}</span>
-                  </div>
-                  <div className="nf-resumo-item">
-                    <span className="nf-card-label">Série</span>
-                    <span>{form.serieNfe}</span>
-                  </div>
-                  <div className="nf-resumo-item">
-                    <span className="nf-card-label">
-                      {ehTransferencia ? 'Loja destino' : 'Destinatário'}
-                    </span>
-                    <span className="nf-mono">
-                      {ehTransferencia
-                        ? lojaSelecionada?.razaoSocial
-                        : form.cpfCliente}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Adicionar item */}
-                <div className="nf-section">
-                  <p className="nf-section-title">Adicionar Item</p>
-                  <div className="nf-item-form">
-                    <div className="nf-field nf-field-wide">
-                      <label className="nf-label">Código de Barras</label>
-                      <input
-                        className="nf-input nf-mono"
-                        placeholder="Bipe ou digite o código..."
-                        value={itemForm.codigo_barra}
-                        onChange={(e) => setItemForm((f) => ({ ...f, codigo_barra: e.target.value }))}
-                        onKeyDown={(e) => e.key === 'Enter' && adicionarItem()}
-                        autoFocus
-                      />
-                    </div>
-                    <div className="nf-field">
-                      <label className="nf-label">Qtd</label>
-                      <input
-                        className="nf-input"
-                        type="number"
-                        min="1"
-                        value={itemForm.quantidade_Itens}
-                        onChange={(e) => setItemForm((f) => ({ ...f, quantidade_Itens: e.target.value }))}
-                      />
-                    </div>
-                    <div className="nf-field">
-                      <label className="nf-label">Desconto (R$)</label>
-                      <input
-                        className="nf-input"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={itemForm.desconto}
-                        onChange={(e) => setItemForm((f) => ({ ...f, desconto: e.target.value }))}
-                      />
-                    </div>
-                    <button className="nf-btn-add-item" onClick={adicionarItem}>
-                      + Adicionar
+                </>
+              ) : (
+                <>
+                  <button onClick={() => setEtapa(1)} className="px-lg py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all">Voltar</button>
+                  <div className="flex gap-sm">
+                    <button className="px-lg py-sm bg-secondary-container text-on-secondary-container rounded-xl text-label-md font-semibold hover:opacity-90 transition-all">
+                      Salvar Rascunho
+                    </button>
+                    <button onClick={emitirNota} disabled={emitindo || itens.length === 0} className="px-xl py-sm bg-primary text-on-primary rounded-xl text-label-md font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center gap-sm disabled:opacity-50">
+                      <span className="material-symbols-outlined">send</span>
+                      {emitindo ? 'Emitindo...' : 'Emitir e Transmitir'}
                     </button>
                   </div>
-                </div>
-
-                {/* Lista de itens */}
-                {itens.length > 0 ? (
-                  <div className="nf-itens-lista">
-                    <div className="nf-itens-header">
-                      <span>{itens.length} item{itens.length !== 1 ? 'ns' : ''}</span>
-                    </div>
-                    {itens.map((item, idx) => (
-                      <div key={idx} className="nf-item-row">
-                        <span className="nf-item-num">{idx + 1}</span>
-                        <span className="nf-item-codigo nf-mono">{item.codigo_barra}</span>
-                        <span className="nf-item-qtd">Qtd: <strong>{item.quantidade_Itens}</strong></span>
-                        {item.desconto > 0 && (
-                          <span className="nf-item-desc">Desc: R$ {item.desconto.toFixed(2)}</span>
-                        )}
-                        <button className="nf-item-remove" onClick={() => removerItem(idx)}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="nf-itens-empty">
-                    <span>📦</span>
-                    <p>Nenhum item adicionado</p>
-                    <p className="nf-itens-empty-sub">Bipe o código de barras ou digite acima</p>
-                  </div>
-                )}
-
-                <div className="nf-modal-footer">
-                  <button className="nf-btn-cancel" onClick={() => setEtapa(1)}>← Voltar</button>
-                  <button
-                    className="nf-btn-emitir"
-                    onClick={emitirNota}
-                    disabled={emitindo || itens.length === 0}
-                  >
-                    {emitindo ? '⏳ Emitindo...' : '🧾 Emitir Nota Fiscal'}
-                  </button>
-                </div>
-              </div>
-            )}
-
+                </>
+              )}
+            </div>
           </div>
         </div>,
         document.body

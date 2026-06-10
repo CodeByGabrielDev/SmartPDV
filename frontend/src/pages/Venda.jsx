@@ -8,303 +8,272 @@ export default function Venda() {
   const [codigoBarra, setCodigoBarra] = useState('');
   const [itens, setItens] = useState([]);
   const [cpfCnpj, setCpfCnpj] = useState('');
+  const [idVendedor, setIdVendedor] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [validando, setValidando] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
   const adicionarItem = async () => {
     const codigo = codigoBarra.trim().toUpperCase();
     if (!codigo) return;
-
-    // Verifica se o item já está na lista
-    const itemExistente = itens.find((i) => i.codigo_barra === codigo);
-    if (itemExistente) {
-      showAlert('Item já adicionado. Ajuste a quantidade diretamente na lista.', 'error');
+    if (itens.find(i => i.codigo_barra === codigo)) {
+      showAlert('Item já adicionado. Ajuste a quantidade na lista.', 'error');
       setCodigoBarra('');
       inputRef.current?.focus();
       return;
     }
-
     setValidando(true);
     try {
-      // Valida no estoque antes de adicionar
       const estoque = await estoqueService.listarEstoque();
-      const itemEstoque = estoque.find(
-        (e) => e.codigo_barra?.toUpperCase() === codigo
-      );
-
-      if (!itemEstoque) {
-        showAlert(`Produto "${codigo}" não encontrado no estoque.`, 'error');
-        return;
-      }
-
-      if (itemEstoque.quantidade_atual < 1) {
-        showAlert(`Produto "${codigo}" sem saldo no estoque.`, 'error');
-        return;
-      }
-
-      setItens((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          codigo_barra: codigo,
-          qtd_item: 1,
-          desconto: 0,
-          preco: itemEstoque.preco_venda ?? 0,
-          qtdDisponivel: itemEstoque.quantidade_atual,
-          descricao: itemEstoque.nome_produto ?? codigo,
-          validado: true,
-        },
-      ]);
+      const item = estoque.find(e => e.codigo_barra?.toUpperCase() === codigo);
+      if (!item) { showAlert(`Produto "${codigo}" não encontrado no estoque.`, 'error'); return; }
+      if (item.quantidade_atual < 1) { showAlert(`Produto "${codigo}" sem saldo.`, 'error'); return; }
+      setItens(prev => [...prev, {
+        id: Date.now(), codigo_barra: codigo, qtd_item: 1, desconto: 0,
+        preco: item.preco_venda ?? 0, qtdDisponivel: item.quantidade_atual,
+        descricao: item.nome_produto ?? codigo, validado: true,
+      }]);
       setCodigoBarra('');
-    } catch (error) {
-      showAlert('Erro ao validar produto no estoque.', 'error');
-    } finally {
-      setValidando(false);
-      inputRef.current?.focus();
-    }
+    } catch { showAlert('Erro ao validar produto no estoque.', 'error'); }
+    finally { setValidando(false); inputRef.current?.focus(); }
   };
 
-  const removerItem = (id) => setItens((prev) => prev.filter((i) => i.id !== id));
+  const removerItem = id => setItens(prev => prev.filter(i => i.id !== id));
 
   const atualizarQtd = (id, qtd) => {
     if (qtd < 1) return;
-    const item = itens.find((i) => i.id === id);
+    const item = itens.find(i => i.id === id);
     if (item && qtd > item.qtdDisponivel) {
-      showAlert(`Saldo disponível no estoque: ${item.qtdDisponivel} unidade(s).`, 'error');
+      showAlert(`Saldo disponível: ${item.qtdDisponivel} un.`, 'error');
       return;
     }
-    setItens((prev) => prev.map((i) => (i.id === id ? { ...i, qtd_item: qtd } : i)));
+    setItens(prev => prev.map(i => i.id === id ? { ...i, qtd_item: qtd } : i));
   };
 
-  const atualizarDesconto = (id, desconto) => {
-    const valor = Math.min(100, Math.max(0, Number(desconto) || 0));
-    setItens((prev) => prev.map((i) => (i.id === id ? { ...i, desconto: valor } : i)));
+  const atualizarDesconto = (id, d) => {
+    const v = Math.min(100, Math.max(0, Number(d) || 0));
+    setItens(prev => prev.map(i => i.id === id ? { ...i, desconto: v } : i));
   };
 
-  const calcularSubtotalItem = (item) => {
+  const subtotalItem = item => {
     const bruto = item.qtd_item * (item.preco || 0);
-    const desconto = bruto * ((item.desconto || 0) / 100);
-    return bruto - desconto;
-  };
-
-  const limparVenda = () => {
-    setItens([]);
-    setCpfCnpj('');
-    setCodigoBarra('');
-    inputRef.current?.focus();
+    return bruto - bruto * ((item.desconto || 0) / 100);
   };
 
   const finalizarVenda = async () => {
-    if (itens.length === 0) {
-      showAlert('Adicione pelo menos um item', 'error');
-      return;
-    }
-
+    if (itens.length === 0) { showAlert('Adicione pelo menos um item', 'error'); return; }
     setCarregando(true);
     try {
-      const vendaRequest = {
-        itens_venda: itens.map((i) => ({
-          codigo_barra: i.codigo_barra,
-          qtd_item: i.qtd_item,
-          desconto: i.desconto || 0,
-        })),
-      };
-      // Remove pontuações do CPF/CNPJ antes de enviar. Se vazio, envia null (venda sem cliente)
-      const cpfCnpjLimpo = cpfCnpj.trim()
-        ? cpfCnpj.replace(/[.\-\/]/g, '').trim()
-        : null;
-      const response = await vendaService.realizarVenda(vendaRequest, cpfCnpjLimpo);
-      const idVenda = response?.id || response?.id_banco || response?.idVenda;
-      if (!idVenda) throw new Error('Resposta da venda sem ID. Contate o suporte.');
+      const payload = { itens_venda: itens.map(i => ({ codigo_barra: i.codigo_barra, qtd_item: i.qtd_item, desconto: i.desconto || 0 })) };
+      const cpfLimpo = cpfCnpj.trim() ? cpfCnpj.replace(/[.\-\/]/g, '').trim() : null;
+      const res = await vendaService.realizarVenda(payload, cpfLimpo);
+      const idVenda = res?.id || res?.id_banco || res?.idVenda;
+      if (!idVenda) throw new Error('Resposta da venda sem ID.');
       navigate(`/dashboard/pagamento?idVenda=${idVenda}`);
     } catch (error) {
       showAlert(error.displayMessage || error.message || 'Erro ao processar venda', 'error');
-    } finally {
-      setCarregando(false);
-    }
+    } finally { setCarregando(false); }
   };
 
-  const totalBruto = itens.reduce((acc, i) => acc + i.qtd_item * (i.preco || 0), 0);
-  const totalDesconto = itens.reduce((acc, i) => {
-    const bruto = i.qtd_item * (i.preco || 0);
-    return acc + bruto * ((i.desconto || 0) / 100);
-  }, 0);
+  const totalBruto = itens.reduce((a, i) => a + i.qtd_item * (i.preco || 0), 0);
+  const totalDesconto = itens.reduce((a, i) => { const b = i.qtd_item * (i.preco || 0); return a + b * ((i.desconto || 0) / 100); }, 0);
   const total = totalBruto - totalDesconto;
-  const qtdItens = itens.reduce((acc, i) => acc + i.qtd_item, 0);
-  const todosValidados = itens.length > 0 && itens.every((i) => i.validado);
+  const qtdItens = itens.reduce((a, i) => a + i.qtd_item, 0);
+  const todosValidados = itens.length > 0 && itens.every(i => i.validado);
+  const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
-    <div className="pdv-container">
-
-      {/* ── Cabeçalho ── */}
-      <div className="pdv-header">
-        <div className="pdv-header-left">
-          <span className="pdv-header-icon">🛒</span>
-          <div>
-            <h1 className="pdv-title">PDV — Nova Venda</h1>
-            <span className="pdv-subtitle">Ponto de Venda</span>
-          </div>
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-background">
+      {/* Top bar */}
+      <div className="h-16 px-xl flex items-center justify-between bg-surface border-b border-outline-variant flex-shrink-0">
+        <div className="flex items-center gap-md">
+          <span className="text-headline-md font-black text-primary">PDV Terminal</span>
+          <span className="px-sm py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
+            CAIXA ABERTO
+          </span>
         </div>
-        <div className="pdv-header-right">
-          <span className="pdv-badge">{qtdItens} item{qtdItens !== 1 ? 's' : ''}</span>
-          <button className="pdv-btn-clear" onClick={limparVenda} disabled={itens.length === 0 && !cpfCnpj}>
-            🗑 Limpar
-          </button>
+        <div className="flex items-center gap-md text-right">
+          <div>
+            <p className="text-label-md font-semibold text-on-surface">Operador: {localStorage.getItem('login') || 'Admin'}</p>
+            <p className="text-body-sm text-on-surface-variant">SmartPDV</p>
+          </div>
         </div>
       </div>
 
-      {/* ── Corpo ── */}
-      <div className="pdv-body">
-
-        {/* Coluna esquerda */}
-        <div className="pdv-left">
-
-          {/* Bipador */}
-          <div className="pdv-section">
-            <div className="pdv-section-label">
-              <span className="pdv-section-icon">📷</span>
-              Código de Barras
+      {/* POS canvas */}
+      <div className="flex-1 flex p-lg gap-gutter overflow-hidden">
+        {/* Left column — 45% */}
+        <section className="w-[45%] flex flex-col gap-lg">
+          {/* Search card */}
+          <div className="glass-card rounded-2xl p-xl shadow-sm flex flex-col gap-lg">
+            <div className="space-y-sm">
+              <label className="text-label-md font-bold text-primary uppercase tracking-wider">Bipar ou Pesquisar Produto</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-primary text-3xl">barcode_scanner</span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={codigoBarra}
+                  onChange={e => setCodigoBarra(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !validando && adicionarItem()}
+                  placeholder="Escaneie o código ou digite o nome..."
+                  className="w-full pl-16 pr-md py-5 bg-surface-container-low border-2 border-outline-variant rounded-2xl text-headline-md font-semibold focus:border-primary outline-none transition-all placeholder:text-outline-variant input-focus-ring"
+                  disabled={validando}
+                  autoComplete="off"
+                />
+              </div>
             </div>
-            <div className="pdv-bip-row">
-              <input
-                ref={inputRef}
-                type="text"
-                value={codigoBarra}
-                onChange={(e) => setCodigoBarra(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !validando && adicionarItem()}
-                placeholder="Bipe ou digite o código..."
-                className="pdv-bip-input"
-                autoComplete="off"
-                disabled={validando}
-              />
-              <button
-                className="pdv-btn-add"
-                onClick={adicionarItem}
-                title="Adicionar item (Enter)"
-                disabled={validando}
-              >
-                {validando ? '⏳' : '+'}
-              </button>
-            </div>
-            <p className="pdv-hint">Pressione <kbd>Enter</kbd> para adicionar</p>
-          </div>
-
-          {/* Cliente */}
-          <div className="pdv-section">
-            <div className="pdv-section-label">
-              <span className="pdv-section-icon">👤</span>
-              Identificação do Cliente <span style={{ fontWeight: 400, fontSize: '0.75rem', opacity: 0.6 }}>(opcional)</span>
-            </div>
-            <input
-              type="text"
-              value={cpfCnpj}
-              onChange={(e) => setCpfCnpj(e.target.value)}
-              placeholder="CPF ou CNPJ — deixe vazio para venda sem cliente"
-              className={`pdv-cliente-input${cpfCnpj ? ' filled' : ''}`}
-              maxLength={18}
-            />
-            {cpfCnpj ? (
-              <p className="pdv-cliente-ok">✅ Cliente identificado</p>
-            ) : (
-              <p className="pdv-hint" style={{ marginTop: '0.35rem' }}>Venda sem vínculo de cliente</p>
-            )}
-          </div>
-
-          {/* Resumo */}
-          <div className="pdv-resumo">
-            <div className="pdv-resumo-row">
-              <span>Subtotal</span>
-              <span>R$ {totalBruto.toFixed(2)}</span>
-            </div>
-            <div className="pdv-resumo-row">
-              <span>Desconto</span>
-              <span>− R$ {totalDesconto.toFixed(2)}</span>
-            </div>
-            <div className="pdv-resumo-total">
-              <span>Total</span>
-              <span>R$ {total.toFixed(2)}</span>
+            <div className="grid grid-cols-2 gap-md">
+              <div className="space-y-sm">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">CPF/CNPJ na Nota</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+                  <input
+                    type="text"
+                    value={cpfCnpj}
+                    onChange={e => setCpfCnpj(e.target.value)}
+                    placeholder="000.000.000-00"
+                    className="w-full pl-12 pr-md py-sm bg-surface border border-outline-variant rounded-xl focus:border-primary input-focus-ring transition-all text-body-md"
+                    maxLength={18}
+                  />
+                </div>
+              </div>
+              <div className="space-y-sm">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Vendedor</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">badge</span>
+                  <input
+                    type="text"
+                    value={idVendedor}
+                    onChange={e => setIdVendedor(e.target.value)}
+                    placeholder="ID Vendedor"
+                    className="w-full pl-12 pr-md py-sm bg-surface border border-outline-variant rounded-xl focus:border-primary input-focus-ring transition-all text-body-md"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <button
-            className="pdv-btn-finalizar"
-            onClick={finalizarVenda}
-            disabled={carregando || !todosValidados}
-          >
-            {carregando ? (
-              <span className="pdv-btn-loading">⏳ Processando...</span>
-            ) : (
-              <>✓ FINALIZAR VENDA</>
-            )}
-          </button>
-        </div>
+          {/* Financial summary */}
+          <div className="flex-1 glass-card rounded-2xl p-xl shadow-sm flex flex-col justify-between border-primary/20 bg-primary/5">
+            <div className="space-y-md">
+              <div className="flex justify-between items-center text-on-surface-variant">
+                <span className="text-body-md">Subtotal</span>
+                <span className="font-geist-mono text-lg">{fmt(totalBruto)}</span>
+              </div>
+              <div className="flex justify-between items-center text-on-surface-variant">
+                <span className="text-body-md">Descontos</span>
+                <span className="font-geist-mono text-lg text-error">- {fmt(totalDesconto)}</span>
+              </div>
+              <div className="h-px bg-outline-variant/30 my-md" />
+              <div className="flex justify-between items-end">
+                <div className="flex flex-col">
+                  <span className="text-[12px] font-bold uppercase tracking-widest text-primary">Total a Pagar</span>
+                  <span className="text-headline-xl font-bold text-on-surface leading-none">{fmt(total)}</span>
+                </div>
+                <div className="text-right text-body-sm text-on-surface-variant">
+                  {qtdItens} iten{qtdItens !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={finalizarVenda}
+              disabled={carregando || !todosValidados}
+              className="w-full bg-primary py-5 rounded-2xl text-on-primary text-headline-md font-semibold flex items-center justify-center gap-md hover:bg-primary/90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-3xl">payments</span>
+              {carregando ? 'PROCESSANDO...' : 'FINALIZAR VENDA (F10)'}
+            </button>
+          </div>
+        </section>
 
-        {/* Coluna direita — lista de itens */}
-        <div className="pdv-right">
-          <div className="pdv-itens-header">
-            <span>Itens da Venda</span>
-            <span className="pdv-itens-count">{itens.length} produto{itens.length !== 1 ? 's' : ''}</span>
+        {/* Right column — 55% */}
+        <section className="w-[55%] flex flex-col glass-card rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-lg bg-surface border-b border-outline-variant flex justify-between items-center flex-shrink-0">
+            <h3 className="text-headline-md font-semibold flex items-center gap-sm">
+              <span className="material-symbols-outlined text-primary">receipt</span>
+              Itens da Venda
+            </h3>
+            <button
+              onClick={() => setItens([])}
+              disabled={itens.length === 0}
+              className="px-md py-sm bg-surface-container border border-outline-variant rounded-lg text-label-md font-semibold flex items-center gap-xs hover:bg-surface-container-high transition-colors disabled:opacity-40"
+            >
+              <span className="material-symbols-outlined text-sm">delete_sweep</span>
+              Limpar Tudo
+            </button>
           </div>
 
-          <div className="pdv-itens-list">
+          <div className="flex-1 overflow-y-auto p-md space-y-sm scrollbar-hide">
             {itens.length === 0 ? (
-              <div className="pdv-empty">
-                <span className="pdv-empty-icon">📦</span>
-                <p>Nenhum item adicionado</p>
-                <p className="pdv-empty-sub">Bipe um produto para começar</p>
+              <div className="flex flex-col items-center justify-center h-full py-2xl text-on-surface-variant">
+                <span className="material-symbols-outlined text-7xl opacity-20 mb-md">shopping_basket</span>
+                <p className="text-body-md font-semibold opacity-50">Nenhum item adicionado</p>
+                <p className="text-body-sm opacity-30 mt-xs">Bipe um produto para começar</p>
               </div>
             ) : (
-              itens.map((item, idx) => (
-                <div key={item.id} className="pdv-item">
-                  {/* Linha 1: número, nome, subtotal, remover */}
-                  <div className="pdv-item-row1">
-                    <div className="pdv-item-num">{idx + 1}</div>
-                    <div className="pdv-item-info">
-                      <span className="pdv-item-codigo">{item.descricao}</span>
-                      <span className="pdv-item-preco">R$ {(item.preco || 0).toFixed(2)} / un</span>
-                    </div>
-                    <div className="pdv-item-subtotal">
-                      R$ {calcularSubtotalItem(item).toFixed(2)}
-                    </div>
-                    <button className="pdv-item-remove" onClick={() => removerItem(item.id)} title="Remover">×</button>
+              itens.map(item => (
+                <div key={item.id} className="item-row flex items-center gap-md p-md bg-white border border-outline-variant rounded-xl hover:shadow-md transition-all">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-label-md font-semibold text-on-surface truncate uppercase">{item.descricao}</p>
+                    <p className="text-body-sm text-on-surface-variant">Cód: {item.codigo_barra} · {fmt(item.preco)}/un</p>
                   </div>
-                  {/* Linha 2: qtd e desconto */}
-                  <div className="pdv-item-row2">
-                    <div className="pdv-item-qtd">
-                      <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item - 1)}>−</button>
-                      <span className="pdv-qtd-val">{item.qtd_item}</span>
-                      <button className="pdv-qtd-btn" onClick={() => atualizarQtd(item.id, item.qtd_item + 1)}>+</button>
-                    </div>
-                    <div className="pdv-item-desconto">
-                      <span className="pdv-desconto-label">Desconto:</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={item.desconto}
-                        onChange={(e) => atualizarDesconto(item.id, e.target.value)}
-                        className="pdv-desconto-input"
-                        placeholder="0"
-                      />
-                      <span className="pdv-desconto-label">%</span>
-                      {item.desconto > 0 && (
-                        <span className="pdv-desconto-valor">
-                          − R$ {(item.qtd_item * (item.preco || 0) * item.desconto / 100).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
+
+                  {/* Quantity control */}
+                  <div className="flex items-center gap-xs bg-surface-container px-sm py-1 rounded-full border border-outline-variant">
+                    <button onClick={() => atualizarQtd(item.id, item.qtd_item - 1)} className="w-6 h-6 flex items-center justify-center text-primary hover:bg-primary/10 rounded-full font-bold">−</button>
+                    <span className="font-geist-mono w-8 text-center text-mono-label">{String(item.qtd_item).padStart(2, '0')}</span>
+                    <button onClick={() => atualizarQtd(item.id, item.qtd_item + 1)} className="w-6 h-6 flex items-center justify-center text-primary hover:bg-primary/10 rounded-full font-bold">+</button>
                   </div>
+
+                  {/* Discount */}
+                  <div className="flex items-center gap-xs min-w-[100px]">
+                    <input
+                      type="number" min="0" max="100" value={item.desconto}
+                      onChange={e => atualizarDesconto(item.id, e.target.value)}
+                      className="w-14 px-sm py-1 border border-outline-variant rounded-lg text-body-sm text-center focus:border-primary input-focus-ring"
+                      placeholder="0"
+                    />
+                    <span className="text-body-sm text-on-surface-variant">%</span>
+                  </div>
+
+                  {/* Subtotal */}
+                  <div className="text-right min-w-[100px]">
+                    <p className="font-geist-mono text-mono-label text-on-surface">{fmt(subtotalItem(item))}</p>
+                    {item.desconto > 0 && (
+                      <p className="text-[10px] text-error font-bold uppercase">- {fmt(item.qtd_item * (item.preco || 0) * item.desconto / 100)} desc.</p>
+                    )}
+                  </div>
+
+                  <button onClick={() => removerItem(item.id)} className="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors">
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
                 </div>
               ))
             )}
           </div>
-        </div>
+
+          {/* Footer */}
+          <div className="p-md bg-surface-container-low border-t border-outline-variant flex items-center justify-between flex-shrink-0">
+            <div className="text-body-sm text-on-surface-variant">
+              {validando ? (
+                <span className="flex items-center gap-xs text-primary animate-pulse">
+                  <span className="material-symbols-outlined text-sm">sync</span>
+                  Validando produto...
+                </span>
+              ) : (
+                <span>{qtdItens} iten{qtdItens !== 1 ? 's' : ''} na sacola</span>
+              )}
+            </div>
+            <div className="text-body-sm font-bold text-primary animate-pulse flex items-center gap-xs">
+              <span className="material-symbols-outlined text-sm">wifi</span>
+              Sistema Online
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
