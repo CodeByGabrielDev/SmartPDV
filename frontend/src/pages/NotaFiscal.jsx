@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { notaFiscalService } from '../api/notaFiscalService';
 import { lojaService } from '../api/lojaService';
 import { showAlert } from '../components/Alert';
+import { gerarNotaPDF } from '../utils/gerarNotaPDF';
 
 const CFOPS_TRANSFERENCIA = [5152, 6152];
 const CFOPS_COMUNS = [
@@ -46,7 +47,19 @@ export default function NotaFiscal() {
   const [notas, setNotas] = useState([]);
   const [carregandoNotas, setCarregandoNotas] = useState(false);
   const [buscaHistorico, setBuscaHistorico] = useState('');
+  const [gerandoPDF, setGerandoPDF] = useState(null); // id da nota sendo gerada
 
+  const handleGerarPDF = async (e, nota) => {
+    e.stopPropagation();
+    setGerandoPDF(nota.nf_numero);
+    try {
+      await gerarNotaPDF(nota);
+    } catch {
+      showAlert('Erro ao gerar PDF. Tente novamente.', 'error');
+    } finally {
+      setGerandoPDF(null);
+    }
+  };
   const ehTransferencia = CFOPS_TRANSFERENCIA.includes(Number(form.cfop));
 
   useEffect(() => { if (aba === 'historico') carregarNotas(); }, [aba]);
@@ -188,7 +201,9 @@ export default function NotaFiscal() {
                     <div
                       key={idx}
                       onClick={() => setNotaDetalhes(nota)}
-                      className="bg-surface p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      className="bg-surface p-md rounded-2xl border border-outline-variant shadow-card cursor-pointer
+                                 transition-all duration-300 ease-out
+                                 hover:-translate-y-2 hover:shadow-card-lg hover:border-primary/30"
                     >
                       <div className="flex justify-between items-start mb-md">
                         <div>
@@ -221,11 +236,23 @@ export default function NotaFiscal() {
                           <p className="text-primary font-bold">{fmt(nota.valor_Bruto_Nota)}</p>
                         </div>
                         <div className="flex gap-xs">
-                          <button className="p-sm rounded-lg bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all" onClick={e => e.stopPropagation()}>
+                          <button
+                            className="p-sm rounded-lg bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all"
+                            title="Visualizar nota"
+                            onClick={e => { e.stopPropagation(); setNotaDetalhes(nota); }}
+                          >
                             <span className="material-symbols-outlined text-[20px]">visibility</span>
                           </button>
-                          <button className="p-sm rounded-lg bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all" onClick={e => e.stopPropagation()}>
-                            <span className="material-symbols-outlined text-[20px]">print</span>
+                          <button
+                            className="p-sm rounded-lg bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all disabled:opacity-50"
+                            title="Baixar PDF"
+                            onClick={e => handleGerarPDF(e, nota)}
+                            disabled={gerandoPDF === nota.nf_numero}
+                          >
+                            {gerandoPDF === nota.nf_numero
+                              ? <span className="material-symbols-outlined text-[20px] animate-spin">sync</span>
+                              : <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+                            }
                           </button>
                         </div>
                       </div>
@@ -410,8 +437,22 @@ export default function NotaFiscal() {
             </div>
 
             {/* Footer */}
-            <div className="p-lg border-t border-outline-variant flex justify-end flex-shrink-0">
-              <button onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }} className="px-xl py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all">
+            <div className="p-lg border-t border-outline-variant flex justify-between items-center flex-shrink-0">
+              <button
+                onClick={e => handleGerarPDF(e, notaDetalhes)}
+                disabled={gerandoPDF === notaDetalhes?.nf_numero}
+                className="flex items-center gap-sm px-lg py-sm bg-primary text-on-primary rounded-xl text-label-md font-bold hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                {gerandoPDF === notaDetalhes?.nf_numero ? (
+                  <><span className="material-symbols-outlined text-sm animate-spin">sync</span> Gerando PDF...</>
+                ) : (
+                  <><span className="material-symbols-outlined text-sm">picture_as_pdf</span> Baixar PDF</>
+                )}
+              </button>
+              <button
+                onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}
+                className="px-xl py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all"
+              >
                 Fechar
               </button>
             </div>

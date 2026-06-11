@@ -15,6 +15,8 @@ import Perfil from './pages/Perfil';
 import MeiosPagamento from './pages/MeiosPagamento';
 import Produtos from './pages/Produtos';
 import Estoque from './pages/Estoque';
+import FAQ from './pages/FAQ';
+import Sobre from './pages/Sobre';
 import './App.css';
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
             <Route path="meios-pagamento" element={<MeiosPagamento />} />
             <Route path="estoque" element={<Estoque />} />
             <Route path="perfil" element={<Perfil />} />
+            <Route path="faq" element={<FAQ />} />
+            <Route path="sobre" element={<Sobre />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -5,6 +5,114 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ──────────────────────────────────────────────
+   Design tokens via CSS variables
+   Light theme (default)
+────────────────────────────────────────────── */
+:root {
+  --color-primary:                   #3525cd;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #4f46e5;
+  --color-on-primary-container:      #dad7ff;
+
+  --color-secondary:                 #565e74;
+  --color-on-secondary:              #ffffff;
+  --color-secondary-container:       #dae2fd;
+  --color-on-secondary-container:    #1d2537;
+
+  --color-tertiary:                  #3130c0;
+  --color-on-tertiary:               #ffffff;
+  --color-tertiary-container:        #4b4dd8;
+  --color-on-tertiary-container:     #d9d8ff;
+
+  --color-error:                     #ba1a1a;
+  --color-on-error:                  #ffffff;
+  --color-error-container:           #ffdad6;
+  --color-on-error-container:        #93000a;
+
+  --color-background:                #f8f9ff;
+  --color-on-background:             #0b1c30;
+
+  --color-surface:                   #f8f9ff;
+  --color-on-surface:                #0b1c30;
+  --color-on-surface-variant:        #464555;
+  --color-surface-variant:           #d3e4fe;
+
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #eff4ff;
+  --color-surface-container:         #e5eeff;
+  --color-surface-container-high:    #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+
+  --color-outline:                   #777587;
+  --color-outline-variant:           #c7c4d8;
+
+  --color-inverse-surface:           #213145;
+  --color-inverse-on-surface:        #eaf1ff;
+  --color-inverse-primary:           #c3c0ff;
+
+  --color-surface-bright:            #f8f9ff;
+  --color-surface-dim:               #cbdbf5;
+  --color-surface-tint:              #4d44e3;
+
+  --color-on-tertiary-fixed-variant: #2f2ebe;
+}
+
+/* ──────────────────────────────────────────────
+   Dark theme — applies when <html class="dark">
+────────────────────────────────────────────── */
+html.dark {
+  --color-primary:                   #c3c0ff;
+  --color-on-primary:                #1a0095;
+  --color-primary-container:         #3323cc;
+  --color-on-primary-container:      #e2dfff;
+
+  --color-secondary:                 #bec6e0;
+  --color-on-secondary:              #293041;
+  --color-secondary-container:       #3f465c;
+  --color-on-secondary-container:    #dae2fd;
+
+  --color-tertiary:                  #c0c1ff;
+  --color-on-tertiary:               #07006c;
+  --color-tertiary-container:        #2929a8;
+  --color-on-tertiary-container:     #e1e0ff;
+
+  --color-error:                     #ffb4ab;
+  --color-on-error:                  #690005;
+  --color-error-container:           #93000a;
+  --color-on-error-container:        #ffdad6;
+
+  --color-background:                #0f1117;
+  --color-on-background:             #e4e6f0;
+
+  --color-surface:                   #161b27;
+  --color-on-surface:                #e4e6f0;
+  --color-on-surface-variant:        #b8bac8;
+  --color-surface-variant:           #1e2535;
+
+  --color-surface-container-lowest:  #0b0f1a;
+  --color-surface-container-low:     #161b27;
+  --color-surface-container:         #1c2133;
+  --color-surface-container-high:    #222840;
+  --color-surface-container-highest: #2a304d;
+
+  --color-outline:                   #8f8da0;
+  --color-outline-variant:           #2e3347;
+
+  --color-inverse-surface:           #e4e6f0;
+  --color-inverse-on-surface:        #2d3345;
+  --color-inverse-primary:           #3323cc;
+
+  --color-surface-bright:            #222840;
+  --color-surface-dim:               #0f1117;
+  --color-surface-tint:              #c3c0ff;
+
+  --color-on-tertiary-fixed-variant: #1a1a8a;
+}
+
+/* ──────────────────────────────────────────────
+   Base styles
+────────────────────────────────────────────── */
 * {
   margin: 0;
   padding: 0;
@@ -13,20 +121,107 @@
 
 body {
   font-family: 'Geist', sans-serif;
-  background-color: #f8f9ff;
-  color: #0b1c30;
+  background-color: var(--color-background);
+  color: var(--color-on-background);
   -webkit-font-smoothing: antialiased;
-}
-
-html.dark body {
-  background-color: #0b1c30;
-  color: #eaf1ff;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
   min-height: 100vh;
 }
 
+/* ──────────────────────────────────────────────
+   Override Tailwind color utilities to use vars
+────────────────────────────────────────────── */
+.bg-background               { background-color: var(--color-background) !important; }
+.bg-surface                  { background-color: var(--color-surface) !important; }
+.bg-surface-variant          { background-color: var(--color-surface-variant) !important; }
+.bg-surface-container-lowest { background-color: var(--color-surface-container-lowest) !important; }
+.bg-surface-container-low    { background-color: var(--color-surface-container-low) !important; }
+.bg-surface-container        { background-color: var(--color-surface-container) !important; }
+.bg-surface-container-high   { background-color: var(--color-surface-container-high) !important; }
+.bg-surface-container-highest{ background-color: var(--color-surface-container-highest) !important; }
+.bg-primary                  { background-color: var(--color-primary) !important; }
+.bg-primary-container        { background-color: var(--color-primary-container) !important; }
+.bg-secondary-container      { background-color: var(--color-secondary-container) !important; }
+.bg-tertiary-container       { background-color: var(--color-tertiary-container) !important; }
+.bg-error-container          { background-color: var(--color-error-container) !important; }
+.bg-on-tertiary-fixed-variant{ background-color: var(--color-on-tertiary-fixed-variant) !important; }
+.bg-inverse-surface          { background-color: var(--color-inverse-surface) !important; }
+
+.text-on-background          { color: var(--color-on-background) !important; }
+.text-on-surface             { color: var(--color-on-surface) !important; }
+.text-on-surface-variant     { color: var(--color-on-surface-variant) !important; }
+.text-primary                { color: var(--color-primary) !important; }
+.text-on-primary             { color: var(--color-on-primary) !important; }
+.text-on-primary-container   { color: var(--color-on-primary-container) !important; }
+.text-secondary              { color: var(--color-secondary) !important; }
+.text-on-secondary-container { color: var(--color-on-secondary-container) !important; }
+.text-tertiary               { color: var(--color-tertiary) !important; }
+.text-on-tertiary-container  { color: var(--color-on-tertiary-container) !important; }
+.text-on-tertiary-fixed-variant { color: var(--color-on-tertiary-fixed-variant) !important; }
+.text-error                  { color: var(--color-error) !important; }
+.text-on-error-container     { color: var(--color-on-error-container) !important; }
+.text-inverse-on-surface     { color: var(--color-inverse-on-surface) !important; }
+.text-surface                { color: var(--color-surface) !important; }
+
+.border-outline-variant      { border-color: var(--color-outline-variant) !important; }
+.border-outline              { border-color: var(--color-outline) !important; }
+.border-primary              { border-color: var(--color-primary) !important; }
+.border-error                { border-color: var(--color-error) !important; }
+
+/* Opacity variants that use tokens */
+.bg-primary\/5               { background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important; }
+.bg-primary\/10              { background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important; }
+.bg-primary-container\/10    { background-color: color-mix(in srgb, var(--color-primary-container) 10%, transparent) !important; }
+.bg-primary-container\/20    { background-color: color-mix(in srgb, var(--color-primary-container) 20%, transparent) !important; }
+.bg-secondary-container\/50  { background-color: color-mix(in srgb, var(--color-secondary-container) 50%, transparent) !important; }
+.bg-error\/10                { background-color: color-mix(in srgb, var(--color-error) 10%, transparent) !important; }
+.bg-error-container\/30      { background-color: color-mix(in srgb, var(--color-error-container) 30%, transparent) !important; }
+.border-2 { border-width: 2px; }
+
+/* Fix white text on white items in Venda.jsx */
+.bg-white {
+  background-color: var(--color-surface-container-lowest) !important;
+  color: var(--color-on-surface) !important;
+}
+
+/* ──────────────────────────────────────────────
+   glass-card adaptive
+────────────────────────────────────────────── */
+.glass-card {
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-outline-variant);
+}
+
+/* ──────────────────────────────────────────────
+   Inputs — ensure text visible in both themes
+────────────────────────────────────────────── */
+input, select, textarea {
+  color: var(--color-on-surface);
+  background-color: var(--color-surface-container-low);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+select option {
+  background-color: var(--color-surface-container);
+  color: var(--color-on-surface);
+}
+
+/* ──────────────────────────────────────────────
+   Scrollbar
+────────────────────────────────────────────── */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
@@ -40,29 +235,26 @@ html.dark body {
 
 .input-focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #c7c4d8; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-outline-variant); border-radius: 10px; }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-}
-
+/* ──────────────────────────────────────────────
+   Cards & animations
+────────────────────────────────────────────── */
 .bento-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1rem;
 }
 .bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -10px rgba(79, 70, 229, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -12px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .stock-progress-bar {
@@ -78,9 +270,23 @@ html.dark body {
 .geometric-pattern {
   background-color: transparent;
   background-image:
-    radial-gradient(#4f46e5 0.5px, transparent 0.5px),
-    radial-gradient(#4f46e5 0.5px, #f8f9ff 0.5px);
+    radial-gradient(var(--color-primary) 0.5px, transparent 0.5px),
+    radial-gradient(var(--color-primary) 0.5px, var(--color-background) 0.5px);
   background-size: 20px 20px;
   background-position: 0 0, 10px 10px;
-  opacity: 0.05;
+  opacity: 0.04;
+}
+
+/* ──────────────────────────────────────────────
+   Smooth theme transition on all elements
+────────────────────────────────────────────── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+/* But don't slow down transforms & animations */
+.bento-card, button, a, input, select, textarea {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+              transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }

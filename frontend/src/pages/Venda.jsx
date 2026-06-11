@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { vendaService } from '../api/vendaService';
 import { estoqueService } from '../api/estoqueService';
+import { caixaService } from '../api/caixaService';
 import { useNavigate } from 'react-router-dom';
 import { showAlert } from '../components/Alert';
 
@@ -8,11 +9,28 @@ export default function Venda() {
   const [codigoBarra, setCodigoBarra] = useState('');
   const [itens, setItens] = useState([]);
   const [cpfCnpj, setCpfCnpj] = useState('');
-  const [idVendedor, setIdVendedor] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [validando, setValidando] = useState(false);
+  const [caixaAberto, setCaixaAberto] = useState(false);
+  const [verificandoCaixa, setVerificandoCaixa] = useState(true);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+
+  // Verifica status do caixa ao montar
+  useEffect(() => {
+    const checarCaixa = async () => {
+      setVerificandoCaixa(true);
+      try {
+        const status = await caixaService.buscarCaixaAberto();
+        setCaixaAberto(!!status);
+      } catch {
+        setCaixaAberto(false);
+      } finally {
+        setVerificandoCaixa(false);
+      }
+    };
+    checarCaixa();
+  }, []);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -64,6 +82,7 @@ export default function Venda() {
   };
 
   const finalizarVenda = async () => {
+    if (!caixaAberto) { showAlert('Abra o caixa antes de realizar vendas.', 'error'); return; }
     if (itens.length === 0) { showAlert('Adicione pelo menos um item', 'error'); return; }
     setCarregando(true);
     try {
@@ -85,15 +104,43 @@ export default function Venda() {
   const todosValidados = itens.length > 0 && itens.every(i => i.validado);
   const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+  // Badge do status do caixa
+  const CaixaBadge = () => {
+    if (verificandoCaixa) {
+      return (
+        <span className="px-sm py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold rounded-full border border-outline-variant flex items-center gap-xs">
+          <span className="w-2 h-2 rounded-full bg-outline-variant animate-pulse" />
+          VERIFICANDO...
+        </span>
+      );
+    }
+    if (caixaAberto) {
+      return (
+        <span className="px-sm py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200 flex items-center gap-xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          CAIXA ABERTO
+        </span>
+      );
+    }
+    return (
+      <span
+        className="px-sm py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded-full border border-error/30 flex items-center gap-xs cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => navigate('/dashboard/caixa')}
+        title="Clique para abrir o caixa"
+      >
+        <span className="w-2 h-2 rounded-full bg-error" />
+        CAIXA FECHADO — Abrir
+      </span>
+    );
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-background">
       {/* Top bar */}
       <div className="h-16 px-xl flex items-center justify-between bg-surface border-b border-outline-variant flex-shrink-0">
         <div className="flex items-center gap-md">
           <span className="text-headline-md font-black text-primary">PDV Terminal</span>
-          <span className="px-sm py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
-            CAIXA ABERTO
-          </span>
+          <CaixaBadge />
         </div>
         <div className="flex items-center gap-md text-right">
           <div>
@@ -102,6 +149,24 @@ export default function Venda() {
           </div>
         </div>
       </div>
+
+      {/* Alerta caixa fechado */}
+      {!verificandoCaixa && !caixaAberto && (
+        <div className="px-xl py-sm bg-error-container/30 border-b border-error/20 flex items-center justify-between">
+          <div className="flex items-center gap-sm">
+            <span className="material-symbols-outlined text-error text-sm">warning</span>
+            <p className="text-body-sm text-on-error-container font-semibold">
+              O caixa está fechado. Vendas bloqueadas até a abertura do caixa.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/dashboard/caixa')}
+            className="text-label-md font-bold text-error hover:underline flex items-center gap-xs"
+          >
+            Ir para Caixa →
+          </button>
+        </div>
+      )}
 
       {/* POS canvas */}
       <div className="flex-1 flex p-lg gap-gutter overflow-hidden">
@@ -121,38 +186,26 @@ export default function Venda() {
                   onKeyDown={e => e.key === 'Enter' && !validando && adicionarItem()}
                   placeholder="Escaneie o código ou digite o nome..."
                   className="w-full pl-16 pr-md py-5 bg-surface-container-low border-2 border-outline-variant rounded-2xl text-headline-md font-semibold focus:border-primary outline-none transition-all placeholder:text-outline-variant input-focus-ring"
-                  disabled={validando}
+                  disabled={validando || !caixaAberto}
                   autoComplete="off"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-md">
-              <div className="space-y-sm">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">CPF/CNPJ na Nota</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
-                  <input
-                    type="text"
-                    value={cpfCnpj}
-                    onChange={e => setCpfCnpj(e.target.value)}
-                    placeholder="000.000.000-00"
-                    className="w-full pl-12 pr-md py-sm bg-surface border border-outline-variant rounded-xl focus:border-primary input-focus-ring transition-all text-body-md"
-                    maxLength={18}
-                  />
-                </div>
-              </div>
-              <div className="space-y-sm">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Vendedor</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">badge</span>
-                  <input
-                    type="text"
-                    value={idVendedor}
-                    onChange={e => setIdVendedor(e.target.value)}
-                    placeholder="ID Vendedor"
-                    className="w-full pl-12 pr-md py-sm bg-surface border border-outline-variant rounded-xl focus:border-primary input-focus-ring transition-all text-body-md"
-                  />
-                </div>
+
+            {/* Apenas CPF/CNPJ — vendedor vem do SecurityContextHolder */}
+            <div className="space-y-sm">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">CPF/CNPJ na Nota (opcional)</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+                <input
+                  type="text"
+                  value={cpfCnpj}
+                  onChange={e => setCpfCnpj(e.target.value)}
+                  placeholder="000.000.000-00"
+                  className="w-full pl-12 pr-md py-sm bg-surface border border-outline-variant rounded-xl focus:border-primary input-focus-ring transition-all text-body-md"
+                  maxLength={18}
+                  disabled={!caixaAberto}
+                />
               </div>
             </div>
           </div>
@@ -181,7 +234,7 @@ export default function Venda() {
             </div>
             <button
               onClick={finalizarVenda}
-              disabled={carregando || !todosValidados}
+              disabled={carregando || !todosValidados || !caixaAberto}
               className="w-full bg-primary py-5 rounded-2xl text-on-primary text-headline-md font-semibold flex items-center justify-center gap-md hover:bg-primary/90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-3xl">payments</span>
@@ -216,7 +269,7 @@ export default function Venda() {
               </div>
             ) : (
               itens.map(item => (
-                <div key={item.id} className="item-row flex items-center gap-md p-md bg-white border border-outline-variant rounded-xl hover:shadow-md transition-all">
+                <div key={item.id} className="item-row flex items-center gap-md p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover:shadow-md transition-all">
                   <div className="flex-1 min-w-0">
                     <p className="text-label-md font-semibold text-on-surface truncate uppercase">{item.descricao}</p>
                     <p className="text-body-sm text-on-surface-variant">Cód: {item.codigo_barra} · {fmt(item.preco)}/un</p>

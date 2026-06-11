@@ -68,7 +68,7 @@ export default function ExcecaoImposto() {
       <div className="flex flex-col md:flex-row gap-md justify-between items-start md:items-center">
         <div className="relative w-full max-w-md group">
           <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
-          <input type="text" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por CFOP, descrição ou loja..." className="w-full bg-white border border-outline-variant rounded-xl pl-12 pr-md py-sm text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" />
+          <input type="text" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por CFOP, descrição ou loja..." className="w-full bg-surface-container-low border border-outline-variant rounded-xl pl-12 pr-md py-sm text-body-md focus:border-primary transition-all outline-none" />
         </div>
         <button onClick={() => { setMostrarForm(v => !v); setItens([]); setForm(FORM_INICIAL); }} className={`flex items-center gap-sm px-xl py-md rounded-xl text-label-md font-bold shadow-sm active:scale-95 transition-all ${mostrarForm ? 'bg-surface-container border border-outline-variant text-on-surface-variant' : 'bg-primary text-on-primary hover:opacity-90'}`}>
           <span className="material-symbols-outlined">{mostrarForm ? 'close' : 'add'}</span>
