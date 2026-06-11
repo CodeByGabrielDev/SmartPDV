@@ -39,20 +39,39 @@ public class PaginaPrincipal {
 		return validaDisponibilidadeLoginESenha(funcionarioRegister, idLoja);
 
 	}
+	/*
+	 * @Query("""
+	 * SELECT u
+	 * FROM UsuariosLoja u
+	 * WHERE (u.cpf = :cpf OR u.login = :login)
+	 * AND u.lojaVinculada.id = :idLoja
+	 * """)
+	 * UsuariosLoja findByCpfOrLoginAndLoja(
+	 * 
+	 * @Param("cpf") String cpf,
+	 * 
+	 * @Param("login") String login,
+	 * 
+	 * @Param("idLoja") Long idLoja);
+	 */
 
 	private UsuarioLojaResponse validaDisponibilidadeLoginESenha(FuncionarioRequest funcionarioRegister, long idLoja) {
-		UsuariosLoja funcionario = this.funcionario.findByCpfAndCodeFilial(funcionarioRegister.getCpf(), idLoja);
+		UsuariosLoja funcionario = this.funcionario.findByCpfOrLoginAndLoja(funcionarioRegister.getCpf(),
+				funcionarioRegister.getLogin(), idLoja);
 
 		if (funcionario != null && !funcionario.isInativo()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"Já existe um funcionário cadastrado com o CPF '" + funcionarioRegister.getCpf() + "' nesta loja.");
+					"Já existe um funcionário cadastrado com o CPF  '" + funcionarioRegister.getCpf() + " ou LOGIN"
+							+ funcionarioRegister.getLogin() + "' nesta loja.");
 		}
 		if (!Validator.validarSenha(funcionarioRegister.getSenha())) {
-			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "A senha não atende aos requisitos mínimos. Use ao menos 8 caracteres com letras, números e caracteres especiais.");
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					"A senha não atende aos requisitos mínimos. Use ao menos 8 caracteres com letras, números e caracteres especiais.");
 		}
 
 		if (this.funcionario.findByEmail(funcionarioRegister.getEmail()) != null) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um usuário cadastrado com o email '" + funcionarioRegister.getEmail() + "'.");
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Já existe um usuário cadastrado com o email '" + funcionarioRegister.getEmail() + "'.");
 		}
 
 		return salvaInfoNoBancoRetornaDto(funcionarioRegister, idLoja);
@@ -61,9 +80,11 @@ public class PaginaPrincipal {
 
 	private UsuarioLojaResponse salvaInfoNoBancoRetornaDto(FuncionarioRequest funcionarioRegister, Long idLoja) {
 		Loja loja = this.loja.findById(idLoja)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja com ID '" + idLoja + "' não encontrada no sistema."));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						"Loja com ID '" + idLoja + "' não encontrada no sistema."));
 		if (funcionarioRegister.getPerfil() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O perfil do usuário é obrigatório. Selecione um perfil antes de prosseguir.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"O perfil do usuário é obrigatório. Selecione um perfil antes de prosseguir.");
 		}
 
 		System.out.println("Perfil do usuario: " + funcionarioRegister.getPerfil());
@@ -75,19 +96,20 @@ public class PaginaPrincipal {
 				funcionarioRegister.getLogin(), funcionarioRegister.getPerfil().toString(), loja.getRazaoSocial());
 	}
 
-	
-
 	public String login(String login, String senha) {
 		if (login == null || senha == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Login e senha são obrigatórios para acessar o sistema.");
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					"Login e senha são obrigatórios para acessar o sistema.");
 		}
 		UsuariosLoja user = this.funcionario.findByLogin(login);
 		if (user == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Login ou senha incorretos. Verifique suas credenciais e tente novamente.");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+					"Login ou senha incorretos. Verifique suas credenciais e tente novamente.");
 		}
 
 		if (!this.hash.passwordEncoder().matches(senha, user.getSenha())) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login ou senha incorretos. Verifique suas credenciais e tente novamente.");
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"Login ou senha incorretos. Verifique suas credenciais e tente novamente.");
 		}
 
 		return (this.token.gerarToken(user));

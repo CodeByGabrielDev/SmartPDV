@@ -67,7 +67,7 @@ export default function Login() {
   const handleRegisterStore = async (e) => {
     e.preventDefault();
     try {
-      await lojaService.registrarLoja({ razaoSocial, cnpj, ie, endereco });
+      await lojaService.registrarLoja({ razaoSocial, cnpj, IE: ie, endereco });
       showAlert('Loja cadastrada com sucesso!', 'success');
       switchView('login');
     } catch (error) {
