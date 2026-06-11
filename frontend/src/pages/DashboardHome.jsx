@@ -5,15 +5,15 @@ import { dashboardService } from '../api/dashboardService';
 function MetricCard({ icon, label, value, sub, badge, badgeCls, alert, onClick }) {
   return (
     <div
-      className={`bento-card p-xl rounded-xl border cursor-pointer ${
+      className={`bg-surface border rounded-2xl p-lg flex flex-col gap-xs shadow-card hover:shadow-card-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer ${
         alert
-          ? 'bg-error-container/30 border-2 border-error'
-          : 'bg-surface border-outline-variant'
+          ? 'bg-error-container/30 border-error border-2'
+          : 'border-outline-variant'
       }`}
       onClick={onClick}
     >
-      <div className="flex justify-between items-start mb-md">
-        <div className={`p-sm rounded-lg ${alert ? 'bg-error/10' : 'bg-primary-container/10'}`}>
+      <div className="flex justify-between items-start mb-sm">
+        <div className={`p-sm rounded-xl ${alert ? 'bg-error/10' : 'bg-primary-container/10'}`}>
           <span className={`material-symbols-outlined ${alert ? 'text-error' : 'text-primary'}`}>{icon}</span>
         </div>
         {badge && (
@@ -28,9 +28,9 @@ function MetricCard({ icon, label, value, sub, badge, badgeCls, alert, onClick }
           </div>
         )}
       </div>
-      <p className="text-label-md font-semibold text-on-surface-variant uppercase tracking-wider mb-xs">{label}</p>
+      <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">{label}</p>
       <h2 className={`text-headline-lg font-semibold ${alert ? 'text-on-error-container' : 'text-on-surface'}`}>{value}</h2>
-      {sub && <p className={`text-body-sm mt-sm ${alert ? 'text-on-error-container' : 'text-on-surface-variant'}`}>{sub}</p>}
+      {sub && <p className={`text-body-sm mt-xs ${alert ? 'text-on-error-container' : 'text-on-surface-variant'}`}>{sub}</p>}
     </div>
   );
 }
@@ -48,10 +48,10 @@ function BarChart({ data }) {
         return (
           <div key={i} className="flex-1 flex flex-col items-center gap-sm">
             <div
-              className="w-full bg-primary-container/20 rounded-t-lg hover:bg-primary-container transition-all cursor-pointer relative group"
+              className="w-full bg-primary/10 rounded-t-lg hover:bg-primary/25 transition-all cursor-pointer relative group"
               style={{ height: `${Math.max(pct, 4)}%` }}
             >
-              <div className="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-xs px-sm py-xs rounded whitespace-nowrap">
+              <div className="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-xs px-sm py-xs rounded whitespace-nowrap z-10">
                 {d.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </div>
             </div>
@@ -121,6 +121,22 @@ export default function DashboardHome() {
 
   return (
     <div className="p-xl space-y-xl">
+
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-xl">
+        <div>
+          <h1 className="text-headline-md font-bold text-on-surface">Dashboard</h1>
+          <p className="text-body-sm text-on-surface-variant mt-xs">Visão geral das operações de hoje</p>
+        </div>
+        <button
+          onClick={() => navigate('venda')}
+          className="flex items-center gap-sm px-lg py-md bg-primary text-on-primary rounded-xl text-label-md font-bold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
+        >
+          <span className="material-symbols-outlined">point_of_sale</span>
+          Ir para PDV
+        </button>
+      </div>
+
       {/* Metrics grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
         <MetricCard
@@ -129,7 +145,7 @@ export default function DashboardHome() {
           value={fmt(totalVendas)}
           sub={`${qtdVendas} vendas concluídas`}
           badge="+12%"
-          badgeCls="text-emerald-600 bg-emerald-50"
+          badgeCls="text-emerald-700 bg-emerald-100 border border-emerald-200"
           onClick={() => navigate('venda')}
         />
         <MetricCard
@@ -138,7 +154,7 @@ export default function DashboardHome() {
           value={fmt(ticketMedio)}
           sub={`Desconto total: ${fmt(totalDescontos)}`}
           badge={`Meta: ${fmt(85)}`}
-          badgeCls="text-on-surface-variant"
+          badgeCls="text-on-surface-variant bg-surface-container border border-outline-variant"
         />
         <MetricCard
           icon="description"
@@ -146,7 +162,7 @@ export default function DashboardHome() {
           value={qtdNotas}
           sub="NFC-e emitidas hoje"
           badge="100% Sinc."
-          badgeCls="text-primary font-bold"
+          badgeCls="text-primary bg-primary-container/20 border border-primary/20 font-bold"
           onClick={() => navigate('notafiscal')}
         />
         <MetricCard
@@ -162,17 +178,17 @@ export default function DashboardHome() {
       {/* Chart + Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-stretch">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-surface p-xl rounded-xl border border-outline-variant flex flex-col">
+        <div className="lg:col-span-2 bg-surface border border-outline-variant rounded-2xl p-xl shadow-card flex flex-col">
           <div className="flex justify-between items-center mb-xl">
             <div>
-              <h3 className="text-headline-md font-semibold text-on-surface">Faturamento por Hora</h3>
-              <p className="text-body-sm text-on-surface-variant">Desempenho operacional do dia corrente</p>
+              <h3 className="text-headline-md font-bold text-on-surface">Faturamento por Hora</h3>
+              <p className="text-body-sm text-on-surface-variant mt-xs">Desempenho operacional do dia corrente</p>
             </div>
             <div className="flex gap-sm">
-              <button className="px-md py-sm bg-surface-variant text-on-surface rounded-lg text-label-md font-semibold hover:bg-outline-variant transition-colors">
+              <button className="px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-xl text-label-md font-semibold hover:bg-surface-container-high transition-colors">
                 Exportar
               </button>
-              <select className="px-md py-sm bg-surface border-outline-variant text-on-surface rounded-lg text-label-md font-semibold focus:ring-primary">
+              <select className="px-md py-sm bg-surface border border-outline-variant text-on-surface rounded-xl text-label-md font-semibold focus:ring-primary focus:outline-none">
                 <option>Hoje</option>
                 <option>Ontem</option>
               </select>
@@ -184,9 +200,9 @@ export default function DashboardHome() {
         </div>
 
         {/* Recent sales table */}
-        <div className="bg-surface p-xl rounded-xl border border-outline-variant">
-          <div className="flex justify-between items-center mb-xl">
-            <h3 className="text-headline-md font-semibold text-on-surface">Últimas Vendas</h3>
+        <div className="bg-surface border border-outline-variant rounded-2xl p-xl shadow-card">
+          <div className="flex justify-between items-center mb-lg">
+            <h3 className="text-headline-md font-bold text-on-surface">Últimas Vendas</h3>
             <button
               onClick={() => navigate('venda')}
               className="text-label-md font-semibold text-primary hover:underline"
@@ -195,6 +211,7 @@ export default function DashboardHome() {
             </button>
           </div>
           <div className="flex flex-col">
+            {/* Table header */}
             <div className="grid grid-cols-4 pb-sm border-b border-outline-variant mb-sm">
               {['Ticket', 'Vendedor', 'Hora', 'Valor'].map(h => (
                 <span key={h} className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right last:text-right first:text-left">
@@ -203,14 +220,22 @@ export default function DashboardHome() {
               ))}
             </div>
             {ultimasVendas.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-xl text-on-surface-variant">
-                <span className="material-symbols-outlined text-5xl mb-sm opacity-30">receipt_long</span>
-                <p className="text-body-sm">Nenhuma venda hoje</p>
+              <div className="flex flex-col items-center justify-center py-xl gap-md text-center">
+                <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-3xl text-on-surface-variant opacity-40">receipt_long</span>
+                </div>
+                <div>
+                  <p className="text-label-md font-semibold text-on-surface">Nenhuma venda</p>
+                  <p className="text-body-sm text-on-surface-variant mt-xs">Nenhuma venda registrada hoje</p>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-xs">
-                {ultimasVendas.map(v => (
-                  <div key={v.id} className="grid grid-cols-4 py-sm items-center hover:bg-surface-container-low transition-colors rounded px-xs cursor-pointer">
+                {ultimasVendas.map((v, i) => (
+                  <div
+                    key={v.id}
+                    className={`grid grid-cols-4 py-sm items-center rounded-lg px-xs cursor-pointer transition-colors ${i % 2 === 0 ? 'hover:bg-surface-container/50' : 'bg-surface-container-low/40 hover:bg-surface-container/50'}`}
+                  >
                     <span className="font-geist-mono text-mono-label text-on-surface">#{v.ticket || v.id}</span>
                     <span className="text-body-sm text-on-surface-variant truncate">{v.nomeVendedor || '—'}</span>
                     <span className="text-body-sm text-on-surface-variant">{fmtHora(v.dataHora)}</span>
@@ -225,9 +250,9 @@ export default function DashboardHome() {
 
       {/* Warning banner */}
       {qtdPendentes > 0 && (
-        <div className="bg-on-tertiary-fixed-variant p-lg rounded-xl flex flex-col md:flex-row justify-between items-center gap-md border border-outline">
+        <div className="bg-on-tertiary-fixed-variant p-lg rounded-2xl flex flex-col md:flex-row justify-between items-center gap-md border border-outline shadow-card">
           <div className="flex items-center gap-md">
-            <div className="bg-tertiary-container text-on-tertiary-container h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="bg-tertiary-container text-on-tertiary-container h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0">
               <span className="material-symbols-outlined">priority_high</span>
             </div>
             <div>
@@ -240,7 +265,7 @@ export default function DashboardHome() {
           <div className="flex gap-md">
             <button
               onClick={() => navigate('entrada-mercadoria')}
-              className="px-xl py-md bg-white text-on-tertiary-fixed-variant text-label-md font-bold rounded-lg shadow-sm hover:bg-white/90 transition-all active:scale-95"
+              className="px-xl py-md bg-surface-container-lowest text-on-tertiary-fixed-variant text-label-md font-bold rounded-xl shadow-sm hover:bg-surface-container transition-all active:scale-95"
             >
               Ver Detalhes
             </button>

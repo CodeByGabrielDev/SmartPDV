@@ -39,21 +39,6 @@ public class PaginaPrincipal {
 		return validaDisponibilidadeLoginESenha(funcionarioRegister, idLoja);
 
 	}
-	/*
-	 * @Query("""
-	 * SELECT u
-	 * FROM UsuariosLoja u
-	 * WHERE (u.cpf = :cpf OR u.login = :login)
-	 * AND u.lojaVinculada.id = :idLoja
-	 * """)
-	 * UsuariosLoja findByCpfOrLoginAndLoja(
-	 * 
-	 * @Param("cpf") String cpf,
-	 * 
-	 * @Param("login") String login,
-	 * 
-	 * @Param("idLoja") Long idLoja);
-	 */
 
 	private UsuarioLojaResponse validaDisponibilidadeLoginESenha(FuncionarioRequest funcionarioRegister, long idLoja) {
 		UsuariosLoja funcionario = this.funcionario.findByCpfOrLoginAndLoja(funcionarioRegister.getCpf(),

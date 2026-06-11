@@ -52,6 +52,21 @@ export default function Estoque() {
 
   return (
     <section className="p-xl space-y-xl max-w-7xl mx-auto w-full">
+
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-headline-md font-bold text-on-surface">Estoque</h1>
+          <p className="text-body-sm text-on-surface-variant mt-xs">
+            {itens.length} produto{itens.length !== 1 ? 's' : ''} · {totalUnidades.toLocaleString('pt-BR')} unidades totais
+          </p>
+        </div>
+        <button onClick={carregar} className="flex items-center gap-sm px-md py-sm bg-surface-container border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container-high transition-all min-h-[44px]">
+          <span className="material-symbols-outlined text-[18px]">refresh</span>
+          Atualizar
+        </button>
+      </div>
+
       {/* Metric cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
         {[
@@ -83,7 +98,7 @@ export default function Estoque() {
               value={busca}
               onChange={e => setBusca(e.target.value)}
               placeholder="Buscar por nome, SKU ou ID..."
-              className="w-full bg-white border border-outline-variant rounded-xl pl-12 pr-md py-sm text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+              className="w-full bg-surface-container-low border border-outline-variant rounded-xl pl-12 pr-md py-sm text-body-md focus:border-primary transition-all outline-none"
             />
           </div>
           <div className="h-8 w-px bg-outline-variant mx-sm hidden md:block" />
@@ -110,14 +125,14 @@ export default function Estoque() {
         <div className="flex items-center gap-sm bg-surface-container-low p-1 rounded-xl border border-outline-variant">
           <button
             onClick={() => setVisualizacao('cards')}
-            className={`p-sm rounded-lg transition-all ${visualizacao === 'cards' ? 'bg-white shadow-sm text-primary' : 'text-on-surface-variant hover:bg-white'}`}
+            className={`p-sm rounded-lg transition-all ${visualizacao === 'cards' ? 'bg-surface-container-highest shadow-sm text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`}
             title="Ver como Grade"
           >
             <span className="material-symbols-outlined">grid_view</span>
           </button>
           <button
             onClick={() => setVisualizacao('tabela')}
-            className={`p-sm rounded-lg transition-all ${visualizacao === 'tabela' ? 'bg-white shadow-sm text-primary' : 'text-on-surface-variant hover:bg-white'}`}
+            className={`p-sm rounded-lg transition-all ${visualizacao === 'tabela' ? 'bg-surface-container-highest shadow-sm text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`}
             title="Ver como Tabela"
           >
             <span className="material-symbols-outlined">format_list_bulleted</span>
@@ -134,10 +149,14 @@ export default function Estoque() {
           </div>
         </div>
       ) : filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-2xl text-on-surface-variant">
-          <span className="material-symbols-outlined text-7xl opacity-20 mb-md">inventory_2</span>
-          <p className="text-headline-md font-semibold opacity-50">Nenhum produto encontrado</p>
-          <p className="text-body-sm opacity-30 mt-xs">Tente ajustar os filtros</p>
+        <div className="flex flex-col items-center justify-center py-2xl gap-lg">
+          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center">
+            <span className="material-symbols-outlined text-3xl text-on-surface-variant opacity-50">inventory_2</span>
+          </div>
+          <div className="text-center">
+            <p className="text-label-md font-semibold text-on-surface">Nenhum produto encontrado</p>
+            <p className="text-body-sm text-on-surface-variant mt-xs">Tente ajustar os filtros ou a busca</p>
+          </div>
         </div>
       ) : visualizacao === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
@@ -145,7 +164,7 @@ export default function Estoque() {
             const nivel = nivelInfo(item.quantidade_atual ?? 0);
             const pct = Math.min((item.quantidade_atual ?? 0) / 100 * 100, 100);
             return (
-              <div key={item.id} className="group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div key={item.id} className="group bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="relative h-48 bg-surface-container flex items-center justify-center">
                   <span className="material-symbols-outlined text-7xl text-outline opacity-20">inventory_2</span>
                   <div className="absolute top-md right-md">
