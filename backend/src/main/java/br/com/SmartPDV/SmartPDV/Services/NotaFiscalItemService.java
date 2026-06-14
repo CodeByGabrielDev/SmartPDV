@@ -69,6 +69,79 @@ public class NotaFiscalItemService {
 		this.notaImpostoItem.calculaImposto(notas, notaFiscal);
 	}
 
+	/**
+	 * Valida todos os itens do request SEM persistir nada no banco.
+	 * Lança ResponseStatusException se qualquer produto estiver inativo ou sem estoque.
+	 * Deve ser chamado ANTES de salvar a NotaFiscal.
+	 */
+	public void validarItensAntesDeEmitir(NotaFiscalRequest notaItem,
+			NotaFiscal notaEntity, UsuariosLoja usuariosLoja) {
+
+		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
+			if (notaEntity.getCfop() == 5152 || notaEntity.getCfop() == 6152) {
+				Produto produto = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
+				if (produto == null) {
+					throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+							"Produto com código de barras '" + nota.getCodigo_barra() + "' não encontrado.");
+				}
+				if (Boolean.TRUE.equals(produto.getInativo())) {
+					throw new ResponseStatusException(HttpStatus.CONFLICT,
+							"O produto '" + produto.getDescricao() + "' (cód: " + nota.getCodigo_barra()
+									+ ") está inativo e não pode ser incluído em uma nota de transferência. "
+									+ "Reative o produto ou remova-o da nota.");
+				}
+			} else {
+				// Para CFOPs de venda, valida estoque (sem debitar — só leitura)
+				if (this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra()) == null) {
+					throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+							"Produto com código de barras '" + nota.getCodigo_barra() + "' não encontrado.");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Persiste os itens fiscais assumindo que a validação já foi feita.
+	 * Substitui o antigo validacaoEPersistencia para uso após salvar a nota.
+	 */
+	@Transactional
+	public void persistirItensJaValidados(NotaFiscalRequest notaItem,
+			NotaFiscal notaEntity, UsuariosLoja usuariosLoja) {
+		List<NotaFiscalItem> notaItemEntity = new ArrayList<>();
+		Integer iterador = 1;
+		Double valorTotalDesconto = 0.0;
+		Double calculaTotalBrutoNota = 0.0;
+		Double calculaTotalLiquidoNota = 0.0;
+		ExcecaoImposto exception = this.excecaoImpostoRepo.findExcecaoByCodFilialAndCfop(notaEntity.getCfop(),
+				usuariosLoja.getLojaVinculada().getId());
+
+		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
+			Produto prodFind;
+			if (notaEntity.getCfop() == 5152 || notaEntity.getCfop() == 6152) {
+				prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
+			} else {
+				prodFind = this.estoqueProdutoService
+						.validaSeExisteItemNoEstoquePorCodigo(nota.getCodigo_barra(), nota.getQuantidade_Itens());
+			}
+
+			calculaTotalBrutoNota += (prodFind.getPrecoVenda() * nota.getQuantidade_Itens());
+			calculaTotalLiquidoNota += this.calculator.calculaValorLiquido(nota, prodFind);
+			notaItemEntity.add(new NotaFiscalItem(notaEntity, notaEntity.getNfNumero(), notaEntity.getSerieNf(),
+					prodFind, iterador++,
+					nota.getQuantidade_Itens(),
+					prodFind.getPrecoVenda(),
+					this.calculator.calculaValorLiquido(nota, prodFind),
+					nota.getDesconto(), notaEntity.getLoja(), exception));
+			valorTotalDesconto += this.calculator.calculaTotalDeDescontoNaNota(nota, prodFind);
+		}
+		notaEntity.setValorBrutoNota(calculaTotalBrutoNota);
+		notaEntity.setValorLiquidoNota(calculaTotalLiquidoNota);
+		notaEntity.setDesconto(valorTotalDesconto);
+		this.notaRepo.saveAll(notaItemEntity);
+		this.notaFiscalRepo.save(notaEntity);
+		this.notaImpostoItem.calculaImposto(notaItemEntity, notaEntity);
+	}
+
 	@Transactional
 	public void validacaoEPersistencia(NotaFiscalRequest notaItem,
 			NotaFiscal notaEntity, UsuariosLoja usuariosLoja) {
@@ -83,7 +156,12 @@ public class NotaFiscalItemService {
 		for (NotaFiscalItemRequest nota : notaItem.getCodigo_barra()) {
 			Produto prodFind;
 			if (notaEntity.getCfop() == 5152 || notaEntity.getCfop() == 6152) {
-				prodFind = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
+				Produto produto = this.prodRepository.selectByCodigoDeBarra(nota.getCodigo_barra());
+				if (produto.getInativo()) {
+					this.notaFiscalRepo.delete(notaEntity);
+					throw new ResponseStatusException(HttpStatus.CONFLICT, "produto inativo");
+				}
+				prodFind = produto;
 			} else {
 				prodFind = this.estoqueProdutoService
 						.validaSeExisteItemNoEstoquePorCodigo(nota.getCodigo_barra(), nota.getQuantidade_Itens());
@@ -112,7 +190,5 @@ public class NotaFiscalItemService {
 		this.notaImpostoItem.calculaImposto(notaItemEntity, notaEntity);
 
 	}
-
-	
 
 }

@@ -135,23 +135,23 @@ export default function Perfil() {
           {aba === 'conta' && (
             <>
               {/* Identity card */}
-              <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+              <div className="bg-surface border border-outline-variant rounded-2xl shadow-card">
                 {/* Banner */}
-                <div className="h-24 bg-primary relative">
+                <div className="h-20 bg-primary rounded-t-2xl relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                 </div>
                 <div className="px-xl pb-xl">
-                  {/* Avatar */}
-                  <div className="-mt-10 mb-md flex items-end justify-between">
-                    <div className="w-20 h-20 rounded-2xl bg-primary border-4 border-surface flex items-center justify-center text-on-primary font-bold text-2xl shadow-lg">
+                  {/* Avatar — sai do banner com margem negativa, z-index garante visibilidade */}
+                  <div className="flex items-end justify-between" style={{ marginTop: '-2.5rem' }}>
+                    <div className="w-20 h-20 rounded-2xl bg-primary border-4 border-surface flex items-center justify-center text-on-primary font-bold text-2xl shadow-lg flex-shrink-0" style={{ zIndex: 1, position: 'relative' }}>
                       {initials}
                     </div>
-                    <span className="inline-flex items-center gap-xs px-sm py-xs rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold mb-2">
+                    <span className="inline-flex items-center gap-xs px-sm py-xs rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold mb-2 flex-shrink-0">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Ativo
                     </span>
                   </div>
 
-                  <div>
+                  <div className="mt-md">
                     <h3 className="text-headline-md font-bold text-on-surface">{carregando ? '—' : perfil?.nomeVendedor || login}</h3>
                     <p className="text-body-sm text-on-surface-variant mt-xs">@{login}</p>
                   </div>

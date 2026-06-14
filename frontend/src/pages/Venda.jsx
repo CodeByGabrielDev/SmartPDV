@@ -48,14 +48,41 @@ export default function Venda() {
       const estoque = await estoqueService.listarEstoque();
       const item = estoque.find(e => e.codigo_barra?.toUpperCase() === codigo);
       if (!item) { showAlert(`Produto "${codigo}" não encontrado no estoque.`, 'error'); return; }
-      if (item.quantidade_atual < 1) { showAlert(`Produto "${codigo}" sem saldo.`, 'error'); return; }
+      if (item.quantidade_atual < 1) { showAlert(`Produto "${codigo}" sem saldo em estoque.`, 'error'); return; }
+
+      // Valida inativo via campo do response (se disponível)
+      if (item.inativo === true) {
+        showAlert(`Produto "${item.nome_produto || codigo}" está INATIVO e não pode ser adicionado à venda.`, 'error');
+        setCodigoBarra('');
+        return;
+      }
+
       setItens(prev => [...prev, {
         id: Date.now(), codigo_barra: codigo, qtd_item: 1, desconto: 0,
         preco: item.preco_venda ?? 0, qtdDisponivel: item.quantidade_atual,
         descricao: item.nome_produto ?? codigo, validado: true,
+        inativo: false,
       }]);
       setCodigoBarra('');
-    } catch { showAlert('Erro ao validar produto no estoque.', 'error'); }
+    } catch (err) {
+      const msg = err.displayMessage || err.message || '';
+      const ehInativo = msg.toLowerCase().includes('inativ') || msg.toLowerCase().includes('inactiv');
+
+      if (ehInativo) {
+        // Produto inativo — adiciona como "bloqueado" na lista com indicador visual
+        const codigo2 = codigoBarra.trim().toUpperCase();
+        setItens(prev => [...prev, {
+          id: Date.now(), codigo_barra: codigo2, qtd_item: 1, desconto: 0,
+          preco: 0, qtdDisponivel: 0,
+          descricao: codigo2, validado: false,
+          inativo: true,
+        }]);
+        setCodigoBarra('');
+        showAlert(`Produto "${codigo}" está INATIVO e não pode ser vendido.`, 'error');
+      } else {
+        showAlert(msg || 'Erro ao validar produto no estoque.', 'error');
+      }
+    }
     finally { setValidando(false); inputRef.current?.focus(); }
   };
 
@@ -84,6 +111,14 @@ export default function Venda() {
   const finalizarVenda = async () => {
     if (!caixaAberto) { showAlert('Abra o caixa antes de realizar vendas.', 'error'); return; }
     if (itens.length === 0) { showAlert('Adicione pelo menos um item', 'error'); return; }
+
+    // Bloqueia se houver algum produto inativo na lista
+    const inativos = itens.filter(i => i.inativo);
+    if (inativos.length > 0) {
+      showAlert(`Remova os produtos inativos antes de finalizar: ${inativos.map(i => i.descricao).join(', ')}`, 'error');
+      return;
+    }
+
     setCarregando(true);
     try {
       const payload = { itens_venda: itens.map(i => ({ codigo_barra: i.codigo_barra, qtd_item: i.qtd_item, desconto: i.desconto || 0 })) };
@@ -93,7 +128,17 @@ export default function Venda() {
       if (!idVenda) throw new Error('Resposta da venda sem ID.');
       navigate(`/dashboard/pagamento?idVenda=${idVenda}`);
     } catch (error) {
-      showAlert(error.displayMessage || error.message || 'Erro ao processar venda', 'error');
+      const msg = error.displayMessage || error.message || '';
+      const ehInativo = msg.toLowerCase().includes('inativ') || msg.toLowerCase().includes('inactiv');
+
+      if (ehInativo) {
+        // Tenta identificar o produto pelo código na mensagem e marcá-lo visualmente
+        showAlert(`Produto inativo detectado: ${msg}`, 'error');
+        // Marca todos como não validados para forçar revisão
+        setItens(prev => prev.map(i => ({ ...i, validado: false })));
+      } else {
+        showAlert(msg || 'Erro ao processar venda', 'error');
+      }
     } finally { setCarregando(false); }
   };
 
@@ -101,7 +146,8 @@ export default function Venda() {
   const totalDesconto = itens.reduce((a, i) => { const b = i.qtd_item * (i.preco || 0); return a + b * ((i.desconto || 0) / 100); }, 0);
   const total = totalBruto - totalDesconto;
   const qtdItens = itens.reduce((a, i) => a + i.qtd_item, 0);
-  const todosValidados = itens.length > 0 && itens.every(i => i.validado);
+  const todosValidados = itens.length > 0 && itens.every(i => i.validado) && itens.every(i => !i.inativo);
+  const temInativos = itens.some(i => i.inativo);
   const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   // Badge do status do caixa
@@ -269,10 +315,26 @@ export default function Venda() {
               </div>
             ) : (
               itens.map(item => (
-                <div key={item.id} className="item-row flex items-center gap-md p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover:shadow-md transition-all">
+                <div key={item.id} className={`item-row flex items-center gap-md p-md border rounded-xl transition-all ${
+                  item.inativo
+                    ? 'bg-error-container/20 border-error/40 opacity-80'
+                    : 'bg-surface-container-lowest border-outline-variant hover:shadow-md'
+                }`}>
                   <div className="flex-1 min-w-0">
-                    <p className="text-label-md font-semibold text-on-surface truncate uppercase">{item.descricao}</p>
-                    <p className="text-body-sm text-on-surface-variant">Cód: {item.codigo_barra} · {fmt(item.preco)}/un</p>
+                    <div className="flex items-center gap-sm">
+                      <p className="text-label-md font-semibold text-on-surface truncate uppercase">{item.descricao}</p>
+                      {item.inativo && (
+                        <span className="inline-flex items-center gap-xs px-sm py-xs rounded-full text-[10px] font-bold bg-error text-on-error flex-shrink-0">
+                          <span className="material-symbols-outlined text-[12px]">block</span>
+                          INATIVO
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-body-sm text-on-surface-variant">
+                      Cód: {item.codigo_barra}
+                      {!item.inativo && ` · ${fmt(item.preco)}/un`}
+                      {item.inativo && <span className="text-error font-semibold"> · Produto inativo — remova para continuar</span>}
+                    </p>
                   </div>
 
                   {/* Quantity control */}

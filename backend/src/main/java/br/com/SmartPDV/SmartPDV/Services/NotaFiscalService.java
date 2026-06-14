@@ -70,6 +70,7 @@ public class NotaFiscalService {
 		this.pagamentoRepository.save(pagamento);
 	}
 
+	@Transactional
 	public NotaFiscalResponse emitirNotaAvulsa(NotaFiscalRequest notaItem) {
 		UsuariosLoja usuario = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -82,6 +83,9 @@ public class NotaFiscalService {
 				: criarNotaComCliente(notaItem, usuario);
 
 		verificaExcecaoImposto(notaFiscal);
+
+		this.notaFiscalItemService.validarItensAntesDeEmitir(notaItem, notaFiscal, usuario);
+
 		geraNumeroFiscal(notaFiscal);
 		this.notaFiscalRepo.save(notaFiscal);
 
@@ -89,7 +93,7 @@ public class NotaFiscalService {
 			registrarTransitoLoja(notaFiscal, usuario);
 		}
 
-		this.notaFiscalItemService.validacaoEPersistencia(notaItem, notaFiscal, usuario);
+		this.notaFiscalItemService.persistirItensJaValidados(notaItem, notaFiscal, usuario);
 
 		return montarResponse(notaFiscal);
 	}

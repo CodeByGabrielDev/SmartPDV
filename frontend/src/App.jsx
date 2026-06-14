@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificacoesProvider } from './contexts/NotificacoesContext';
 import Login from './pages/Login';
 import Splash from './pages/Splash';
 import Dashboard from './pages/Dashboard';
@@ -24,6 +25,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <NotificacoesProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -52,6 +54,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </NotificacoesProvider>
     </ThemeProvider>
   );
 }
