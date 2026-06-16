@@ -1,9 +1,12 @@
 package br.com.SmartPDV.SmartPDV.Services;
 
+import java.io.ObjectInputFilter.Status;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -260,8 +263,69 @@ public class NotaFiscalService {
 		}
 	}
 
-	public void cancelarNotaFiscal() {
+	private void validacoesDeCancelamentoDaNota(UsuariosLoja usuariosLoja, NotaFiscal notaFiscal,
+			String motivoCancelamento) {
+		if (!notaFiscal.getLoja().getId().equals(usuariosLoja.getLojaVinculada().getId())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					" Não autorizado realizar cancelamento ou manipulação de dados de outras lojas");
+		}
+		if (notaFiscal.getStatusNota() != StatusNotaFiscal.AUTORIZADA) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" A nota não esta autorizada para ser realizado o cancelamenot fiscal");
+		}
+		if (estourouOPrazoDaNota(notaFiscal)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" A nota ja teve seu prazo de 24 Horas ultrapassados, realize a validação junto a sefaz para cancelamento extemporaneo");
+		}
+		if (motivoCancelamento == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					" o motivo do cancelamento nao pode estar nulo");
+		}
+	}
 
+	@Transactional
+	public void cancelarNotaFiscal(Long idNotaFiscal, String motivoCancelamento) {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		NotaFiscal notaFiscal = this.notaFiscalRepo.findById(idNotaFiscal)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						" Nota fiscal não encontrada no banco de dados"));
+		validacoesDeCancelamentoDaNota(usuariosLoja, notaFiscal, motivoCancelamento);
+		atualizaCamposParaCancelados(notaFiscal, motivoCancelamento);
+	}
+
+	private void atualizaCamposParaCancelados(NotaFiscal notaFiscal, String motivoCancelamento) {
+		notaFiscal.setStatusNota(StatusNotaFiscal.CANCELADA);
+		notaFiscal.setMotivoCancelamento(motivoCancelamento);
+		notaFiscal.setDataCancelamento(LocalDateTime.now());
+		notaFiscal.setProtocoloCancelamento(UUID.randomUUID().toString());
+		this.notaFiscalRepo.save(notaFiscal);
+	}
+
+	private boolean estourouOPrazoDaNota(NotaFiscal notaFiscal) {
+		LocalDateTime dataDeAgora = LocalDateTime.now();
+
+		long HorasCorridas = ChronoUnit.HOURS.between(notaFiscal.getDataEmissao(), dataDeAgora);
+
+		if (HorasCorridas >= 24)
+			return true;
+
+		return false;
+
+	}
+
+	public void inutilizarNotaFiscal(Long idNotaFiscal) {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		NotaFiscal notaFiscal = this.notaFiscalRepo.findById(idNotaFiscal)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						" Nota fiscal não encontrada no banco de dados"));
+		if (notaFiscal.getStatusNota() != StatusNotaFiscal.PENDENTE) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" não é possivel realizar a inutilizacao de uma nota NAO PENDENTE");
+		}
 	}
 
 	public List<NotaFiscalResponse> listarNotasEmitidasNaLoja() {
