@@ -14,6 +14,7 @@ const PAGE_TITLES = {
   '/dashboard/entrada-mercadoria': 'Entrada de Mercadoria',
   '/dashboard/estoque':            'Gestão de Estoque',
   '/dashboard/excecao-imposto':    'Exceção de Impostos',
+  '/dashboard/tickets':            'Tickets de Venda',
   '/dashboard/perfil':             'Configurações',
   '/dashboard/faq':                'Central de Ajuda',
   '/dashboard/sobre':              'Sobre o SmartPDV',
