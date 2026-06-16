@@ -135,7 +135,9 @@ public class VendaService {
 				venda.getUsuario().getNomeVendedor(), null);
 	}
 
-	@Transactional(readOnly = true)
+	
+
+	@Transactional
 	public void cancelarVenda(Long idVenda) {
 		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -147,10 +149,14 @@ public class VendaService {
 					"Venda não encontrada. Verifique o ID informado e tente novamente.");
 		}
 
+
 		List<ItemVenda> itensCarregados = new ArrayList<>(venda.getItemVenda());
 
 		this.estoqueRollbackService.retornarEstoqueParaSuaOrigem(venda, itensCarregados);
 		this.estoqueRollbackService.deletarVenda(venda);
 	}
+
+
+
 
 }

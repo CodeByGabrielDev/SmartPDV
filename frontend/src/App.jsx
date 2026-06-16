@@ -17,6 +17,7 @@ import Produtos from './pages/Produtos';
 import Estoque from './pages/Estoque';
 import FAQ from './pages/FAQ';
 import Sobre from './pages/Sobre';
+import Tickets from './pages/Tickets';
 import './App.css';
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
             <Route path="meios-pagamento" element={<MeiosPagamento />} />
             <Route path="estoque" element={<Estoque />} />
             <Route path="perfil" element={<Perfil />} />
+            <Route path="tickets" element={<Tickets />} />
             <Route path="faq" element={<FAQ />} />
             <Route path="sobre" element={<Sobre />} />
           </Route>

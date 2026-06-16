@@ -320,6 +320,7 @@ public class NotaFiscalService {
 
 	}
 
+	@Transactional
 	public void inutilizarNotaFiscal(Long idNotaFiscal) {
 		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
@@ -335,6 +336,7 @@ public class NotaFiscalService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
 					" não é possivel realizar a inutilizacao de uma nota NAO PENDENTE");
 		}
+		notaFiscal.setStatusNota(StatusNotaFiscal.INUTILIZADA);
 		estornarNotaFiscal(notaFiscal);
 	}
 

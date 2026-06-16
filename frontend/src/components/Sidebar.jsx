@@ -11,6 +11,7 @@ const navItems = [
   { to: '/dashboard/entrada-mercadoria', icon: 'input',                  label: 'Entrada Merc.' },
   { to: '/dashboard/estoque',            icon: 'warehouse',              label: 'Estoque' },
   { to: '/dashboard/excecao-imposto',    icon: 'receipt_long',           label: 'Impostos' },
+  { to: '/dashboard/tickets',            icon: 'confirmation_number',    label: 'Tickets' },
   { to: '/dashboard/perfil',             icon: 'settings',               label: 'Configurações' },
 ];
 
