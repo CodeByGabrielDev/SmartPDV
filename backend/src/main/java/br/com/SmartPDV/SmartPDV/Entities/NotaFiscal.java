@@ -7,6 +7,8 @@ import java.util.List;
 import br.com.SmartPDV.SmartPDV.Enum.StatusNotaFiscal;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -60,6 +62,7 @@ public class NotaFiscal {
 	@Column(name = "data_emissao")
 	private LocalDateTime dataEmissao;
 	@Column(name = "status_nota")
+	@Enumerated(EnumType.STRING)
 	private StatusNotaFiscal statusNota;
 	@Column(name = "data_cancelamento")
 	private LocalDateTime dataCancelamento;

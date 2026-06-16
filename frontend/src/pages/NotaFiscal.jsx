@@ -48,6 +48,9 @@ export default function NotaFiscal() {
   const [carregandoNotas, setCarregandoNotas] = useState(false);
   const [buscaHistorico, setBuscaHistorico] = useState('');
   const [gerandoPDF, setGerandoPDF] = useState(null); // id da nota sendo gerada
+  const [confirmModal, setConfirmModal] = useState(null); // { tipo: 'cancelar'|'inutilizar', nota }
+  const [motivo, setMotivo] = useState('');
+  const [processando, setProcessando] = useState(false);
 
   const handleGerarPDF = async (e, nota) => {
     e.stopPropagation();
@@ -60,6 +63,48 @@ export default function NotaFiscal() {
       setGerandoPDF(null);
     }
   };
+  const abrirCancelar = async (e, nota) => {
+    e.stopPropagation();
+    let notaAtualizada = nota;
+    if (!nota.id) {
+      const lista = await notaFiscalService.listarNotas();
+      notaAtualizada = lista.find(n => n.nf_numero === nota.nf_numero) || nota;
+    }
+    setMotivo('');
+    setConfirmModal({ tipo: 'cancelar', nota: notaAtualizada });
+  };
+  const abrirInutilizar = async (e, nota) => {
+    e.stopPropagation();
+    let notaAtualizada = nota;
+    if (!nota.id) {
+      const lista = await notaFiscalService.listarNotas();
+      notaAtualizada = lista.find(n => n.nf_numero === nota.nf_numero) || nota;
+    }
+    setConfirmModal({ tipo: 'inutilizar', nota: notaAtualizada });
+  };
+  const confirmarAcao = async () => {
+    if (confirmModal.tipo === 'cancelar' && !motivo.trim()) { showAlert('Informe o motivo do cancelamento', 'error'); return; }
+    const idNota = confirmModal.nota.id;
+    if (!idNota) { showAlert('Não foi possível identificar a nota. Recarregando lista...', 'error'); carregarNotas(); setConfirmModal(null); return; }
+    setProcessando(true);
+    try {
+      if (confirmModal.tipo === 'cancelar') {
+        await notaFiscalService.cancelarNota(idNota, motivo.trim());
+        showAlert('Nota fiscal cancelada com sucesso!', 'success');
+      } else {
+        await notaFiscalService.inutilizarNota(idNota);
+        showAlert('Nota fiscal inutilizada com sucesso!', 'success');
+      }
+      setConfirmModal(null);
+      if (notaDetalhes?.id === idNota) { setNotaDetalhes(null); setAbaDetalhes('resumo'); }
+      carregarNotas();
+    } catch (err) {
+      showAlert(err.displayMessage || 'Erro ao processar operação', 'error');
+    } finally {
+      setProcessando(false);
+    }
+  };
+
   const ehTransferencia = CFOPS_TRANSFERENCIA.includes(Number(form.cfop));
 
   useEffect(() => { if (aba === 'historico') carregarNotas(); }, [aba]);
@@ -254,6 +299,24 @@ export default function NotaFiscal() {
                               : <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
                             }
                           </button>
+                          {nota.status_Nota?.toUpperCase() === 'AUTORIZADA' && (
+                            <button
+                              className="p-sm rounded-lg bg-surface-container hover:bg-error-container hover:text-error transition-all"
+                              title="Cancelar nota"
+                              onClick={e => abrirCancelar(e, nota)}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">cancel</span>
+                            </button>
+                          )}
+                          {nota.status_Nota?.toUpperCase() === 'PENDENTE' && (
+                            <button
+                              className="p-sm rounded-lg bg-surface-container hover:bg-tertiary-container hover:text-on-tertiary-container transition-all"
+                              title="Inutilizar nota"
+                              onClick={e => abrirInutilizar(e, nota)}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">block</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -449,11 +512,114 @@ export default function NotaFiscal() {
                   <><span className="material-symbols-outlined text-sm">picture_as_pdf</span> Baixar PDF</>
                 )}
               </button>
+              <div className="flex items-center gap-sm">
+                {notaDetalhes?.status_Nota?.toUpperCase() === 'AUTORIZADA' && (
+                  <button
+                    onClick={e => abrirCancelar(e, notaDetalhes)}
+                    className="flex items-center gap-sm px-lg py-sm bg-error text-on-error rounded-xl text-label-md font-bold hover:opacity-90 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-sm">cancel</span> Cancelar NF-e
+                  </button>
+                )}
+                {notaDetalhes?.status_Nota?.toUpperCase() === 'PENDENTE' && (
+                  <button
+                    onClick={e => abrirInutilizar(e, notaDetalhes)}
+                    className="flex items-center gap-sm px-lg py-sm bg-tertiary text-on-tertiary rounded-xl text-label-md font-bold hover:opacity-90 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-sm">block</span> Inutilizar NF-e
+                  </button>
+                )}
+                <button
+                  onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}
+                  className="px-xl py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── MODAL CONFIRMAÇÃO CANCELAR / INUTILIZAR ── */}
+      {confirmModal && createPortal(
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-md"
+          onClick={() => { if (!processando) setConfirmModal(null); }}
+        >
+          <div
+            className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md border border-outline-variant overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-md p-lg border-b border-outline-variant">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                confirmModal.tipo === 'cancelar'
+                  ? 'bg-error-container text-error'
+                  : 'bg-tertiary-container text-on-tertiary-container'
+              }`}>
+                <span className="material-symbols-outlined">
+                  {confirmModal.tipo === 'cancelar' ? 'cancel' : 'block'}
+                </span>
+              </div>
+              <div>
+                <h3 className="text-headline-md font-semibold">
+                  {confirmModal.tipo === 'cancelar' ? 'Cancelar Nota Fiscal' : 'Inutilizar Nota Fiscal'}
+                </h3>
+                <p className="text-body-sm text-on-surface-variant font-geist-mono">
+                  NF-e #{confirmModal.nota.nf_numero}
+                </p>
+              </div>
+            </div>
+            <div className="p-lg space-y-lg">
+              {confirmModal.tipo === 'cancelar' ? (
+                <>
+                  <p className="text-body-md text-on-surface-variant">
+                    Esta ação cancela a NF-e junto à SEFAZ (válido dentro do prazo de 24h). O estoque dos itens será restaurado automaticamente.
+                  </p>
+                  <div className="space-y-sm">
+                    <label className="text-label-md font-semibold">
+                      Motivo do cancelamento <span className="text-error">*</span>
+                    </label>
+                    <textarea
+                      value={motivo}
+                      onChange={e => setMotivo(e.target.value)}
+                      rows={3}
+                      placeholder="Descreva o motivo do cancelamento..."
+                      className={`${inputCls} resize-none`}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="text-body-md text-on-surface-variant">
+                  Esta ação inutiliza a NF-e localmente (somente notas pendentes, ainda não transmitidas à SEFAZ). O estoque será restaurado. Esta operação não pode ser desfeita.
+                </p>
+              )}
+            </div>
+            <div className="p-lg border-t border-outline-variant flex justify-end gap-sm">
               <button
-                onClick={() => { setNotaDetalhes(null); setAbaDetalhes('resumo'); }}
-                className="px-xl py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all"
+                onClick={() => setConfirmModal(null)}
+                disabled={processando}
+                className="px-lg py-sm border border-outline-variant rounded-xl text-label-md font-semibold hover:bg-surface-container transition-all disabled:opacity-50"
               >
-                Fechar
+                Voltar
+              </button>
+              <button
+                onClick={confirmarAcao}
+                disabled={processando || (confirmModal.tipo === 'cancelar' && !motivo.trim())}
+                className={`px-xl py-sm rounded-xl text-label-md font-bold transition-all disabled:opacity-50 flex items-center gap-sm ${
+                  confirmModal.tipo === 'cancelar'
+                    ? 'bg-error text-on-error hover:opacity-90'
+                    : 'bg-tertiary text-on-tertiary hover:opacity-90'
+                }`}
+              >
+                {processando ? (
+                  <><span className="material-symbols-outlined text-sm animate-spin">sync</span> Processando...</>
+                ) : confirmModal.tipo === 'cancelar' ? (
+                  <><span className="material-symbols-outlined text-sm">cancel</span> Confirmar Cancelamento</>
+                ) : (
+                  <><span className="material-symbols-outlined text-sm">block</span> Confirmar Inutilização</>
+                )}
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class NotaFiscalResponse {
 
+    private Long id;
     private Long nf_numero;
     private Integer serieNf;
     private Long chaveNfe;
