@@ -1,9 +1,14 @@
 package br.com.SmartPDV.SmartPDV.Services;
 
+import br.com.SmartPDV.SmartPDV.Repository.EstoqueProdutoRepository;
+import java.io.ObjectInputFilter.Status;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -18,6 +23,7 @@ import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalImpostoResponse;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalItemResponse;
 import br.com.SmartPDV.SmartPDV.DTOs.ResponseDTOs.NotaFiscalResponse;
 import br.com.SmartPDV.SmartPDV.Entities.Clientes;
+import br.com.SmartPDV.SmartPDV.Entities.EstoqueProduto;
 import br.com.SmartPDV.SmartPDV.Entities.ExcecaoImposto;
 import br.com.SmartPDV.SmartPDV.Entities.ItemVenda;
 import br.com.SmartPDV.SmartPDV.Entities.Loja;
@@ -42,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotaFiscalService {
 
+	private final EstoqueProdutoRepository estoqueProdutoRepository;
 	private final NotaFiscalRepository notaFiscalRepo;
 	private final NotaFiscalItemService notaFiscalItemService;
 	private final TransitoLojaRepository transitoRepository;
@@ -260,7 +267,88 @@ public class NotaFiscalService {
 		}
 	}
 
-	public void cancelarNotaFiscal() {
+	private void validacoesDeCancelamentoDaNota(UsuariosLoja usuariosLoja, NotaFiscal notaFiscal,
+			String motivoCancelamento) {
+		if (!notaFiscal.getLoja().getId().equals(usuariosLoja.getLojaVinculada().getId())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					" Não autorizado realizar cancelamento ou manipulação de dados de outras lojas");
+		}
+		if (notaFiscal.getStatusNota() != StatusNotaFiscal.AUTORIZADA) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" A nota não esta autorizada para ser realizado o cancelamenot fiscal");
+		}
+		if (estourouOPrazoDaNota(notaFiscal)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" A nota ja teve seu prazo de 24 Horas ultrapassados, realize a validação junto a sefaz para cancelamento extemporaneo");
+		}
+		if (motivoCancelamento == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					" o motivo do cancelamento nao pode estar nulo");
+		}
+	}
+
+	@Transactional
+	public void cancelarNotaFiscal(Long idNotaFiscal, String motivoCancelamento) {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		NotaFiscal notaFiscal = this.notaFiscalRepo.findById(idNotaFiscal)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						" Nota fiscal não encontrada no banco de dados"));
+		validacoesDeCancelamentoDaNota(usuariosLoja, notaFiscal, motivoCancelamento);
+		atualizaCamposParaCancelados(notaFiscal, motivoCancelamento);
+		estornarNotaFiscal(notaFiscal);
+	}
+
+	private void atualizaCamposParaCancelados(NotaFiscal notaFiscal, String motivoCancelamento) {
+		notaFiscal.setStatusNota(StatusNotaFiscal.CANCELADA);
+		notaFiscal.setMotivoCancelamento(motivoCancelamento);
+		notaFiscal.setDataCancelamento(LocalDateTime.now());
+		notaFiscal.setProtocoloCancelamento(UUID.randomUUID().toString());
+		this.notaFiscalRepo.save(notaFiscal);
+	}
+
+	private boolean estourouOPrazoDaNota(NotaFiscal notaFiscal) {
+		LocalDateTime dataDeAgora = LocalDateTime.now();
+
+		long HorasCorridas = ChronoUnit.HOURS.between(notaFiscal.getDataEmissao(), dataDeAgora);
+
+		if (HorasCorridas >= 24)
+			return true;
+
+		return false;
+
+	}
+
+	public void inutilizarNotaFiscal(Long idNotaFiscal) {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		NotaFiscal notaFiscal = this.notaFiscalRepo.findById(idNotaFiscal)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						" Nota fiscal não encontrada no banco de dados"));
+		if (!notaFiscal.getLoja().getId().equals(usuariosLoja.getLojaVinculada().getId())) {
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					" não é permitido realizar a inutilizacao de uma nota que nao pertence a sua loja");
+		}
+		if (notaFiscal.getStatusNota() != StatusNotaFiscal.PENDENTE) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" não é possivel realizar a inutilizacao de uma nota NAO PENDENTE");
+		}
+		estornarNotaFiscal(notaFiscal);
+	}
+
+	private void estornarNotaFiscal(NotaFiscal notaFiscal) {
+		for (NotaFiscalItem notaFiscalItem : notaFiscal.getItensFiscais()) {
+			EstoqueProduto estoqueProduto = this.estoqueProdutoRepository.selectByCodigoBarra(
+					notaFiscalItem.getProduto().getCodigoBarra(), notaFiscalItem.getLoja().getId());
+			if (estoqueProduto == null) {
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, " Estoque não encontrado no banco");
+			}
+			estoqueProduto.setQtdAtual(estoqueProduto.getQtdAtual() + notaFiscalItem.getQuantidadeItens());
+			this.estoqueProdutoRepository.save(estoqueProduto);
+
+		}
 
 	}
 
@@ -293,6 +381,7 @@ public class NotaFiscalService {
 					notaFiscal.getVenda() != null ? notaFiscal.getVenda().getTicket() : null,
 					notaFiscal.getDataEmissao(),
 					notaFiscal.getStatusNota());
+			response.setId(notaFiscal.getId());
 
 			List<NotaFiscalItemResponse> itensResponse = new ArrayList<>();
 			for (NotaFiscalItem item : notaFiscal.getItensFiscais()) {

@@ -7,6 +7,8 @@ import java.util.List;
 import br.com.SmartPDV.SmartPDV.Enum.StatusNotaFiscal;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -56,11 +58,18 @@ public class NotaFiscal {
 	@JoinColumn(name = "id_venda_vinculada")
 	private Venda venda;
 	@OneToMany(mappedBy = "notaFiscal")
-	private List<Pagamento>pgto = new ArrayList<>();
+	private List<Pagamento> pgto = new ArrayList<>();
 	@Column(name = "data_emissao")
 	private LocalDateTime dataEmissao;
 	@Column(name = "status_nota")
+	@Enumerated(EnumType.STRING)
 	private StatusNotaFiscal statusNota;
+	@Column(name = "data_cancelamento")
+	private LocalDateTime dataCancelamento;
+	@Column(name = "protocolo_cancelamento")
+	private String protocoloCancelamento;
+	@Column(name = "motivo_cancelamento")
+	private String motivoCancelamento;
 	@ManyToOne
 	@JoinColumn(name = "id_loja_destino")
 	private Loja lojaDestino;
@@ -71,7 +80,8 @@ public class NotaFiscal {
 
 	public NotaFiscal(Long nfNumero, Integer serieNf, Long chaveNfe, Integer cfop, Clientes cliente, String cpfCliente,
 			Loja loja, Double desconto, Double valorTotalDeImpostoAPagar, Double valorBrutoNota,
-			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota,Integer qtdTotalItens) {
+			Double valorLiquidoNota, Venda venda, LocalDateTime dataEmissao, StatusNotaFiscal statusNota,
+			Integer qtdTotalItens) {
 		this.nfNumero = nfNumero;
 		this.serieNf = serieNf;
 		this.chaveNfe = chaveNfe;
@@ -110,7 +120,5 @@ public class NotaFiscal {
 		this.statusNota = statusNota;
 		this.lojaDestino = lojaDestino;
 	}
-
-	
 
 }

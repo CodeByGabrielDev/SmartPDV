@@ -10,4 +10,12 @@ export const notaFiscalService = {
     const response = await api.get('/api-smartpdv/v1/invoice');
     return response.data;
   },
+
+  inutilizarNota: async (idnota) => {
+    await api.put('/api-smartpdv/v1/invoice/reverse', null, { params: { idnota } });
+  },
+
+  cancelarNota: async (idnota, motivoCancelamento) => {
+    await api.put('/api-smartpdv/v1/invoice/cancel-invoice', null, { params: { idnota, motivoCancelamento } });
+  },
 };
