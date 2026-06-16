@@ -92,7 +92,7 @@ export default function Produtos() {
 
         {/* Form */}
         {mostrarForm && podeCadastrar && (
-          <div className="bg-surface border border-outline-variant rounded-2xl p-xl shadow-card">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl p-xl shadow-card">
             <h2 className="text-headline-md font-bold text-on-surface mb-lg">Cadastrar Produto</h2>
             <form onSubmit={handleCriar} className="grid grid-cols-1 md:grid-cols-2 gap-md">
               <div className="space-y-xs md:col-span-2">
@@ -126,8 +126,8 @@ export default function Produtos() {
         )}
 
         {/* Table */}
-        <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
-          <div className="px-xl py-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
+          <div className="px-xl py-lg border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/60">
             <div className="flex items-center gap-sm">
               <h2 className="text-headline-md font-bold text-on-surface">Catálogo</h2>
               <span className="inline-flex items-center gap-xs px-sm py-xs rounded-full text-[11px] font-bold bg-surface-container text-on-surface-variant border border-outline-variant">

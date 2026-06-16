@@ -67,7 +67,7 @@ export default function EntradaMercadoria() {
 
         {/* Empty state */}
         {!loading && notas.length === 0 && (
-          <div className="bg-surface border border-outline-variant rounded-2xl p-2xl flex flex-col items-center text-center gap-lg shadow-card">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl p-2xl flex flex-col items-center text-center gap-lg shadow-card">
             <div className="w-20 h-20 rounded-2xl bg-emerald-100 flex items-center justify-center">
               <span className="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
             </div>
@@ -86,7 +86,7 @@ export default function EntradaMercadoria() {
 
         {/* Notes Table */}
         {!loading && notas.length > 0 && (
-          <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
 
             {/* Table header */}
             <div className="px-xl py-lg border-b border-outline-variant flex items-center justify-between bg-surface-container-low">

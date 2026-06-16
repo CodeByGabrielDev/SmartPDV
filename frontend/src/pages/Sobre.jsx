@@ -31,7 +31,7 @@ export default function Sobre() {
       </div>
 
       {/* Sobre o projeto */}
-      <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+      <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
         <div className="px-xl py-lg border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
           <span className="material-symbols-outlined text-primary text-[20px]">info</span>
           <h2 className="text-label-md font-bold text-on-surface uppercase tracking-wider">Sobre o Projeto</h2>
@@ -62,7 +62,7 @@ export default function Sobre() {
       </div>
 
       {/* Stack tecnológica */}
-      <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+      <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
         <div className="px-xl py-lg border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
           <span className="material-symbols-outlined text-primary text-[20px]">code</span>
           <h2 className="text-label-md font-bold text-on-surface uppercase tracking-wider">Stack Tecnológica</h2>
@@ -117,7 +117,7 @@ export default function Sobre() {
       </div>
 
       {/* Desenvolvedor */}
-      <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+      <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
         <div className="px-xl py-lg border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
           <span className="material-symbols-outlined text-primary text-[20px]">person</span>
           <h2 className="text-label-md font-bold text-on-surface uppercase tracking-wider">Desenvolvedor</h2>

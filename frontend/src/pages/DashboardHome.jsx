@@ -5,10 +5,10 @@ import { dashboardService } from '../api/dashboardService';
 function MetricCard({ icon, label, value, sub, badge, badgeCls, alert, onClick }) {
   return (
     <div
-      className={`bg-surface border rounded-2xl p-lg flex flex-col gap-xs shadow-card hover:shadow-card-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer ${
+      className={`bg-surface border rounded-2xl p-lg flex flex-col gap-xs shadow-card hover:shadow-card-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer ${
         alert
-          ? 'bg-error-container/30 border-error border-2'
-          : 'border-outline-variant'
+          ? 'bg-error-container/30 border-error/60 border-2'
+          : 'border-outline-variant/40'
       }`}
       onClick={onClick}
     >
@@ -178,7 +178,7 @@ export default function DashboardHome() {
       {/* Chart + Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-stretch">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-surface border border-outline-variant rounded-2xl p-xl shadow-card flex flex-col">
+        <div className="lg:col-span-2 bg-surface border border-outline-variant/40 rounded-2xl p-xl shadow-card flex flex-col">
           <div className="flex justify-between items-center mb-xl">
             <div>
               <h3 className="text-headline-md font-bold text-on-surface">Faturamento por Hora</h3>
@@ -200,7 +200,7 @@ export default function DashboardHome() {
         </div>
 
         {/* Recent sales table */}
-        <div className="bg-surface border border-outline-variant rounded-2xl p-xl shadow-card">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl p-xl shadow-card">
           <div className="flex justify-between items-center mb-lg">
             <h3 className="text-headline-md font-bold text-on-surface">Últimas Vendas</h3>
             <button

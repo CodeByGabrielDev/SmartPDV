@@ -102,7 +102,7 @@ export default function Login() {
       {/* Main */}
       <main className="flex-grow flex items-center justify-center p-md relative z-10">
         <div
-          className={`w-full bg-surface-container-lowest shadow-xl rounded-xl border border-outline-variant/30 overflow-hidden transition-all duration-300 ${
+          className={`w-full frosted-panel shadow-card-lg rounded-2xl border border-outline-variant/20 overflow-hidden transition-all duration-300 ${
             view === 'employee' ? 'max-w-[640px]' : view === 'store' ? 'max-w-[520px]' : 'max-w-[480px]'
           }`}
         >
@@ -274,7 +274,7 @@ export default function Login() {
           </div>
 
           {/* Card footer */}
-          <div className="px-xl py-md bg-surface-container-low flex justify-center">
+          <div className="px-xl py-md bg-surface-container-low/50 border-t border-outline-variant/20 flex justify-center">
             <p className="text-body-sm text-on-surface-variant">© 2024 SmartPDV. Tecnologia para crescer.</p>
           </div>
         </div>

@@ -29,10 +29,10 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 flex flex-col border-r border-outline-variant bg-surface w-64 z-50">
+    <aside className="fixed left-0 top-0 bottom-0 flex flex-col frosted-panel border-r border-outline-variant/30 w-64 z-50 shadow-sidebar">
       {/* Brand */}
       <div className="px-lg py-xl flex flex-col items-center gap-xs">
-        <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center mb-xs shadow-lg">
+        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-xs shadow-lg">
           <span className="material-symbols-outlined text-on-primary" style={{ fontSize: 26 }}>storefront</span>
         </div>
         <span className="text-headline-md font-bold text-primary">SmartPDV</span>
@@ -40,7 +40,7 @@ export default function Sidebar() {
       </div>
 
       {/* Divider */}
-      <div className="mx-lg border-t border-outline-variant mb-sm" />
+      <div className="mx-lg border-t border-outline-variant/30 mb-sm" />
 
       {/* Main Nav items */}
       <nav className="flex-1 px-sm overflow-y-auto custom-scrollbar flex flex-col gap-xs py-sm">
@@ -52,7 +52,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               isActive
                 ? 'flex items-center gap-md bg-primary text-on-primary rounded-xl px-md py-sm transition-all duration-200 active:scale-95 shadow-sm'
-                : 'flex items-center gap-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container px-md py-sm rounded-xl transition-all duration-200'
+                : 'flex items-center gap-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container/60 px-md py-sm rounded-xl transition-all duration-200'
             }
           >
             <span className="material-symbols-outlined text-[20px]">{icon}</span>
@@ -61,8 +61,8 @@ export default function Sidebar() {
         ))}
 
         {/* Secondary nav */}
-        <div className="mx-sm mt-sm mb-xs border-t border-outline-variant/50" />
-        <p className="px-md text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-50 mb-xs">Suporte</p>
+        <div className="mx-sm mt-sm mb-xs border-t border-outline-variant/25" />
+        <p className="px-md text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-40 mb-xs">Suporte</p>
         {navSecondary.map(({ to, icon, label }) => (
           <NavLink
             key={to}
@@ -70,7 +70,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               isActive
                 ? 'flex items-center gap-md bg-primary text-on-primary rounded-xl px-md py-sm transition-all duration-200 shadow-sm'
-                : 'flex items-center gap-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container px-md py-sm rounded-xl transition-all duration-200'
+                : 'flex items-center gap-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container/60 px-md py-sm rounded-xl transition-all duration-200'
             }
           >
             <span className="material-symbols-outlined text-[20px]">{icon}</span>
@@ -80,7 +80,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="mx-lg border-t border-outline-variant mt-sm" />
+      <div className="mx-lg border-t border-outline-variant/25 mt-sm" />
       <div className="p-md">
         <button
           onClick={handleLogout}

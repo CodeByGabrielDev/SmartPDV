@@ -119,7 +119,7 @@ export default function Cliente() {
 
         {/* Registration Form */}
         {mostrarForm && (
-          <div className="bg-surface border border-outline-variant rounded-2xl p-xl shadow-card">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl p-xl shadow-card">
             <div className="flex items-center gap-sm mb-xl">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-primary">person_add</span>
@@ -171,7 +171,7 @@ export default function Cliente() {
         )}
 
         {/* Table */}
-        <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
           {/* Table header */}
           <div className="px-xl py-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
             <div className="flex items-center gap-sm">

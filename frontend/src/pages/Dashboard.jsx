@@ -72,7 +72,7 @@ export default function Dashboard() {
       <Sidebar />
 
       {/* Top header */}
-      <header className="fixed top-0 right-0 z-40 flex justify-between items-center h-16 px-xl bg-surface border-b border-outline-variant w-[calc(100%-16rem)]">
+      <header className="fixed top-0 right-0 z-40 flex justify-between items-center h-16 px-xl frosted-panel border-b border-outline-variant/30 shadow-topbar w-[calc(100%-16rem)]">
         <h1 className="text-headline-md font-black text-primary">{title}</h1>
 
         <div className="flex items-center gap-md">
@@ -107,9 +107,9 @@ export default function Dashboard() {
 
             {/* Notification panel */}
             {painelAberto && (
-              <div className="absolute right-0 top-12 w-[380px] bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute right-0 top-12 w-[380px] frosted-panel border border-outline-variant/30 rounded-2xl shadow-2xl overflow-hidden z-50">
                 {/* Header */}
-                <div className="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-low">
+                <div className="flex items-center justify-between px-lg py-md border-b border-outline-variant/30 bg-surface-container-low/60">
                   <div className="flex items-center gap-sm">
                     <span className="material-symbols-outlined text-primary text-[20px]">notifications</span>
                     <h3 className="text-label-md font-bold text-on-surface">Notificações</h3>
@@ -189,7 +189,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-lg py-md border-t border-outline-variant bg-surface-container-low flex justify-between items-center">
+                <div className="px-lg py-md border-t border-outline-variant/30 bg-surface-container-low/60 flex justify-between items-center">
                   <p className="text-[11px] text-on-surface-variant">Atualiza automaticamente a cada minuto</p>
                   <button
                     onClick={() => { setPainelAberto(false); navigate('/dashboard/estoque'); }}
@@ -208,7 +208,7 @@ export default function Dashboard() {
               <p className="text-label-md font-semibold text-on-surface">{loginName}</p>
               <p className="text-body-sm text-on-surface-variant">Operador</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary font-bold text-sm shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm shadow-sm">
               {getInitials(loginName)}
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function Dashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="ml-64 w-[calc(100%-16rem)] py-md px-xl flex justify-between items-center bg-surface border-t border-outline-variant">
+      <footer className="ml-64 w-[calc(100%-16rem)] py-md px-xl flex justify-between items-center bg-surface border-t border-outline-variant/30">
         <span className="text-label-md font-semibold text-on-surface-variant">v1.0.0 © SmartPDV — Todos os direitos reservados</span>
         <div className="flex gap-lg">
           <a href="/dashboard/faq" className="text-label-md font-semibold text-on-surface-variant hover:text-primary transition-colors">Ajuda</a>

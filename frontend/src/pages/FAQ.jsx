@@ -134,7 +134,7 @@ const SECOES = [
 function ItemFAQ({ q, a }) {
   const [aberto, setAberto] = useState(false);
   return (
-    <div className={`border border-outline-variant rounded-2xl overflow-hidden transition-all duration-200 ${aberto ? 'bg-surface-container-low' : 'bg-surface hover:border-primary/30'}`}>
+    <div className={`border border-outline-variant/40 rounded-2xl overflow-hidden transition-all duration-200 ${aberto ? 'bg-surface-container-low' : 'bg-surface hover:border-primary/30'}`}>
       <button
         className="w-full flex items-center justify-between px-xl py-lg text-left gap-md"
         onClick={() => setAberto(v => !v)}
@@ -208,7 +208,7 @@ export default function FAQ() {
         {/* Section nav */}
         {!busca.trim() && (
           <div className="lg:col-span-3">
-            <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+            <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
               <div className="px-lg py-md border-b border-outline-variant bg-surface-container-low">
                 <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">Categorias</p>
               </div>
@@ -282,7 +282,7 @@ export default function FAQ() {
       </div>
 
       {/* Contact footer */}
-      <div className="bg-surface border border-outline-variant rounded-2xl p-xl flex flex-col md:flex-row items-center justify-between gap-lg shadow-card">
+      <div className="bg-surface border border-outline-variant/40 rounded-2xl p-xl flex flex-col md:flex-row items-center justify-between gap-lg shadow-card">
         <div className="flex items-center gap-md">
           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
             <span className="material-symbols-outlined text-primary text-2xl">support_agent</span>

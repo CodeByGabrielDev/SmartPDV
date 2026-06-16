@@ -84,7 +84,7 @@ export default function MeiosPagamento() {
           <div className="w-full lg:w-[340px] flex flex-col gap-lg flex-shrink-0">
 
             {/* Add form card */}
-            <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+            <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
               <div className="px-lg py-md border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
                 <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary text-[20px]">add_card</span>
@@ -176,7 +176,7 @@ export default function MeiosPagamento() {
                   return (
                     <div
                       key={forma.id ?? idx}
-                      className="group relative bg-surface border border-outline-variant rounded-2xl p-lg shadow-card hover:shadow-card-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                      className="group relative bg-surface border border-outline-variant/40 rounded-2xl p-lg shadow-card hover:shadow-card-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
                     >
                       {/* Watermark icon */}
                       <div className="absolute -right-2 -bottom-2 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity pointer-events-none">

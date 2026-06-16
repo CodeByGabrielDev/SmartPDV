@@ -171,6 +171,14 @@ body {
 .border-primary              { border-color: var(--color-primary) !important; }
 .border-error                { border-color: var(--color-error) !important; }
 
+/* Border opacity variants */
+.border-outline-variant\/20  { border-color: color-mix(in srgb, var(--color-outline-variant) 20%, transparent) !important; }
+.border-outline-variant\/25  { border-color: color-mix(in srgb, var(--color-outline-variant) 25%, transparent) !important; }
+.border-outline-variant\/30  { border-color: color-mix(in srgb, var(--color-outline-variant) 30%, transparent) !important; }
+.border-outline-variant\/40  { border-color: color-mix(in srgb, var(--color-outline-variant) 40%, transparent) !important; }
+.border-outline-variant\/50  { border-color: color-mix(in srgb, var(--color-outline-variant) 50%, transparent) !important; }
+.border-error\/60            { border-color: color-mix(in srgb, var(--color-error) 60%, transparent) !important; }
+
 /* Opacity variants that use tokens */
 .bg-primary\/5               { background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important; }
 .bg-primary\/10              { background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important; }
@@ -192,9 +200,16 @@ body {
 ────────────────────────────────────────────── */
 .glass-card {
   background: color-mix(in srgb, var(--color-surface) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--color-outline-variant);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 50%, transparent);
+}
+
+/* Frosted panel — used on sidebar and topbar */
+.frosted-panel {
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
 
 /* ──────────────────────────────────────────────
@@ -250,11 +265,11 @@ select option {
 ────────────────────────────────────────────── */
 .bento-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 1rem;
+  border-radius: 2rem;
 }
 .bento-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px -12px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 20px 40px -12px color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .stock-progress-bar {

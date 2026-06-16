@@ -145,7 +145,7 @@ export default function ExcecaoImposto() {
       )}
 
       {/* List */}
-      <div className="glass-card border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
+      <div className="glass-card border border-outline-variant/40 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-xl py-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
           <div className="flex items-center gap-sm">
             <h2 className="text-headline-md font-semibold text-on-surface">Exceções Cadastradas</h2>

@@ -95,7 +95,7 @@ export default function Perfil() {
 
         {/* ── Side Nav ── */}
         <div className="lg:col-span-3">
-          <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
             {/* User mini card */}
             <div className="p-lg border-b border-outline-variant bg-surface-container-low flex items-center gap-md">
               <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary font-bold text-lg flex-shrink-0">
@@ -135,7 +135,7 @@ export default function Perfil() {
           {aba === 'conta' && (
             <>
               {/* Identity card */}
-              <div className="bg-surface border border-outline-variant rounded-2xl shadow-card">
+              <div className="bg-surface border border-outline-variant/40 rounded-2xl shadow-card">
                 {/* Banner */}
                 <div className="h-20 bg-primary rounded-t-2xl relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
@@ -171,7 +171,7 @@ export default function Perfil() {
               </div>
 
               {/* Change password */}
-              <div className="bg-surface border border-outline-variant rounded-2xl shadow-card overflow-hidden">
+              <div className="bg-surface border border-outline-variant/40 rounded-2xl shadow-card overflow-hidden">
                 <div className="px-xl py-lg border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
                   <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
                     <span className="material-symbols-outlined text-primary text-[20px]">lock_reset</span>
@@ -225,7 +225,7 @@ export default function Perfil() {
 
           {/* ────── Loja ────── */}
           {aba === 'loja' && (
-            <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+            <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
               <div className="px-xl py-lg border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
                 <div className="flex items-center gap-md">
                   <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -320,7 +320,7 @@ export default function Perfil() {
           {aba === 'aparencia' && (
             <>
               {/* Theme selector */}
-              <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+              <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
                 <div className="px-xl py-lg border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
                   <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
                     <span className="material-symbols-outlined text-primary text-[20px]">palette</span>
@@ -386,7 +386,7 @@ export default function Perfil() {
               </div>
 
               {/* Quick toggle */}
-              <div className="bg-surface border border-outline-variant rounded-2xl p-lg shadow-card flex items-center justify-between">
+              <div className="bg-surface border border-outline-variant/40 rounded-2xl p-lg shadow-card flex items-center justify-between">
                 <div className="flex items-center gap-md">
                   <div className="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center">
                     <span className="material-symbols-outlined text-on-surface-variant">

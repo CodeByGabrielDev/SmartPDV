@@ -82,7 +82,7 @@ export default function Caixa() {
       <div className="p-xl flex items-center justify-center min-h-[calc(100vh-8rem)]">
         <div className="w-full max-w-md space-y-lg">
           {/* Card principal */}
-          <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
             {/* Header colorido */}
             <div className="bg-surface-container-high px-xl py-lg flex items-center gap-md border-b border-outline-variant">
               <div className="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center">
@@ -322,7 +322,7 @@ export default function Caixa() {
     <div className="p-xl flex items-center justify-center min-h-[calc(100vh-8rem)]">
       <div className="w-full max-w-lg space-y-lg">
         {/* Header */}
-        <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-card">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl overflow-hidden shadow-card">
           <div className="bg-emerald-500/10 border-b border-emerald-500/20 px-xl py-lg flex items-center gap-md">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-emerald-500 text-2xl">task_alt</span>

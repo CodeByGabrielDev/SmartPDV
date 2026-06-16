@@ -94,7 +94,7 @@ export default function Pagamento() {
             </p>
           </div>
 
-          <div className="w-full bg-surface border border-outline-variant rounded-2xl p-lg">
+          <div className="w-full bg-surface border border-outline-variant/40 rounded-2xl p-lg">
             <div className="flex items-center gap-sm text-emerald-600">
               <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
               <span className="text-body-sm font-semibold">Redirecionando para o PDV...</span>
@@ -109,7 +109,7 @@ export default function Pagamento() {
   if (erroImposto) {
     return (
       <div className="min-h-full flex items-center justify-center p-xl bg-background">
-        <div className="bg-surface border border-outline-variant rounded-2xl shadow-card p-xl max-w-md w-full space-y-lg">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl shadow-card p-xl max-w-md w-full space-y-lg">
           <div className="flex flex-col items-center text-center gap-md">
             <div className="w-16 h-16 bg-error-container rounded-2xl flex items-center justify-center">
               <span className="material-symbols-outlined text-error text-3xl">gpp_bad</span>
@@ -156,7 +156,7 @@ export default function Pagamento() {
       <div className="w-full max-w-lg space-y-lg">
 
         {/* Header card */}
-        <div className="bg-surface border border-outline-variant rounded-2xl shadow-card overflow-hidden">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl shadow-card overflow-hidden">
           <div className="bg-primary px-xl py-lg flex items-center gap-md">
             <div className="w-12 h-12 bg-on-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
               <span className="material-symbols-outlined text-on-primary text-2xl">point_of_sale</span>
@@ -181,7 +181,7 @@ export default function Pagamento() {
         </div>
 
         {/* Payment methods */}
-        <div className="bg-surface border border-outline-variant rounded-2xl shadow-card p-xl space-y-md">
+        <div className="bg-surface border border-outline-variant/40 rounded-2xl shadow-card p-xl space-y-md">
           <div className="flex items-center gap-sm mb-sm">
             <span className="material-symbols-outlined text-primary">payments</span>
             <h2 className="text-label-md font-bold text-on-surface uppercase tracking-wider">Forma de Pagamento</h2>
@@ -237,7 +237,7 @@ export default function Pagamento() {
 
         {/* Installments — credit only */}
         {ehCredito && (
-          <div className="bg-surface border border-outline-variant rounded-2xl shadow-card p-xl space-y-md">
+          <div className="bg-surface border border-outline-variant/40 rounded-2xl shadow-card p-xl space-y-md">
             <div className="flex items-center gap-sm mb-sm">
               <span className="material-symbols-outlined text-primary">calendar_month</span>
               <h2 className="text-label-md font-bold text-on-surface uppercase tracking-wider">Parcelamento</h2>
