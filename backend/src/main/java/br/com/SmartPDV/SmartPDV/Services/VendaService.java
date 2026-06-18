@@ -2,6 +2,7 @@ package br.com.SmartPDV.SmartPDV.Services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,9 +27,10 @@ import br.com.SmartPDV.SmartPDV.Entities.Pagamento;
 import br.com.SmartPDV.SmartPDV.Entities.UsuariosLoja;
 import br.com.SmartPDV.SmartPDV.Entities.Venda;
 import br.com.SmartPDV.SmartPDV.Enum.PerfilVendedor;
+import br.com.SmartPDV.SmartPDV.Enum.StatusNotaFiscal;
 import br.com.SmartPDV.SmartPDV.Repository.CaixaRepository;
 import br.com.SmartPDV.SmartPDV.Repository.ClienteRepository;
-
+import br.com.SmartPDV.SmartPDV.Repository.NotaFiscalRepository;
 import br.com.SmartPDV.SmartPDV.Repository.VendaRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -41,6 +43,8 @@ public class VendaService {
 	private final CaixaRepository caixa;
 	private final VendaItemService vendaItem;
 	private final EstoqueRollbackService estoqueRollbackService;
+	private final NotaFiscalRepository notaFiscalRepository;
+	private final NotaFiscalService notaFiscalService;
 
 	@Transactional
 	public VendaResponse realizarVenda(VendaItemRequest itens, String cpfOrCnpj) {
@@ -68,11 +72,20 @@ public class VendaService {
 			UsuariosLoja usuariosLoja) {
 		Venda venda;
 		if (cpfOrCnpj == null) {
-			venda = new Venda(null, caixa, null, LocalDateTime.now(), 0.0, usuariosLoja.getLojaVinculada(), 0.0,
+			/*
+			 * public Venda(Long ticket, Caixa caixa, Clientes cliente, LocalDateTime
+			 * dataHora, Double valorTotal,Double valorCancelado,Boolean cancelada, Loja
+			 * loja,
+			 * Double desconto,
+			 * UsuariosLoja usuario)
+			 */
+			venda = new Venda(null, caixa, null, LocalDateTime.now(), 0.0, 0.0, false, usuariosLoja.getLojaVinculada(),
+					0.0,
 					usuariosLoja);
 		} else {
 			Clientes cliente = findCustomer(cpfOrCnpj);
-			venda = new Venda(null, caixa, cliente, LocalDateTime.now(), 0.0, usuariosLoja.getLojaVinculada(), 0.0,
+			venda = new Venda(null, caixa, cliente, LocalDateTime.now(), 0.0, 0.0, false,
+					usuariosLoja.getLojaVinculada(), 0.0,
 					usuariosLoja);
 		}
 		return venda;
@@ -99,7 +112,8 @@ public class VendaService {
 			VendaResponse vendaResponse = new VendaResponse(venda.getId(), venda.getTicket(), venda.getCaixa().getId(),
 					venda.getCliente() != null ? venda.getCliente().getCpfCnpj() : null,
 					venda.getDataHora(), venda.getValorTotal(),
-					venda.getLoja().getId(), venda.getDesconto(), venda.getUsuario().getNomeVendedor(), null);
+					venda.getLoja().getId(), venda.getDesconto(), venda.getUsuario().getNomeVendedor(), null,
+					venda.getCancelada(), venda.getValorCancelado(), venda.getMotivoCancelamento(), venda.getDataCancelamento());
 			for (Pagamento pagamento : venda.getPgto()) {
 				if (venda.getId().equals(pagamento.getVenda().getId())) {
 					vendaResponse.setNumero_fiscal(pagamento.getNotaFiscal().getNfNumero());
@@ -132,13 +146,12 @@ public class VendaService {
 	private VendaResponse montaDto(Venda venda) {
 		return new VendaResponse(venda.getId(), venda.getTicket(), venda.getCaixa().getId(), null, venda.getDataHora(),
 				venda.getValorTotal(), venda.getLoja().getId(), venda.getDesconto(),
-				venda.getUsuario().getNomeVendedor(), null);
+				venda.getUsuario().getNomeVendedor(), null,
+				false, null, null, null);
 	}
 
-	
-
 	@Transactional
-	public void cancelarVenda(Long idVenda) {
+	public void cancelarVenda(Long idVenda, String motivoCancelamento) {
 		UsuariosLoja usuarioLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		Venda venda = this.vendaRepository.selectByIdAndCodLoja(
@@ -148,15 +161,36 @@ public class VendaService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,
 					"Venda não encontrada. Verifique o ID informado e tente novamente.");
 		}
-
-
+		if (venda.getCancelada()) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Venda ja cancelada");
+		}
+		validaTempoDeVendaFeita(venda);
 		List<ItemVenda> itensCarregados = new ArrayList<>(venda.getItemVenda());
-
+		venda.getCaixa().setValorFinal(venda.getCaixa().getValorFinal() - venda.getValorTotal());
+		alteraStatuParaVendaCancelada(venda, motivoCancelamento);
 		this.estoqueRollbackService.retornarEstoqueParaSuaOrigem(venda, itensCarregados);
-		this.estoqueRollbackService.deletarVenda(venda);
+		NotaFiscal notaFiscal = this.notaFiscalRepository.findInvoiceByIdVendaAndCodeStore(venda.getId(),
+				venda.getLoja().getId());
+		if (notaFiscal != null) {
+			this.notaFiscalService.atualizacaoFiscalVendaCancelada(notaFiscal, motivoCancelamento);
+		}
+		this.vendaRepository.save(venda);
+
 	}
 
+	private void validaTempoDeVendaFeita(Venda venda) {
+		if (ChronoUnit.MINUTES.between(venda.getDataHora(), LocalDateTime.now()) >= 10) {
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					" A venda ja foi feita a mais de 10 minutos atras");
+		}
+	}
 
-
+	private void alteraStatuParaVendaCancelada(Venda venda, String motivoCancelamento) {
+		venda.setCancelada(true);
+		venda.setValorCancelado(venda.getValorTotal());
+		venda.setValorTotal(0.0);
+		venda.setDataCancelamento(LocalDateTime.now());
+		venda.setMotivoCancelamento(motivoCancelamento);
+	}
 
 }

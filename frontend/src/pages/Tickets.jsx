@@ -7,18 +7,13 @@ function toDateStr(date) {
   return date.toISOString().slice(0, 10);
 }
 
-function statusBadge(status) {
-  const s = (status || '').toLowerCase();
-  if (s.includes('cancel')) return 'bg-red-100 text-red-700 border-red-200';
-  if (s.includes('pend'))   return 'bg-amber-100 text-amber-700 border-amber-200';
+function statusBadge(cancelada) {
+  if (cancelada) return 'bg-red-100 text-red-700 border-red-200';
   return 'bg-emerald-100 text-emerald-700 border-emerald-200';
 }
 
-function statusLabel(status) {
-  const s = (status || '').toLowerCase();
-  if (s.includes('cancel')) return 'Cancelada';
-  if (s.includes('pend'))   return 'Pendente';
-  return 'Concluída';
+function statusLabel(cancelada) {
+  return cancelada ? 'Cancelada' : 'Concluída';
 }
 
 const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -53,6 +48,7 @@ export default function Tickets() {
   const [detalhe,      setDetalhe]      = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [cancelando,   setCancelando]   = useState(false);
+  const [motivo,       setMotivo]       = useState('');
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -87,21 +83,23 @@ export default function Tickets() {
   });
 
   const totalValor      = vendasFiltradas.reduce((acc, v) => acc + (v.valorTotal || 0), 0);
-  const totalCanceladas = vendasFiltradas.filter(v => (v.status || '').toLowerCase().includes('cancel')).length;
+  const totalCanceladas = vendasFiltradas.filter(v => v.cancelada).length;
 
-  const podeCancelar = v => !(v.status || '').toLowerCase().includes('cancel');
+  const podeCancelar = v => !v.cancelada;
 
   const abrirCancelar = (e, venda) => {
     e.stopPropagation();
+    setMotivo('');
     setConfirmModal({ venda });
   };
 
   const confirmarCancelamento = async () => {
     const id = getId(confirmModal.venda);
     if (!id) { showAlert('Não foi possível identificar a venda.', 'error'); return; }
+    if (!motivo.trim()) { showAlert('Informe o motivo do cancelamento.', 'error'); return; }
     setCancelando(true);
     try {
-      await vendaService.cancelarVenda(id);
+      await vendaService.cancelarVenda(id, motivo.trim());
       showAlert('Venda cancelada com sucesso!', 'success');
       setConfirmModal(null);
       if (getId(detalhe) === id) setDetalhe(null);
@@ -183,19 +181,21 @@ export default function Tickets() {
               <div
                 key={id}
                 onClick={() => setDetalhe(selecionado ? null : v)}
-                className={`bg-surface border rounded-2xl px-lg py-md flex items-center gap-md cursor-pointer hover:border-primary transition-all duration-200 ${selecionado ? 'border-primary ring-2 ring-primary/10' : 'border-outline-variant'}`}
+                className={`bg-surface border rounded-2xl px-lg py-md flex items-center gap-md cursor-pointer hover:border-primary transition-all duration-200 ${v.cancelada ? 'border-red-200 bg-red-50/40' : selecionado ? 'border-primary ring-2 ring-primary/10' : 'border-outline-variant'}`}
               >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-primary text-[20px]">confirmation_number</span>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${v.cancelada ? 'bg-red-100' : 'bg-primary/10'}`}>
+                  <span className={`material-symbols-outlined text-[20px] ${v.cancelada ? 'text-red-500' : 'text-primary'}`}>
+                    {v.cancelada ? 'cancel' : 'confirmation_number'}
+                  </span>
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-sm flex-wrap">
                     <span className="text-label-md font-bold text-on-surface">
-                      #{id}{v.ticket_venda ? ` · ${v.ticket_venda}` : ''}
+                      #{id}{v.ticket ? ` · Ticket ${v.ticket}` : ''}
                     </span>
-                    <span className={`text-[11px] font-semibold px-sm py-[2px] rounded-full border ${statusBadge(v.status)}`}>
-                      {statusLabel(v.status)}
+                    <span className={`text-[11px] font-semibold px-sm py-[2px] rounded-full border ${statusBadge(v.cancelada)}`}>
+                      {statusLabel(v.cancelada)}
                     </span>
                   </div>
                   <p className="text-body-sm text-on-surface-variant truncate">
@@ -205,9 +205,18 @@ export default function Tickets() {
                 </div>
 
                 <div className="text-right flex-shrink-0 mr-sm">
-                  <p className="text-label-md font-bold text-on-surface">{fmt(v.valorTotal)}</p>
-                  {v.desconto > 0 && (
-                    <p className="text-body-sm text-on-surface-variant">desc. {fmt(v.desconto)}</p>
+                  {v.cancelada ? (
+                    <>
+                      <p className="text-label-md font-bold text-red-500 line-through">{fmt(v.valorCancelado)}</p>
+                      <p className="text-[11px] font-semibold text-red-500">VENDA CANCELADA</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-label-md font-bold text-on-surface">{fmt(v.valorTotal)}</p>
+                      {v.desconto > 0 && (
+                        <p className="text-body-sm text-on-surface-variant">desc. {fmt(v.desconto)}</p>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -244,16 +253,38 @@ export default function Tickets() {
 
             <div className="space-y-sm text-body-sm">
               <Row label="ID da Venda"  value={`#${getId(detalhe)}`} />
-              {detalhe.ticket_venda && <Row label="Ticket"   value={detalhe.ticket_venda} />}
+              {detalhe.ticket && <Row label="Ticket" value={`#${detalhe.ticket}`} />}
               <Row label="Data / Hora" value={fmtData(detalhe.dataHora)} />
               <div className="flex justify-between items-center">
                 <span className="text-on-surface-variant">Status</span>
-                <span className={`text-[11px] font-semibold px-sm py-[2px] rounded-full border ${statusBadge(detalhe.status)}`}>
-                  {statusLabel(detalhe.status)}
+                <span className={`text-[11px] font-semibold px-sm py-[2px] rounded-full border ${statusBadge(detalhe.cancelada)}`}>
+                  {statusLabel(detalhe.cancelada)}
                 </span>
               </div>
-              <Row label="Valor Total" value={fmt(detalhe.valorTotal)} bold />
-              {detalhe.desconto > 0 && <Row label="Desconto" value={fmt(detalhe.desconto)} />}
+              {detalhe.cancelada ? (
+                <>
+                  <div className="flex justify-between items-start gap-sm">
+                    <span className="text-on-surface-variant flex-shrink-0">Valor Cancelado</span>
+                    <span className="font-bold text-red-500 line-through text-right">{fmt(detalhe.valorCancelado)}</span>
+                  </div>
+                  {detalhe.dataCancelamento && (
+                    <Row label="Cancelado em" value={fmtData(detalhe.dataCancelamento)} />
+                  )}
+                  {detalhe.motivoCancelamento && (
+                    <div className="flex flex-col gap-xs pt-xs">
+                      <span className="text-on-surface-variant">Motivo</span>
+                      <p className="text-on-surface bg-red-50 border border-red-100 rounded-lg px-sm py-xs leading-snug">
+                        {detalhe.motivoCancelamento}
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Row label="Valor Total" value={fmt(detalhe.valorTotal)} bold />
+                  {detalhe.desconto > 0 && <Row label="Desconto" value={fmt(detalhe.desconto)} />}
+                </>
+              )}
               {(detalhe.cliente?.nome || detalhe.nomeCliente) && (
                 <Row label="Cliente" value={detalhe.cliente?.nome || detalhe.nomeCliente} />
               )}
@@ -319,6 +350,20 @@ export default function Tickets() {
               <strong>{fmt(confirmModal.venda.valorTotal)}</strong>.
               O estoque será revertido conforme validação fiscal.
             </p>
+
+            <div className="flex flex-col gap-xs">
+              <label className="text-label-md font-semibold text-on-surface-variant">
+                Motivo do cancelamento <span className="text-error">*</span>
+              </label>
+              <textarea
+                value={motivo}
+                onChange={e => setMotivo(e.target.value)}
+                placeholder="Descreva o motivo do cancelamento..."
+                rows={3}
+                disabled={cancelando}
+                className="w-full px-md py-sm bg-surface border border-outline-variant rounded-xl text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none disabled:opacity-60"
+              />
+            </div>
 
             <div className="flex gap-md">
               <button
