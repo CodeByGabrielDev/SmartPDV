@@ -45,9 +45,11 @@ public class CaixaService {
 				.getPrincipal();
 
 		Caixa caixa = this.caixa.findById(idCaixa).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa #" + idCaixa + " não encontrado. Verifique o ID e tente novamente."));
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						"Caixa #" + idCaixa + " não encontrado. Verifique o ID e tente novamente."));
 		if (caixa.getFechado()) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Este caixa já foi fechado e não pode ser operado novamente.");
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Este caixa já foi fechado e não pode ser operado novamente.");
 		}
 
 		if (usuarioSession.getLojaVinculada().getId() != caixa.getLoja().getId()) {
@@ -64,7 +66,8 @@ public class CaixaService {
 	@Transactional
 	public void alimentaCaixaAberto(Double valorParaAlimentar, long idCaixa, UsuariosLoja funcionarioAtual) {
 		Caixa caixa = this.caixa.findById(idCaixa).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Caixa #" + idCaixa + " não encontrado. Verifique se o caixa está aberto nesta loja."));
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						"Caixa #" + idCaixa + " não encontrado. Verifique se o caixa está aberto nesta loja."));
 
 		if (caixa.getLoja().getId() != funcionarioAtual.getLojaVinculada().getId()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
@@ -84,9 +87,11 @@ public class CaixaService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT,
 					"Ja existe um caixa aberto nessa loja, validar o caixa numero: " + caixa.getId());
 		}
-		Caixa novoCaixa = this.caixa.save(new Caixa(usuarioSession.getLojaVinculada(), usuarioSession, LocalDateTime.now(), null, 0.0,
-				0.0, false));
-		return new CaixaAberturaResponse(novoCaixa.getId(), usuarioSession.getLojaVinculada().getRazaoSocial(), usuarioSession.getLogin(),
+		Caixa novoCaixa = this.caixa
+				.save(new Caixa(usuarioSession.getLojaVinculada(), usuarioSession, LocalDateTime.now(), null, 0.0,
+						0.0, 0.0, false));
+		return new CaixaAberturaResponse(novoCaixa.getId(), usuarioSession.getLojaVinculada().getRazaoSocial(),
+				usuarioSession.getLogin(),
 				LocalDateTime.now());
 	}
 }

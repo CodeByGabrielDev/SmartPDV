@@ -9,8 +9,10 @@ export const vendaService = {
     return response.data;
   },
 
-  cancelarVenda: async (idVenda) => {
-    await api.delete(`/api-smartpdv/point-of-sale/cancelar/${idVenda}`);
+  cancelarVenda: async (idVenda, motivoCancelamento) => {
+    await api.delete(`/api-smartpdv/point-of-sale/cancelar/${idVenda}`, {
+      params: { motivoCancelamento },
+    });
   },
 
   relatorioVendas: async (dataInicial, dataFinal) => {

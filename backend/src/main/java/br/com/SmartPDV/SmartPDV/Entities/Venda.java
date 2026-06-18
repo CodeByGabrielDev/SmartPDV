@@ -40,6 +40,13 @@ public class Venda {
 	private LocalDateTime dataHora;
 	@Column(name = "valor_total")
 	private Double valorTotal;
+	@Column(name = "valor_cancelado")
+	private Double valorCancelado;
+	@Column(name = "data_cancelamento")
+	private LocalDateTime dataCancelamento;
+	@Column(name = "motivo_cancelamento")
+	private String motivoCancelamento;
+	private Boolean cancelada;
 	@ManyToOne
 	@JoinColumn(name = "id_filial")
 	private Loja loja;
@@ -54,7 +61,8 @@ public class Venda {
 	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<NotaFiscal> nota = new ArrayList<>();
 
-	public Venda(Long ticket, Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal, Loja loja,
+	public Venda(Long ticket, Caixa caixa, Clientes cliente, LocalDateTime dataHora, Double valorTotal,
+			Double valorCancelado, Boolean cancelada, Loja loja,
 			Double desconto,
 			UsuariosLoja usuario) {
 		super();
@@ -63,6 +71,8 @@ public class Venda {
 		this.cliente = cliente;
 		this.dataHora = dataHora;
 		this.valorTotal = valorTotal;
+		this.valorCancelado = valorCancelado;
+		this.cancelada = cancelada;
 		this.loja = loja;
 		this.desconto = desconto;
 		this.usuario = usuario;

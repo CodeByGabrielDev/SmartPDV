@@ -288,6 +288,19 @@ public class NotaFiscalService {
 	}
 
 	@Transactional
+	public void cancelarNotaFiscalPorVenda(Long idNotaFiscal, String motivoCancelamento) {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		NotaFiscal notaFiscal = this.notaFiscalRepo.findById(idNotaFiscal)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						" Nota fiscal não encontrada no banco de dados"));
+		validacoesDeCancelamentoDaNota(usuariosLoja, notaFiscal, motivoCancelamento);
+		atualizaCamposParaCancelados(notaFiscal, motivoCancelamento);
+
+	}
+
+	@Transactional
 	public void cancelarNotaFiscal(Long idNotaFiscal, String motivoCancelamento) {
 		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
@@ -318,6 +331,33 @@ public class NotaFiscalService {
 
 		return false;
 
+	}
+	@Transactional
+	public void atualizacaoFiscalVendaCancelada(NotaFiscal notaFiscal, String motivoCancelamento) {
+		if (notaFiscal.getStatusNota() == StatusNotaFiscal.PENDENTE) {
+			this.inutilizarNotaFiscalPorVenda(notaFiscal.getId());
+		} else {
+			this.cancelarNotaFiscalPorVenda(notaFiscal.getId(), motivoCancelamento);
+		}
+	}
+
+	@Transactional
+	public void inutilizarNotaFiscalPorVenda(Long idNotaFiscal) {
+		UsuariosLoja usuariosLoja = (UsuariosLoja) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		NotaFiscal notaFiscal = this.notaFiscalRepo.findById(idNotaFiscal)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						" Nota fiscal não encontrada no banco de dados"));
+		if (!notaFiscal.getLoja().getId().equals(usuariosLoja.getLojaVinculada().getId())) {
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					" não é permitido realizar a inutilizacao de uma nota que nao pertence a sua loja");
+		}
+		if (notaFiscal.getStatusNota() != StatusNotaFiscal.PENDENTE) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					" não é possivel realizar a inutilizacao de uma nota NAO PENDENTE");
+		}
+		notaFiscal.setStatusNota(StatusNotaFiscal.INUTILIZADA);
 	}
 
 	@Transactional

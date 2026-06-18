@@ -35,32 +35,99 @@ function MetricCard({ icon, label, value, sub, badge, badgeCls, alert, onClick }
   );
 }
 
-function BarChart({ data }) {
-  if (!data || data.length === 0) return <div className="flex items-center justify-center h-full text-on-surface-variant">Sem dados</div>;
+const HORAS_COMERCIAIS = Array.from({ length: 17 }, (_, i) => i + 6); // 6h até 22h
+
+function BarChart({ data, horaAtual }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-on-surface-variant">
+        Sem dados para exibir
+      </div>
+    );
+  }
+
   const max = Math.max(...data.map(d => d.value), 1);
-  const nonZero = data.filter(d => d.value > 0);
-  const display = nonZero.length > 0 ? nonZero : data.slice(0, 7);
 
   return (
-    <div className="flex items-end justify-between gap-sm h-64 w-full">
-      {display.map((d, i) => {
+    <div className="flex items-end justify-between gap-1 h-56 w-full">
+      {data.map((d, i) => {
         const pct = Math.round((d.value / max) * 100);
+        const isAtual = d.hora === horaAtual;
+        const temVenda = d.value > 0;
+
         return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-sm">
+          <div key={i} className="flex-1 flex flex-col items-center gap-xs">
             <div
-              className="w-full bg-primary/10 rounded-t-lg hover:bg-primary/25 transition-all cursor-pointer relative group"
-              style={{ height: `${Math.max(pct, 4)}%` }}
+              className={`w-full rounded-t-md transition-all relative group ${
+                isAtual
+                  ? 'bg-primary shadow-sm'
+                  : temVenda
+                  ? 'bg-primary/40 hover:bg-primary/60'
+                  : 'bg-surface-container hover:bg-surface-container-high'
+              }`}
+              style={{ height: `${temVenda ? Math.max(pct, 6) : 4}%` }}
             >
-              <div className="hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-xs px-sm py-xs rounded whitespace-nowrap z-10">
-                {d.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </div>
+              {temVenda && (
+                <div className="hidden group-hover:flex absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-xs px-sm py-xs rounded-lg whitespace-nowrap z-10 items-center gap-xs shadow-lg">
+                  <span className="material-symbols-outlined text-[14px]">payments</span>
+                  {d.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </div>
+              )}
             </div>
-            <span className="font-geist-mono text-mono-label text-on-surface-variant">{d.label}</span>
+            <span className={`text-[10px] font-mono ${isAtual ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
+              {d.label}
+            </span>
           </div>
         );
       })}
     </div>
   );
+}
+
+function exportarCSV(vendas, periodo) {
+  const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const totalVendas = vendas.reduce((s, v) => s + (v.valorTotal || 0), 0);
+  const totalDescontos = vendas.reduce((s, v) => s + (v.desconto || 0), 0);
+  const ticketMedio = vendas.length > 0 ? totalVendas / vendas.length : 0;
+
+  const porHora = HORAS_COMERCIAIS.map(h => ({
+    hora: `${h}h`,
+    valor: vendas.filter(v => new Date(v.dataHora).getHours() === h).reduce((s, v) => s + (v.valorTotal || 0), 0),
+  }));
+
+  const linhas = [
+    [`Exportação do Dashboard — ${periodo}`],
+    [`Gerado em: ${new Date().toLocaleString('pt-BR')}`],
+    [],
+    ['RESUMO DO DIA'],
+    ['Faturamento Total', fmt(totalVendas)],
+    ['Ticket Médio', fmt(ticketMedio)],
+    ['Total de Descontos', fmt(totalDescontos)],
+    ['Quantidade de Vendas', vendas.length],
+    [],
+    ['FATURAMENTO POR HORA'],
+    ['Hora', 'Faturamento'],
+    ...porHora.map(h => [h.hora, h.valor.toFixed(2).replace('.', ',')]),
+    [],
+    ['VENDAS REALIZADAS'],
+    ['Ticket', 'Vendedor', 'Data/Hora', 'Valor (R$)', 'Desconto (R$)'],
+    ...vendas.map(v => [
+      v.ticket || v.id,
+      v.nomeVendedor || '—',
+      v.dataHora ? new Date(v.dataHora).toLocaleString('pt-BR') : '—',
+      (v.valorTotal || 0).toFixed(2).replace('.', ','),
+      (v.desconto || 0).toFixed(2).replace('.', ','),
+    ]),
+  ];
+
+  const csv = linhas.map(l => l.join(';')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `dashboard_${periodo.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export default function DashboardHome() {
@@ -69,13 +136,20 @@ export default function DashboardHome() {
   const [notas, setNotas] = useState([]);
   const [pendentes, setPendentes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [periodo, setPeriodo] = useState('Hoje');
+
+  const horaAtual = new Date().getHours();
 
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       try {
+        const fetchVendas = periodo === 'Hoje'
+          ? dashboardService.vendasHoje()
+          : dashboardService.vendasOntem();
+
         const [v, n, p] = await Promise.allSettled([
-          dashboardService.vendasHoje(),
+          fetchVendas,
           dashboardService.notasFiscais(),
           dashboardService.notasPendentes(),
         ]);
@@ -87,7 +161,7 @@ export default function DashboardHome() {
       }
     };
     fetchAll();
-  }, []);
+  }, [periodo]);
 
   const totalVendas = vendas.reduce((s, v) => s + (v.valorTotal || 0), 0);
   const totalDescontos = vendas.reduce((s, v) => s + (v.desconto || 0), 0);
@@ -96,7 +170,8 @@ export default function DashboardHome() {
   const qtdNotas = notas.length;
   const qtdPendentes = pendentes.length;
 
-  const porHora = Array.from({ length: 24 }, (_, h) => ({
+  const porHora = HORAS_COMERCIAIS.map(h => ({
+    hora: h,
     label: `${h}h`,
     value: vendas.filter(v => new Date(v.dataHora).getHours() === h).reduce((s, v) => s + (v.valorTotal || 0), 0),
   }));
@@ -126,7 +201,7 @@ export default function DashboardHome() {
       <div className="flex items-center justify-between mb-xl">
         <div>
           <h1 className="text-headline-md font-bold text-on-surface">Dashboard</h1>
-          <p className="text-body-sm text-on-surface-variant mt-xs">Visão geral das operações de hoje</p>
+          <p className="text-body-sm text-on-surface-variant mt-xs">Visão geral das operações de {periodo === 'Hoje' ? 'hoje' : 'ontem'}</p>
         </div>
         <button
           onClick={() => navigate('venda')}
@@ -141,34 +216,28 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
         <MetricCard
           icon="payments"
-          label="Faturamento Hoje"
+          label="Faturamento"
           value={fmt(totalVendas)}
-          sub={`${qtdVendas} vendas concluídas`}
-          badge="+12%"
-          badgeCls="text-emerald-700 bg-emerald-100 border border-emerald-200"
-          onClick={() => navigate('venda')}
+          sub={`${qtdVendas} venda${qtdVendas !== 1 ? 's' : ''} concluída${qtdVendas !== 1 ? 's' : ''}`}
+          onClick={() => navigate('tickets')}
         />
         <MetricCard
           icon="receipt"
           label="Ticket Médio"
           value={fmt(ticketMedio)}
           sub={`Desconto total: ${fmt(totalDescontos)}`}
-          badge={`Meta: ${fmt(85)}`}
-          badgeCls="text-on-surface-variant bg-surface-container border border-outline-variant"
         />
         <MetricCard
           icon="description"
           label="Notas Fiscais"
           value={qtdNotas}
-          sub="NFC-e emitidas hoje"
-          badge="100% Sinc."
-          badgeCls="text-primary bg-primary-container/20 border border-primary/20 font-bold"
+          sub="NF-e emitidas"
           onClick={() => navigate('notafiscal')}
         />
         <MetricCard
           icon="inventory_2"
           label="Entradas Pendentes"
-          value={`${qtdPendentes} Notas`}
+          value={`${qtdPendentes} Nota${qtdPendentes !== 1 ? 's' : ''}`}
           sub="Aguardando conferência de estoque"
           alert={qtdPendentes > 0}
           onClick={() => navigate('entrada-mercadoria')}
@@ -182,21 +251,45 @@ export default function DashboardHome() {
           <div className="flex justify-between items-center mb-xl">
             <div>
               <h3 className="text-headline-md font-bold text-on-surface">Faturamento por Hora</h3>
-              <p className="text-body-sm text-on-surface-variant mt-xs">Desempenho operacional do dia corrente</p>
+              <p className="text-body-sm text-on-surface-variant mt-xs">Horário comercial (6h–22h)</p>
             </div>
             <div className="flex gap-sm">
-              <button className="px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-xl text-label-md font-semibold hover:bg-surface-container-high transition-colors">
+              <button
+                onClick={() => exportarCSV(vendas, periodo)}
+                className="px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-xl text-label-md font-semibold hover:bg-surface-container-high transition-colors flex items-center gap-xs"
+              >
+                <span className="material-symbols-outlined text-[16px]">download</span>
                 Exportar
               </button>
-              <select className="px-md py-sm bg-surface border border-outline-variant text-on-surface rounded-xl text-label-md font-semibold focus:ring-primary focus:outline-none">
+              <select
+                value={periodo}
+                onChange={e => setPeriodo(e.target.value)}
+                className="px-md py-sm bg-surface border border-outline-variant text-on-surface rounded-xl text-label-md font-semibold focus:ring-primary focus:outline-none cursor-pointer"
+              >
                 <option>Hoje</option>
                 <option>Ontem</option>
               </select>
             </div>
           </div>
           <div className="flex-1">
-            <BarChart data={porHora} />
+            <BarChart data={porHora} horaAtual={periodo === 'Hoje' ? horaAtual : -1} />
           </div>
+          {periodo === 'Hoje' && (
+            <div className="flex items-center gap-lg mt-md pt-md border-t border-outline-variant/50">
+              <div className="flex items-center gap-xs">
+                <div className="w-3 h-3 rounded-sm bg-primary" />
+                <span className="text-body-sm text-on-surface-variant">Hora atual</span>
+              </div>
+              <div className="flex items-center gap-xs">
+                <div className="w-3 h-3 rounded-sm bg-primary/40" />
+                <span className="text-body-sm text-on-surface-variant">Com vendas</span>
+              </div>
+              <div className="flex items-center gap-xs">
+                <div className="w-3 h-3 rounded-sm bg-surface-container" />
+                <span className="text-body-sm text-on-surface-variant">Sem vendas</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recent sales table */}
@@ -204,14 +297,13 @@ export default function DashboardHome() {
           <div className="flex justify-between items-center mb-lg">
             <h3 className="text-headline-md font-bold text-on-surface">Últimas Vendas</h3>
             <button
-              onClick={() => navigate('venda')}
+              onClick={() => navigate('tickets')}
               className="text-label-md font-semibold text-primary hover:underline"
             >
               Ver todas
             </button>
           </div>
           <div className="flex flex-col">
-            {/* Table header */}
             <div className="grid grid-cols-4 pb-sm border-b border-outline-variant mb-sm">
               {['Ticket', 'Vendedor', 'Hora', 'Valor'].map(h => (
                 <span key={h} className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right last:text-right first:text-left">
@@ -226,7 +318,7 @@ export default function DashboardHome() {
                 </div>
                 <div>
                   <p className="text-label-md font-semibold text-on-surface">Nenhuma venda</p>
-                  <p className="text-body-sm text-on-surface-variant mt-xs">Nenhuma venda registrada hoje</p>
+                  <p className="text-body-sm text-on-surface-variant mt-xs">Nenhuma venda registrada {periodo === 'Hoje' ? 'hoje' : 'ontem'}</p>
                 </div>
               </div>
             ) : (
@@ -234,7 +326,7 @@ export default function DashboardHome() {
                 {ultimasVendas.map((v, i) => (
                   <div
                     key={v.id}
-                    className={`grid grid-cols-4 py-sm items-center rounded-lg px-xs cursor-pointer transition-colors ${i % 2 === 0 ? 'hover:bg-surface-container/50' : 'bg-surface-container-low/40 hover:bg-surface-container/50'}`}
+                    className={`grid grid-cols-4 py-sm items-center rounded-lg px-xs ${i % 2 === 0 ? 'hover:bg-surface-container/50' : 'bg-surface-container-low/40 hover:bg-surface-container/50'}`}
                   >
                     <span className="font-geist-mono text-mono-label text-on-surface">#{v.ticket || v.id}</span>
                     <span className="text-body-sm text-on-surface-variant truncate">{v.nomeVendedor || '—'}</span>
@@ -256,9 +348,9 @@ export default function DashboardHome() {
               <span className="material-symbols-outlined">priority_high</span>
             </div>
             <div>
-              <h4 className="text-label-md font-bold text-white">Pendências de Transmissão</h4>
+              <h4 className="text-label-md font-bold text-white">Entradas de Mercadoria Pendentes</h4>
               <p className="text-body-sm text-white/80">
-                Existem {qtdPendentes} Notas Fiscais pendentes. Risco de multa após 24h.
+                {qtdPendentes} nota{qtdPendentes !== 1 ? 's' : ''} aguardando conferência de estoque.
               </p>
             </div>
           </div>

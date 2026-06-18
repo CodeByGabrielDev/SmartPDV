@@ -39,28 +39,25 @@ public class Caixa {
 	private LocalDateTime dataFechamento;
 	@Column(name = "valor_incial")
 	private Double valorInicial;
+	@Column(name = "valor_cancelado")
+	private Double valorCancelado;
 	@Column(name = "valor_final")
 	private Double valorFinal;
 	private Boolean fechado;
 	@OneToMany(mappedBy = "caixa")
 	private List<Venda> venda = new ArrayList<>();
 
-
 	public Caixa(Loja loja, UsuariosLoja usuarios, LocalDateTime dataAbertura, LocalDateTime dataFechamento,
-			Double valorInicial, Double valorFinal, Boolean fechado) {
+			Double valorInicial, Double valorCancelado, Double valorFinal, Boolean fechado) {
 		super();
 		this.loja = loja;
 		this.usuarios = usuarios;
 		this.dataAbertura = dataAbertura;
 		this.dataFechamento = dataFechamento;
 		this.valorInicial = valorInicial;
+		this.valorCancelado = valorCancelado;
 		this.valorFinal = valorFinal;
 		this.fechado = fechado;
 	}
-	
-	
-	
-
-	
 
 }

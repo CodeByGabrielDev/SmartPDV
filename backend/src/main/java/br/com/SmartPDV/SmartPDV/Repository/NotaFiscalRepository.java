@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import br.com.SmartPDV.SmartPDV.Entities.NotaFiscal;
+import br.com.SmartPDV.SmartPDV.Entities.Venda;
 
 @Repository
 public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, Long> {
@@ -25,4 +26,6 @@ public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, Long> {
     @Query("SELECT DISTINCT E FROM NotaFiscal E LEFT JOIN FETCH E.numero WHERE E.loja.id = :idLoja")
     List<NotaFiscal> findIssuedInvoicesWithImpostos(@Param("idLoja") Long idLoja);
 
+    @Query("SELECT E FROM NotaFiscal E WHERE E.venda.id = :idVenda AND E.loja.id = :idLoja")
+    NotaFiscal findInvoiceByIdVendaAndCodeStore(@Param("idVenda") Long idVenda, @Param("idLoja") Long idLoja);
 }

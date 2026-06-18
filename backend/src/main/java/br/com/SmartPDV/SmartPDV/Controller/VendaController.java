@@ -39,11 +39,10 @@ public class VendaController {
 		return this.vendaService.relatorioDeVendasPorDia(dataInicial, dataFinal);
 	}
 
-
 	@DeleteMapping("/cancelar/{idVenda}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void cancelarVenda(@PathVariable Long idVenda) {
-		this.vendaService.cancelarVenda(idVenda);
+	public void cancelarVenda(@PathVariable Long idVenda, String motivoCancelamento) {
+		this.vendaService.cancelarVenda(idVenda, motivoCancelamento);
 	}
 
 }

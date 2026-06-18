@@ -54,6 +54,7 @@ public class NotaFiscal {
 	private Double valorBrutoNota;
 	@Column(name = "valor_liquido_nota")
 	private Double valorLiquidoNota;
+
 	@ManyToOne
 	@JoinColumn(name = "id_venda_vinculada")
 	private Venda venda;

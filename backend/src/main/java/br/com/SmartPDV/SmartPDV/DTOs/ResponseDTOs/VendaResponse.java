@@ -42,4 +42,16 @@ public class VendaResponse {
 	
 	@JsonProperty("numeroFiscal")
 	private Long numero_fiscal;
+
+	@JsonProperty("cancelada")
+	private Boolean cancelada;
+
+	@JsonProperty("valorCancelado")
+	private Double valorCancelado;
+
+	@JsonProperty("motivoCancelamento")
+	private String motivoCancelamento;
+
+	@JsonProperty("dataCancelamento")
+	private LocalDateTime dataCancelamento;
 }
