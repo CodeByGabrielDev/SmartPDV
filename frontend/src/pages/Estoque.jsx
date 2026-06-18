@@ -191,9 +191,6 @@ export default function Estoque() {
                   </div>
                   <div className="flex justify-between items-center pt-xs">
                     <span className="text-body-sm text-on-surface-variant">🏪 {item.nome_loja}</span>
-                    <button className="p-sm bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container hover:text-white transition-colors">
-                      <span className="material-symbols-outlined">visibility</span>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -241,13 +238,6 @@ export default function Estoque() {
         </div>
       )}
 
-      {/* FAB */}
-      <button className="fixed bottom-lg right-lg w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
-        <span className="material-symbols-outlined">add</span>
-        <span className="absolute right-16 bg-on-surface text-white px-md py-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap text-label-md font-semibold">
-          Novo Produto
-        </span>
-      </button>
     </section>
   );
 }
