@@ -95,29 +95,32 @@ function exportarCSV(vendas, periodo) {
     valor: vendas.filter(v => new Date(v.dataHora).getHours() === h).reduce((s, v) => s + (v.valorTotal || 0), 0),
   }));
 
+  const COLS = 5;
+  const pad = row => [...row, ...Array(COLS - row.length).fill('')].slice(0, COLS);
+
   const linhas = [
-    [`Exportação do Dashboard — ${periodo}`],
-    [`Gerado em: ${new Date().toLocaleString('pt-BR')}`],
-    [],
-    ['RESUMO DO DIA'],
-    ['Faturamento Total', fmt(totalVendas)],
-    ['Ticket Médio', fmt(ticketMedio)],
-    ['Total de Descontos', fmt(totalDescontos)],
-    ['Quantidade de Vendas', vendas.length],
-    [],
-    ['FATURAMENTO POR HORA'],
-    ['Hora', 'Faturamento'],
-    ...porHora.map(h => [h.hora, h.valor.toFixed(2).replace('.', ',')]),
-    [],
-    ['VENDAS REALIZADAS'],
-    ['Ticket', 'Vendedor', 'Data/Hora', 'Valor (R$)', 'Desconto (R$)'],
-    ...vendas.map(v => [
+    pad([`Exportação do Dashboard — ${periodo}`]),
+    pad([`Gerado em: ${new Date().toLocaleString('pt-BR')}`]),
+    pad([]),
+    pad(['RESUMO DO DIA']),
+    pad(['Faturamento Total', fmt(totalVendas)]),
+    pad(['Ticket Médio', fmt(ticketMedio)]),
+    pad(['Total de Descontos', fmt(totalDescontos)]),
+    pad(['Quantidade de Vendas', vendas.length]),
+    pad([]),
+    pad(['FATURAMENTO POR HORA']),
+    pad(['Hora', 'Faturamento (R$)']),
+    ...porHora.map(h => pad([h.hora, h.valor.toFixed(2).replace('.', ',')])),
+    pad([]),
+    pad(['VENDAS REALIZADAS']),
+    pad(['Ticket', 'Vendedor', 'Data/Hora', 'Valor (R$)', 'Desconto (R$)']),
+    ...vendas.map(v => pad([
       v.ticket || v.id,
       v.nomeVendedor || '—',
       v.dataHora ? new Date(v.dataHora).toLocaleString('pt-BR') : '—',
       (v.valorTotal || 0).toFixed(2).replace('.', ','),
       (v.desconto || 0).toFixed(2).replace('.', ','),
-    ]),
+    ])),
   ];
 
   const csv = linhas.map(l => l.join(';')).join('\n');
